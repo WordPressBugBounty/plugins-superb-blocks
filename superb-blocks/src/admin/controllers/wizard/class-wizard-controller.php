@@ -352,13 +352,15 @@ class WizardController
 
             WizardPartCreator::CreateTemplateParts($selection_data, $stageUtil);
 
-            $menu_items = WizardPageCreator::CreateTemplatePages($selection_data, $stageUtil);
+            if ($stageUtil->HasPageStages()) {
+                $menu_items = WizardPageCreator::CreateTemplatePages($selection_data, $stageUtil);
 
-            if (empty($menu_items)) {
-                return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. Templates and/or pages were not able to be properly processed.", "superb-blocks")]);
+                if (empty($menu_items)) {
+                    return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. Templates and/or pages were not able to be properly processed.", "superb-blocks")]);
+                }
+
+                WizardMenuCreator::MaybeUpdateMenu($selection_data, $menu_items);
             }
-
-            WizardMenuCreator::MaybeUpdateMenu($selection_data, $menu_items);
 
             if ($stageUtil->GetType() === WizardActionParameter::THEME_DESIGNER) {
                 WizardController::CompleteWizard();

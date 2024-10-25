@@ -142,6 +142,11 @@ class WizardStageUtil
         return $this->isRestore;
     }
 
+    public function HasPageStages()
+    {
+        return !empty(array_intersect($this->stages, WizardStageTypes::PAGE_STAGES));
+    }
+
     public function GetAvailableConfiguredStages()
     {
         $available_stages = [];

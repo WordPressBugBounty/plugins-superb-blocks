@@ -6,7 +6,7 @@ namespace SuperbAddons;
 Plugin Name: Superb Addons - WordPress & Elementor Addons
 Plugin URI: http://superbthemes.com/
 Description: Superb Addons - WordPress & Elementor Addons
-Version: 3.4.0
+Version: 3.4.1
 Author: SuperbThemes
 Author URI: http://superbthemes.com/
 Text Domain: superb-blocks
@@ -21,7 +21,7 @@ if (!defined('WPINC')) {
 }
 // Constants
 if (!defined('SUPERBADDONS_VERSION')) {
-    define('SUPERBADDONS_VERSION', '3.4.0');
+    define('SUPERBADDONS_VERSION', '3.4.1');
 }
 
 if (!defined('SUPERBADDONS_LIBRARY_VERSION')) {
