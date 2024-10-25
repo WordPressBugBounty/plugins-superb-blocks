@@ -8,6 +8,9 @@ use Exception;
 use SuperbAddons\Admin\Controllers\AdminNoticeController;
 use SuperbAddons\Elementor\Controllers\ElementorController;
 use SuperbAddons\Admin\Controllers\DashboardController;
+use SuperbAddons\Admin\Controllers\NewsletterSignupController;
+use SuperbAddons\Admin\Controllers\Wizard\WizardController;
+use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Data\Controllers\CSSController;
 use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\RestController;
@@ -45,6 +48,7 @@ class SuperbAddonsPlugin
     {
         try {
             add_option('superbaddons_pre_activation', time(), false);
+            WizardController::MaybeSetWizardRecommenderTransient();
         } catch (Exception $e) {
             LogController::HandleException($e);
         }
@@ -54,7 +58,9 @@ class SuperbAddonsPlugin
     {
         try {
             LogController::MaybeUnsubscribeCron();
+            WizardRestorationPointController::MaybeUnsubscribeCron();
             AdminNoticeController::Cleanup();
+            NewsletterSignupController::Cleanup();
         } catch (Exception $e) {
             // Make sure deactivation succeeds
             LogController::HandleException($e);

@@ -326,7 +326,7 @@ class CSSController
     {
         $upload_dir = wp_upload_dir();
         $upload_dir = $upload_dir['baseurl'];
-        return $upload_dir . self::CSS_PATH;
+        return set_url_scheme($upload_dir . self::CSS_PATH);
     }
 
     private static function RemovePreviousCSSFiles()

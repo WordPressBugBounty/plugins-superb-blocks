@@ -54,6 +54,21 @@ class SupportPage
                         );
 
                         $this->AddResultBox(
+                            "network",
+                            "color-warning-octagon.svg",
+                            __('Network error', "superb-blocks"),
+                            array(
+                                __('Your current WordPress and/or webserver configuration is causing issues with the WordPress REST API.', "superb-blocks"),
+                                "",
+                                __('This issue can be caused by CORS restrictions on your website.', "superb-blocks"),
+                                "",
+                                __('This issue can also be caused by a misconfigured server, or a security plugin blocking the REST API. You can check if REST API is running correctly on your website by heading to "Tools -> Site Health" from the WordPress dashboard.', "superb-blocks"),
+                                "",
+                                __('If the issue can not be resolved manually, please contact our support team or your hosting provider for further assistance.', "superb-blocks")
+                            )
+                        );
+
+                        $this->AddResultBox(
                             "success",
                             "checkmark.svg",
                             __('No issues found', "superb-blocks"),
@@ -208,6 +223,9 @@ class SupportPage
             <div class="spbaddons-troubleshooting-result-item-body">
                 <?php
                 foreach ($text_arr as $text) {
+                    if (empty($text)) {
+                        echo "<br>";
+                    }
                 ?>
                     <p>
                         <?= esc_html($text); ?>

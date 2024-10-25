@@ -6,12 +6,12 @@ defined('ABSPATH') || exit();
 
 class PremiumOptionWrapper
 {
-    public function __construct($contentCallback, $classes = array())
+    public function __construct($contentCallback, $classes = array(), $allow_pointer_events = false)
     {
-        $this->Render($contentCallback, $classes);
+        $this->Render($contentCallback, $classes, $allow_pointer_events);
     }
 
-    private function Render($contentCallback, $classes)
+    private function Render($contentCallback, $classes, $allow_pointer_events)
     {
 ?>
         <div class="superbaddons-element-inlineflex-center <?= esc_attr(join(" ", $classes)); ?>">
@@ -23,7 +23,7 @@ class PremiumOptionWrapper
                     </div>
 
                 </div>
-                <div style="pointer-events: none; opacity:0.5;">
+                <div style="<?= $allow_pointer_events ? '' : 'pointer-events: none;'; ?> opacity:0.5;">
                     <?php SlotRenderUtility::Render($contentCallback); ?>
                 </div>
             </a>

@@ -3,7 +3,9 @@
 defined('ABSPATH') || exit();
 
 use SuperbAddons\Components\Badges\AvailableBadge;
+use SuperbAddons\Components\Badges\ExternalPluginRequiredBadge;
 use SuperbAddons\Components\Badges\PremiumBadge;
+use SuperbAddons\Components\Badges\UpdateRequiredBadge;
 use SuperbAddons\Components\Buttons\InsertButton;
 use SuperbAddons\Components\Buttons\PremiumButton;
 use SuperbAddons\Components\Buttons\PreviewButton;
@@ -21,6 +23,8 @@ use SuperbAddons\Components\Buttons\PreviewButton;
         <div class="superb-addons-template-library-template-item-footer-bottom">
             <?php
             new AvailableBadge();
+            new UpdateRequiredBadge();
+            new ExternalPluginRequiredBadge();
             new PremiumButton();
             new InsertButton();
             new PreviewButton();

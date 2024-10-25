@@ -5,8 +5,11 @@ namespace SuperbAddons\Gutenberg\Controllers;
 defined('ABSPATH') || exit();
 
 use SuperbAddons\Admin\Controllers\SettingsController;
+use SuperbAddons\Admin\Controllers\Wizard\WizardController;
+use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Data\Controllers\CompatibilitySettingsOptionKey;
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\ScriptTranslations;
 use SuperbAddons\Gutenberg\BlocksAPI\Controllers\DynamicBlockAssets;
 use SuperbAddons\Gutenberg\BlocksAPI\Controllers\RecentPostsController;
 use SuperbAddons\Library\Controllers\LibraryController;
@@ -32,6 +35,8 @@ class GutenbergController
 
     public function __construct()
     {
+        WizardRestorationPointController::Initialize();
+
         if (!self::is_compatible()) {
             return;
         }
@@ -42,18 +47,36 @@ class GutenbergController
 
         add_action("enqueue_block_assets", array($this, 'EnqueueEditorIframeAssets'));
         add_action("wp_enqueue_scripts", array($this, 'EnqueuePatternAssets'));
+
+        add_action('enqueue_block_editor_assets', array($this, 'EnqueueVariableFallbacks'), PHP_INT_MIN);
+        add_action("wp_enqueue_scripts", array($this, 'EnqueueVariableFallbacks'), PHP_INT_MIN);
+
         GutenbergEnhancementsController::Initialize();
+        WizardController::Initialize();
     }
 
     public static function is_compatible()
     {
-        // Check for required Elementor version
+        // Check for required WP version
         if (version_compare(get_bloginfo('version'), self::MINIMUM_WORDPRESS_VERSION, '<')) {
             return false;
         }
 
         // Check for required PHP version
         if (version_compare(PHP_VERSION, self::MINIMUM_PHP_VERSION, '<')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function is_block_theme()
+    {
+        if (!function_exists('wp_is_block_theme')) {
+            return false;
+        }
+
+        if (!wp_is_block_theme()) {
             return false;
         }
 
@@ -97,6 +120,16 @@ class GutenbergController
         );
     }
 
+    public function EnqueueVariableFallbacks()
+    {
+        wp_enqueue_style(
+            'superb-addons-variable-fallbacks',
+            SUPERBADDONS_ASSETS_PATH . '/css/variable-fallbacks.min.css',
+            array(),
+            SUPERBADDONS_VERSION
+        );
+    }
+
     public function EnqueueEditorIframeAssets()
     {
         global $pagenow;
@@ -117,6 +150,7 @@ class GutenbergController
             );
             // Patterns
             $this->EnqueuePatternAssets();
+            $this->EnqueueVariableFallbacks();
         }
     }
 
@@ -128,9 +162,10 @@ class GutenbergController
         wp_enqueue_script(
             'superb-addons-gutenberg-library',
             SUPERBADDONS_ASSETS_PATH . '/js/gutenberg/pattern-library.js',
-            array("wp-plugins", "wp-hooks", "wp-data", "wp-element", "wp-i18n", "wp-components", "wp-compose", "wp-blocks", "wp-editor"),
+            array("jquery", "wp-plugins", "wp-hooks", "wp-data", "wp-element", "wp-i18n", "wp-components", "wp-compose", "wp-blocks", "wp-editor"),
             SUPERBADDONS_VERSION
         );
+        ScriptTranslations::Set('superb-addons-gutenberg-library');
         wp_localize_script('superb-addons-gutenberg-library', 'superblayoutlibrary_g', array(
             "style_placeholder" => esc_html__('All themes', "superb-blocks"),
             "category_placeholder" => esc_html__('All categories', "superb-blocks"),

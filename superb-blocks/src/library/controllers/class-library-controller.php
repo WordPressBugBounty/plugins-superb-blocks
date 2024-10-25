@@ -33,5 +33,9 @@ class LibraryController
         include(SUPERBADDONS_PLUGIN_DIR . 'src/library/templates/library-item.php');
         $template = ob_get_clean();
         echo '<script type="text/template" id="tmpl-superbaddons-superb-library-item">' . $template . '</script>';
+        ob_start();
+        include(SUPERBADDONS_PLUGIN_DIR . 'src/library/templates/library-menu-item.php');
+        $template = ob_get_clean();
+        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-menu-item">' . $template . '</script>';
     }
 }

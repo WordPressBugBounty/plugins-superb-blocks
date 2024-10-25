@@ -2,9 +2,9 @@
 Contributors: SuPlugins, superbaddons
 Tags: block, gutenberg, full site editing, elementor, wordpress editor
 Requires at least: 3.0.1
-Tested up to: 6.6
+Tested up to: 6.7
 Requires PHP: 6.0
-Stable tag: 3.3.2
+Stable tag: 3.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,8 +15,9 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
 <p>Supercharge your website and unlock new WordPress editor features, advanced custom CSS, patterns, blocks, themes and Elementor sections. No design or coding skills needed.</p>
 ## Features Overview
 <ul>
+    <li><strong>Theme Designer:</strong> Customize the design of your block theme easily: Change the header, footer, blog page, and front page, and choose from over 100 pre-built custom pages.</li>
     <li><strong>Editor Enhancements:</strong> Enhanced editor experience, grid systems, improved block control and much more.</li>
-    <li><strong>Full page designs:</strong> Easily insert 50+ unique pages, designed for any purpose, from blogs to landing pages.</li>
+    <li><strong>Full page designs:</strong> Easily insert 100+ unique pages, designed for any purpose, from blogs to landing pages.</li>
     <li><strong>WordPress themes:</strong> Gain access to our library of 50+ WordPress themes and 150+ child themes.</li>
     <li><strong>WordPress blocks:</strong> Use our many custom WordPress Gutenberg blocks for every purpose.</li>
     <li><strong>WordPress patterns:</strong> Superb Addons comes with 100+ beautiful patterns for every type of website.</li>
@@ -24,6 +25,19 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li><strong>Elementor elements:</strong> Unlock our many Elementor widgets to supercharge Elementor functionality.</li>
     <li><strong>Advanced Custom CSS:</strong> Add custom CSS with syntax highlight, custom display settings, and minified output.</li>
 </ul>
+
+## Theme Designer
+The block Theme Designer for block themes is a powerful, user-friendly tool for customizing every aspect of your website. With a step-by-step setup, you can easily choose layouts for your menu, footer, homepage, blog, pages, and more. Tailored for WooCommerce compatibility. Preview your selections before finalizing, and launch your custom site in minutes. Perfect for any skill level, this designer helps you create a site that looks exactly how you want with just a few clicks.
+<ul>
+    <li>Easy Layout Customization: Choose from 100+ templates for your menu, footer, homepage, blog, and additional pages.</li>
+    <li>Step-by-Step Design Process.</li>
+    <li>WooCommerce Compatible: Includes header and navigation templates designed for WooCommerce stores.</li>
+    <li>Preview & Finalize: Review all selections with a summary preview before launching.</li>
+    <li>Quick Site Launch: Complete your custom design in minutes and publish instantly.</li>
+</ul>
+
+</ul>
+
 ## Gutenberg / WordPress Editor Blocks
 <ul>
     <li><strong>Rating Block</strong></li>
@@ -33,6 +47,7 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li><strong>Cover Image Block</strong></li>
     <li><strong>Google Maps Block</strong></li>
     <li><strong>Animated Heading Block</strong></li>
+    <li><strong>Coupon Code Reveal Button Block</strong></li>
 </ul>
 ## Gutenberg / WordPress Editor Section Categories
 <ul>
@@ -47,29 +62,38 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li><strong>Social Patterns</strong></li>
     <li><strong>Four-o-Four Patterns</strong></li>
     <li><strong>Footer Patterns</strong></li>
+    <li><strong>Blog Page Patterns</strong></li>
+    <li><strong>Header Patterns</strong></li>
+    <li><strong>WooCommerce Navigation Patterns</strong></li>
 </ul>
 ## Elementor Sections, Blocks & Widgets
 <ul>
-    <li><strong>Hero Sections</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Header Sections</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Testimonial Design</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Post And Page Content Sections</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Team Sections</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Contact Sections</strong> in following styles: Black, Dark, White, Light, Image and colored where some include Google Maps.</li>
-    <li><strong>Feature List Sections</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Footer</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
-    <li><strong>Navigation</strong> in following styles: Black, Dark, White, Light, Image and colored.</li>
+    <li><strong>Hero Sections</strong> </li>
+    <li><strong>Header Sections</strong> </li>
+    <li><strong>Testimonial Design</strong> </li>
+    <li><strong>Post And Page Content Sections</strong> </li>
+    <li><strong>Team Sections</strong> </li>
+    <li><strong>Contact Sections</strong> </li>
+    <li><strong>Feature List Sections</strong> </li>
+    <li><strong>Footer</strong> </li>
+    <li><strong>Navigation</strong> </li>
 </ul>
-## Powering up Elementor And The WordPress Editor
-<p>Superb Addons takes the WordPress editor to the next level. With ready-to-use WordPress sections that you can insert with a single click, your website customization becomes a breeze. Navigate through a rich variety of WordPress blocks and patterns to add diversity and visual appeal to your pages.</p>
-<p>If you're an Elementor user, Superb Addons is the companion you've been waiting for. It supercharges your Elementor functionality, providing access to numerous Elementor Elements and pre-built sections. This not only enhances your designing process but also enables you to build pixel-perfect, high-converting websites effortlessly.</p>
-## Unlocking Gutenberg's Potential
-<p>Superb Addons seamlessly integrates with the Gutenberg editor, adding various block controls and other enhancements, making it easier for you to leverage its power. With a plethora of customizable Gutenberg blocks and patterns, you can create unique, visually striking layouts that captivate your audience's attention.</p>
-## Big selection of WordPress blocks and elements
+
+## Unlock the full potential of the WordPress editor
+<p>Unlock the true power of the default WordPress editor Gutenberg with Superb Addons. Get instant access to pages, patterns, blocks, sections and search engine optimized themes for every type of website.</p>
+<p>With Superb Addons, you'll be equipped with the ultimate toolkit to transform your WordPress site into a captivating masterpiece.</p>
+
+## Supercharge Elementor with Superb Addons
+<p>Unleash the full potential of Elementor with Superb Addons. Create pixel-perfect designs and take your website-building skills to the next level with our seamless integration that gives you access to 300+ Elementor sections, elements, widgets and blocks.</p>
+<p>Unlock the potential to create visually stunning, high-converting websites in record time.</p>
+
+
+
+## Big selection of WordPress blocks, patterns and elements
 <p>Superb Addons features an impressive lineup of fresh WordPress blocks that cater to various functionalities. Effortlessly embed Google Maps for an interactive touch, showcase recent posts with eye-catching thumbnails, introduce yourself through the "About the Author" block, make a lasting impression with the "Cover Image" block, ensure easy navigation with the "Table of Contents" block or exhibit your personal reviews with visual bars and/or stars with the "Rating" block, offering an elegant and informative display of your opinions.
 </p>
-### About The Author Block 
-<p>Use this block to easily add a section in the end of your articles where you showcase the article author, link to his/hers social media. You can either get the info from their WordPress user profile or write a fresh one.</p>
+
+## About The Author Block
 <ul>
     <li>Import author data from current Users or write new custom author information</li>
     <li>Translatable & Customizable</li>
@@ -78,8 +102,7 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Add author Facebook link</li>
     <li>Add author twitter link</li>
 </ul>
-### Table Of Contents Block
-<p>Improve your search engine optimization (SEO) and make your articles more userfriendly by using our table of contents block. It'll list all article headings with hotlinks so your users an easily skip to a certain part of an article.</p>
+## Table Of Contents Block
 <ul>
     <li>List all headlines</li>
     <li>List headlines in hierarchy</li>
@@ -88,14 +111,13 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Re-check all headings easily</li>
     <li>Translatable & Customizable</li>
 </ul>
-### Coupon Reveal Buttons
-<p>Quickly and effortlessly create reveal buttons, whether you're a seasoned pro or just starting out. Simply enter your button text, reveal text, and link. Users can then click the button to reveal the hidden text.</p>
+## Coupon Reveal Buttons
 <ul>
     <li>Click on the button to reveal the text behind it.</li>
     <li>Copy on click.</li>
+    <li>Fully customizable design.</li>
 </ul>
-### Rating Block
-<p>If you own an affiliate website, review products or have your own products then our rating block will help you easily display your ratings in an elegant way. Using a block to display ratings is the fastest way to easily display your product ratings.</p>
+## Rating Block
 <ul>
     <li>Add ratings quick & easy to products, pages & posts</li>
     <li>Translatable & Customizable</li>
@@ -104,24 +126,21 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Use rating bar average as overall rating</li>
     <li>Choose your own rating scale, ie. 1-5 or 1-100</li>
 </ul>
-### Google Maps Block
-<p>Upgrade your website's interactivity with the Google Maps block. Easily embed interactive maps to guide your visitors to your business, events, or notable locations. Whether you're highlighting a physical address or offering geographical context, this block provides an intuitive method to seamlessly integrate dynamic maps into your content.</p>
+## Google Maps Block
 <ul>
     <li>Add interactive maps</li>
     <li>Showcase your business location</li>
     <li>Use streetmap or satelitte map view</li>
     <li>Select zoom, language and more</li>
 </ul>
-### Cover Image Block
-<p>Capture attention right from the start with the Cover Image block. Easily display striking visual content that sets the tone for your website's pages or posts. Whether it's a captivating header, or a background that creates a lasting impression, this block empowers you to make a bold statement with your content.</p>
+## Cover Image Block
 <ul>
     <li>Add impactful cover images effortlessly</li>
     <li>Customize size, position and image-repeating</li>
     <li>Set border to square, round or inbetween</li>
     <li>Option to use direct image link</li>
 </ul>
-### Recent Posts Block
-<p>Keep your audience engaged with the Recent Posts block. Display your latest content prominently, making it easy for visitors to discover your most recent updates. Whether you're sharing news, articles, or updates, this block ensures that your freshest content takes center stage, enhancing user engagement and encouraging exploration.</p>
+## Recent Posts Block
 <ul>
     <li>Encourage user engagement and exploration</li>
     <li>Customize number of posts shown</li>
@@ -129,8 +148,8 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Include or exclude excerpts and comment counts</li>
     <li>Multiple design options such as hide post date, hide author, hide thumbnail etc.</li>
 </ul>
-### Animated Heading Block
-<p>Unlock a world of creativity with over 10 mesmerizing animation options that bring your headlines and text to life. Captivate your audience from the moment they land on your page, making your content not just informative, but visually stunning.</p>
+
+## Animated Heading Block
 <ul>
     <li>Easily create animated headings and headlines</li>
     <li>10+ Dynamic animations</li>
@@ -139,6 +158,7 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Play once or loop animation</li>
     <li>Honors reduced motion settings for a user-friendly experience</li>
 </ul>
+
 ## Advanced Custom CSS
 <p>Add new CSS like a Pro. Dive into the depths of customization with the Advanced Custom CSS feature. This tool allows you to add custom CSS into your WordPress site, targeting specific pages or posts for a truly tailored look.</p>
 <ul>
@@ -147,6 +167,7 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Name, deactivate, or delete CSS blocks easily.</li>
     <li>CSS is not inline, but compiled into files for better performance.</li>
 </ul>
+
 ## Editor Highlight
 <p>Simplify your editing experience. The Editor Highlight feature brings clarity to your editing process. Hover over any block to see it and its related blocks outlined, making it easy to identify and modify elements of your page.</p>
 <ul>
@@ -161,17 +182,17 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li>Hide/show a block on desktop/large screens.</li>
 </ul>
 == Frequently Asked Questions ==
- 
+
 = What is Superb Addons, and is it free? =
- 
+
 Superb Addons is a comprehensive WordPress plugin that provides sections, themes, and blocks to help you design professional and beautiful websites. It requires no design skills and works perfectly with both the WordPress editor and Elementor. Yes, Superb Addons is free to use. It provides access to a wide array of features and tools at no cost to you. Superb Addons does not require any design skills. Its user-friendly interface and the abundance of ready-to-use designs make it easy for anyone to create stunning websites.
 
 = Can I contribute? =
- 
+
 Yes! You don't need no coding or programming skills to help. We need help with translation for following languages: Russian, Persian, Chinese, French, Arabic, Bengali, Portugese, Urdu, Danish, Norwegian, Hindi, Spanish, German, Vietnamese, Swedish is what we need the most. Having a translatable dashboard will make the plugin easier to use for a lot of people. Leaving feedback is valuable help as well, but we'd love if you help translate the plugin! 
 
 = Does Superb Addon work with all WordPress plugins and themes? =
- 
+
 Yes, the plugin works with BuddyPress, Easy Digital Downloads, Pop ups, Twitter Card Meta for WordPress, WordPress Exit Intent Popup, Email Pop Up, Inline Contact Form Builder – Poptin, Ads Manager, Ali Dropship,  Marketpress, MemberPress, Membership 2 Pro, WishList Member, WooCommerce Autoship, WP EasyCart, WPPayForms, WP Simple Pay Pro, S2Member, bbPress, WooCommerce eCommerce, Elementor, Beaver Builder, Divi, AFC, Multisite, Themify Builder, Brizy, Visual Page Builder, Live Composer, Oxygen, Visual Composer, Page Builder by SiteOrigin, WP Page Builder, Gutenberg (The WordPress 5.0 page editor) and GeneratePress. We try to update the plugin so it works with all drag and drop page builder plugins. The plugin works with all WordPress themes with page builders integrated too. The plugin works with all of our themes such as MinimalistBlogger, Responsive Blogily, Business Chat, Superb ECommerce, Draftly, Minimalistique, Superb Pixels, Blogrid, Marketingly, EcoCoded, Creativeily, Bloggist, Petite Stories, Writers Blogily, Gutenshop, Blog Feedly, Customizable Blogily, Minimalist Blogger X, Membershiply, Feather Magazine, Image Gridly, Personal Blogily and popular themes by other developers such as Twenty Twenty-Three, Hello Elementor, Astra, OceanWP, Kadence, GeneratePress, Blocksy, Inspiro, Royal Elementor Kit, YITH Wonder, Hestia, Neve FSE, Sydney, Raft, Zakra. Superb Addons works with most themes and plugins, but we have tested it with all of the themes and plugins listed here. Feel free to contact us if you want us to test Superb Addons with another theme or plugin.
 
 = Does this plugin work on all browsers and devices, and is it responsive? =
@@ -202,6 +223,13 @@ With this powerful tool at your fingertips, you'll enjoy access to a vast collec
 4. Editor Highlight
 
 == Changelog ==
+= 3.4.0 =
+* New major feature: Theme Designer.
+* Added new patterns.
+* Added new pages.
+* Fixes and improvements for the Superb Reveal Buttons block.
+* Improvements for the Superb Table of Contents block.
+
 = 3.3.2 =
 * Fixed issue where the table of contents block could sometimes not display correctly.
 

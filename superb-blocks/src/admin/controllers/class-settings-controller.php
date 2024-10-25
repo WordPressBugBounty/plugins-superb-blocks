@@ -11,10 +11,10 @@ use SuperbAddons\Data\Controllers\OptionController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Data\Controllers\SettingsOptionKey;
 use Exception;
+use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Data\Controllers\CompatibilitySettingsOptionKey;
 use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Utils\KeyException;
-use SuperbAddons\Data\Utils\PluginInstaller;
 use SuperbAddons\Data\Utils\SettingsException;
 use SuperbAddons\Gutenberg\Controllers\GutenbergEnhancementsController;
 
@@ -53,13 +53,12 @@ class SettingsController
                 return $this->RegisterKeyCallback($request);
             case 'removekey':
                 return $this->RemoveKeyCallback();
-            case 'getelementor':
-                return $this->InstallElementorCallback();
             case SettingsOptionKey::LOGS_ENABLED:
             case SettingsOptionKey::LOG_SHARE_ENABLED:
             case 'clear_cache':
             case 'clear_logs':
             case 'view_logs':
+            case 'clear_restoration_points':
                 return $this->SaveSettingsCallback($request['action']);
             case GutenbergEnhancementsController::HIGHLIGHTS_KEY:
             case GutenbergEnhancementsController::HIGHLIGHTS_QUICKOPTIONS_KEY:
@@ -116,25 +115,6 @@ class SettingsController
         }
     }
 
-    private function InstallElementorCallback()
-    {
-        try {
-            if (!current_user_can('install_plugins')) throw new KeyException(__('Unfortunately, you do not have permission to install plugins on this WordPress site.', "superb-blocks"), true);
-
-            $installed = PluginInstaller::Install('elementor');
-            if (!$installed) {
-                return rest_ensure_response(['success' => false, "text" => esc_html__('An error occurred. Elementor could not be installed.', "superb-blocks")]);
-            }
-
-            return rest_ensure_response(['success' => true]);
-        } catch (KeyException $k_ex) {
-            return rest_ensure_response(['success' => false, "text" => esc_html($k_ex->getMessage())]);
-        } catch (Exception $ex) {
-            LogController::HandleException($ex);
-            return new \WP_Error('internal_error_plugin', 'Internal Plugin Error', array('status' => 500));
-        }
-    }
-
     public static function GetSettings()
     {
         return OptionController::GetSettings();
@@ -173,6 +153,10 @@ class SettingsController
                     break;
                 case 'view_logs':
                     return rest_ensure_response(['success' => true, 'content' => LogController::GetLogs()]);
+                case 'clear_restoration_points':
+                    $cleared = WizardRestorationPointController::FullRestorationCleanup();
+                    if (!$cleared) throw new SettingsException(__('Restoration points could not be cleared.', "superb-blocks"));
+                    break;
             }
 
             return rest_ensure_response(['success' => true]);

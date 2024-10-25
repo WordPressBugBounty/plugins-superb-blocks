@@ -5,6 +5,7 @@ namespace SuperbAddons\Tours\Controllers;
 use SuperbAddons\Admin\Controllers\TroubleshootingController;
 use SuperbAddons\Components\Admin\Modal;
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\ScriptTranslations;
 
 defined('ABSPATH') || exit();
 
@@ -66,6 +67,7 @@ class TourController
                 array('wp-i18n', 'jquery'),
                 SUPERBADDONS_VERSION
             );
+            ScriptTranslations::Set('superb-addons-guided-tours');
         } else 
         if ($_GET[self::TOUR_GUTENBERG] === self::GUTENBERG_TOUR_PATTERNS) {
             wp_enqueue_script(
@@ -74,6 +76,7 @@ class TourController
                 array('wp-i18n', 'jquery'),
                 SUPERBADDONS_VERSION
             );
+            ScriptTranslations::Set('superb-addons-guided-tours');
         }
     }
 
@@ -89,6 +92,7 @@ class TourController
             array('wp-i18n', 'jquery'),
             SUPERBADDONS_VERSION
         );
+        ScriptTranslations::Set('superb-addons-guided-tours');
         wp_localize_script('superb-addons-guided-tours', 'superbaddonstroubleshooting_g', array(
             "rest" => array(
                 "base" => \get_rest_url(),

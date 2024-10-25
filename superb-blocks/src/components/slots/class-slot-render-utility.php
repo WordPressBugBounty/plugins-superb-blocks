@@ -35,6 +35,15 @@ class SlotRenderUtility
             'style' => array(),
             'data-action' => true,
         ),
+        'iframe' => array(
+            'class' => array(),
+            'src' => array(),
+            'loading' => array(),
+            'data-src' => true,
+            'data-noreload' => true,
+            'data-status' => true,
+            'data-id' => true,
+        )
     );
 
     public static function Render($contentCallback)

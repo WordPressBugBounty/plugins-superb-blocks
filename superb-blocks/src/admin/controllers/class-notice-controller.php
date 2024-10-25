@@ -2,6 +2,8 @@
 
 namespace SuperbAddons\Admin\Controllers;
 
+use SuperbAddons\Admin\Controllers\Wizard\WizardController;
+
 defined('ABSPATH') || exit();
 
 // 1.0
@@ -14,6 +16,7 @@ class AdminNoticeController
     const ALLOWED_HTML = [
         'div'     => [
             'class' => [],
+            'style' => [],
         ],
         'p'      => [
             'class' => [],
@@ -170,16 +173,30 @@ class AdminNoticeController
         // Security check: Make sure nonce is OK. check_ajax_referer exits if it fails.
         check_ajax_referer('spbtic_dismiss_notice', 'nonce', true);
 
-        update_user_meta(get_current_user_id(), self::PREFIX . $notice_id, true);
+        // Dismiss the notice.
+        self::DismissNotice($notice_id);
+    }
+
+    public static function DismissNotice($notice_id)
+    {
+        if ($notice_id == 'wizard_recommender') {
+            WizardController::RemoveWizardRecommenderTransient();
+        } elseif ($notice_id == 'wizard_woocommerce') {
+            WizardController::RemoveWizardWooCommerceTransient();
+        } else {
+            update_user_meta(get_current_user_id(), self::PREFIX . $notice_id, true);
+        }
     }
 
     public static function Cleanup()
     {
         foreach (self::$notices as $notice) {
-            delete_user_meta(get_current_user_id(), self::PREFIX . $notice['unique_id']);
+            delete_metadata('user', 0, self::PREFIX . $notice['unique_id'], false, true);
             if (isset($notice['delay'])) {
-                delete_user_meta(get_current_user_id(), self::PREFIX_DELAY . $notice['unique_id']);
+                delete_metadata('user', 0, self::PREFIX_DELAY . $notice['unique_id'], false, true);
             }
         }
+        WizardController::RemoveWizardRecommenderTransient();
+        WizardController::RemoveWizardWooCommerceTransient();
     }
 }

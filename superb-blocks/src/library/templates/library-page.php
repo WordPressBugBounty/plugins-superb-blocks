@@ -3,7 +3,9 @@ defined('ABSPATH') || exit();
 
 use SuperbAddons\Components\Admin\EnhancementSettingsComponent;
 use SuperbAddons\Components\Badges\AvailableBadge;
+use SuperbAddons\Components\Badges\ExternalPluginRequiredBadge;
 use SuperbAddons\Components\Badges\PremiumBadge;
+use SuperbAddons\Components\Badges\UpdateRequiredBadge;
 use SuperbAddons\Components\Buttons\InsertButton;
 use SuperbAddons\Components\Buttons\PremiumButton;
 use SuperbAddons\Components\Buttons\PreviewButton;
@@ -28,7 +30,6 @@ use SuperbAddons\Components\Buttons\PreviewButton;
     <div class="superb-addons-template-library-page-content">
         <div class="superb-addons-template-library-page-content-inner" style="display:none;">
             <div id="superb-addons-template-library-header-menu">
-                <div class="superb-addons-template-library-header-menu-item"><?= esc_html__('Menu Item', "superb-blocks"); ?></div>
             </div>
             <div class="superb-addons-template-library-page-content-inner-menu">
                 <div class="superb-addons-template-library-page-content-inner-menu-left">
@@ -38,11 +39,11 @@ use SuperbAddons\Components\Buttons\PreviewButton;
                     </div>
                 </div>
                 <div class="superb-addons-template-library-page-content-inner-menu-right">
-                    <div class="superb-addons-template-library-page-select-wrapper">
+                    <div class="superb-addons-template-library-page-select-wrapper superb-addons-template-library-page-category-select-wrapper">
                         <select id="superb-addons-template-library-page-category-select">
                         </select>
                     </div>
-                    <div class="superb-addons-template-library-page-select-wrapper">
+                    <div class="superb-addons-template-library-page-select-wrapper superb-addons-template-library-page-style-select-wrapper">
                         <select id="superb-addons-template-library-page-style-select">
                         </select>
                     </div>
@@ -92,6 +93,8 @@ use SuperbAddons\Components\Buttons\PreviewButton;
                         <?php
                         new PreviewButton(__("Live Preview", "superb-blocks"), '_blank');
                         new AvailableBadge();
+                        new UpdateRequiredBadge();
+                        new ExternalPluginRequiredBadge();
                         new PremiumButton();
                         new InsertButton();
                         ?>

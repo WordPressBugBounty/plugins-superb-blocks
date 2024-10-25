@@ -6,6 +6,7 @@ defined('ABSPATH') || exit();
 
 use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Admin\Controllers\SettingsController;
+use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Components\Admin\EnhancementSettingsComponent;
 use SuperbAddons\Components\Admin\InputCheckbox;
 use SuperbAddons\Components\Admin\Modal;
@@ -86,6 +87,14 @@ class SettingsPage
                         <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-mb1"><?= esc_html__("Superb Addons caches data for faster loading and processing. Clearing the cache will force data and images to be refreshed and reloaded. If you are not experiencing any problems with the plugin, the cache should not be cleared.", "superb-blocks"); ?></p>
                         <button type="button" class="superbaddons-element-button spbaddons-admin-btn-danger superbaddons-element-m0 superbaddons-element-mb1" id="superbaddons-clear-cache-btn"><img class="superbaddons-element-button-icon" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/trash-light.svg'); ?>" /><?= esc_html__("Clear Cache", "superb-blocks"); ?></button>
                     </div>
+
+                    <div class="superbaddons-restoration-points-settings-wrapper">
+                        <!-- Restoration Points Settings -->
+                        <h5 class="superbaddons-element-flex-center superbaddons-element-text-xs superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><img class="superbaddons-admindashboard-content-icon superbaddons-element-mr1" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/purple-database.svg'); ?>" /><?= esc_html__("Template Restoration Points", "superb-blocks"); ?></h5>
+                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-mb1"><?= esc_html__("Superb Addons creates restoration points for your templates when you use the theme designer feature. All restoration points are automatically removed 2 months after creation. You should only manually clear the restoration points if you no longer need them and want to remove them immediately.", "superb-blocks"); ?></p>
+                        <button type="button" class="superbaddons-element-button spbaddons-admin-btn-danger superbaddons-element-m0 superbaddons-element-mb1" id="superbaddons-clear-restoration-points-btn"><img class="superbaddons-element-button-icon" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/trash-light.svg'); ?>" /><?= esc_html__("Clear Restoration Points", "superb-blocks"); ?></button>
+                    </div>
+
                     <div class="superbaddons-element-separator"></div>
 
                     <div class="superbaddons-error-logs-settings-wrapper">
