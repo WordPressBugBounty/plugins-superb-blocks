@@ -4,7 +4,7 @@ Tags: block, gutenberg, full site editing, elementor, wordpress editor
 Requires at least: 3.0.1
 Tested up to: 6.7
 Requires PHP: 6.0
-Stable tag: 3.4.1
+Stable tag: 3.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -223,6 +223,9 @@ With this powerful tool at your fingertips, you'll enjoy access to a vast collec
 4. Editor Highlight
 
 == Changelog ==
+= 3.4.2 =
+* Fixed a compatibility issue with some minifiers that would cause fallback colors to be used.
+
 = 3.4.1 =
 * Fixed issue where the theme designer would sometimes show an error message even if the process was successful.
 
