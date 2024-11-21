@@ -116,6 +116,7 @@ class ComposerStaticInita94ee717fbe31078ea93f7c04889a4f8
         'SuperbAddons\\Elementor\\Utils\\ElementorSourceExtension' => __DIR__ . '/../..' . '/src/elementor/utils/class-elementor-source.php',
         'SuperbAddons\\Gutenberg\\BlocksAPI\\Controllers\\DynamicBlockAssets' => __DIR__ . '/../..' . '/src/gutenberg/block-api/class-dynamic-block-assets.php',
         'SuperbAddons\\Gutenberg\\BlocksAPI\\Controllers\\RecentPostsController' => __DIR__ . '/../..' . '/src/gutenberg/block-api/class-recent-posts-controller.php',
+        'SuperbAddons\\Gutenberg\\Controllers\\GutenbergBlockStyles' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-block-styles.php',
         'SuperbAddons\\Gutenberg\\Controllers\\GutenbergController' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-controller.php',
         'SuperbAddons\\Gutenberg\\Controllers\\GutenbergEnhancementsController' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-enhancements-controller.php',
         'SuperbAddons\\Library\\Controllers\\LibraryController' => __DIR__ . '/../..' . '/src/library/controllers/class-library-controller.php',

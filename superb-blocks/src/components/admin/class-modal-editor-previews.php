@@ -44,6 +44,17 @@ class EditorPreviewsModal
                         )
                     );
                     ?>
+                    <!-- Block animations -->
+                    <?php new ContentBoxLarge(
+                        array(
+                            "title" => __("Animations", "superb-blocks"),
+                            "description" => __("Easily animate any WordPress block with over 40+ pre-made animations using our simple block animation settings.", "superb-blocks"),
+                            "image" => "block-animations.jpg",
+                            "icon" => "monitor-play-duotone.svg",
+                            "class" => 'superbaddons-admindashboard-gutenberg-block-control'
+                        )
+                    );
+                    ?>
                     <!-- Rating Block -->
                     <?php new ContentBoxLarge(
                         array(

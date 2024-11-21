@@ -262,7 +262,7 @@ class LibraryRequestController
 
         $stamp = $options_controller->GetStamp();
         $collection = $request['package'] === 'premium' ? "premium" : "free";
-        $response = DomainShiftController::RemoteGet($endpoint . $item_type . '?action=insert&id=' . $request['id'] . '&collection=' . $collection . '&dm=' . urlencode(\home_url()) . '&key=' . urlencode($license_key) . '&stamp=' . absint($stamp));
+        $response = DomainShiftController::RemoteGet($endpoint . $item_type . '?action=insert&id=' . $request['id'] . '&collection=' . $collection . '&key=' . urlencode($license_key) . '&stamp=' . absint($stamp));
         ///
         if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             throw new RequestException('Plugin Service Unavailable', 503);

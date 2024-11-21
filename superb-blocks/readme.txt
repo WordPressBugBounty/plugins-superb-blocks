@@ -1,10 +1,10 @@
-=== Superb Addons - Blocks, Patterns and Elementor Sections & Elements  ===
+=== Superb Addons: WordPress Blocks, Patterns & Theme Designer  ===
 Contributors: SuPlugins, superbaddons
 Tags: block, gutenberg, full site editing, elementor, wordpress editor
 Requires at least: 3.0.1
 Tested up to: 6.7
 Requires PHP: 6.0
-Stable tag: 3.4.2
+Stable tag: 3.4.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,8 +21,8 @@ Supercharge your website and unlock new WordPress editor features, advanced cust
     <li><strong>WordPress themes:</strong> Gain access to our library of 50+ WordPress themes and 150+ child themes.</li>
     <li><strong>WordPress blocks:</strong> Use our many custom WordPress Gutenberg blocks for every purpose.</li>
     <li><strong>WordPress patterns:</strong> Superb Addons comes with 100+ beautiful patterns for every type of website.</li>
+    <li><strong>Animations:</strong> Easily animate any WordPress block with over 40+ animations.</li>
     <li><strong>Elementor sections:</strong> Access 300+ pre-built elementor sections and build beautiful sites, fast.</li>
-    <li><strong>Elementor elements:</strong> Unlock our many Elementor widgets to supercharge Elementor functionality.</li>
     <li><strong>Advanced Custom CSS:</strong> Add custom CSS with syntax highlight, custom display settings, and minified output.</li>
 </ul>
 
@@ -221,8 +221,13 @@ With this powerful tool at your fingertips, you'll enjoy access to a vast collec
 2. Gutenberg Blocks
 3. Elementor Sections
 4. Editor Highlight
+5. Theme Designer
 
 == Changelog ==
+= 3.4.5 =
+* Added block animations. Easily animate any WordPress block with over 40+ animations.
+* Minor improvements and bugfixes.
+
 = 3.4.2 =
 * Fixed a compatibility issue with some minifiers that would cause fallback colors to be used.
 

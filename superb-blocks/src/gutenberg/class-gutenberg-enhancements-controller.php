@@ -22,11 +22,13 @@ class GutenbergEnhancementsController
     const HIGHLIGHTS_QUICKOPTIONS_KEY = 'superb-blocks-highlights-qo';
     const HIGHLIGHTS_QUICKOPTIONS_BOTTOM_KEY = 'superb-blocks-highlights-qo-b';
     const HIDERS_KEY = 'superb-blocks-hiders';
+    const ANIMATIONS_KEY = 'superb-blocks-animations';
 
     public static function Initialize()
     {
         self::InitializeEnhancementEndpoints();
         self::InitializeEditorEnhancements();
+        GutenbergBlockStyles::Initialize();
     }
 
     private static function InitializeEnhancementEndpoints()
@@ -94,8 +96,18 @@ class GutenbergEnhancementsController
             ),
             'spbaddHideOnTablet' => array(
                 'class' => 'superb-addons-hide-on-tablet',
-            ),
+            )
         ));
+
+        if (isset($block['attrs']['spbaddAnimationsEnabled']) && $block['attrs']['spbaddAnimationsEnabled']) {
+            wp_enqueue_script('superb-addons-animations', SUPERBADDONS_ASSETS_PATH . '/js/dynamic-blocks/block-animations.js', array(), SUPERBADDONS_VERSION, true);
+            $block_content = self::MaybeAddBlockTagModifications($block_content, $block, array(
+                'spbaddAnimationId' => array(
+                    'superb-addons-animation' => array("attribute" => "spbaddAnimationId"),
+                    'style' => 'opacity: 0;'
+                )
+            ));
+        }
 
         return $block_content;
     }
@@ -121,17 +133,17 @@ class GutenbergEnhancementsController
             foreach ($modification as $modification_key => $value) {
                 if ($modification_key === 'required-values') {
                     foreach ($value as $required_value => $conditional_modifications) {
-                        if ($block['attrs'][$required_attribute] !== $required_value) {
+                        if ($block['attrs'][$required_attribute] != $required_value) {
                             continue;
                         }
                         foreach ($conditional_modifications as $conditional_modification_key => $conditional_value) {
-                            self::AppendModificationArrays($conditional_modification_key, $conditional_value, $added_html_classes, $added_html_styles, $added_html_attributes);
+                            self::AppendModificationArrays($block, $conditional_modification_key, $conditional_value, $added_html_classes, $added_html_styles, $added_html_attributes);
                         }
                     }
                     continue;
                 }
 
-                self::AppendModificationArrays($modification_key, $value, $added_html_classes, $added_html_styles, $added_html_attributes);
+                self::AppendModificationArrays($block, $modification_key, $value, $added_html_classes, $added_html_styles, $added_html_attributes);
             }
         }
 
@@ -147,7 +159,8 @@ class GutenbergEnhancementsController
             }
         }
         if (!empty($added_html_styles)) {
-            $block_content->set_attribute("style", join(" ", $added_html_styles));
+            $styles = $block_content->get_attribute("style") ?? "";
+            $block_content->set_attribute("style", $styles . join(" ", $added_html_styles));
         }
         if (!empty($added_html_classes)) {
             $block_content->add_class(join(" ", $added_html_classes));
@@ -155,8 +168,20 @@ class GutenbergEnhancementsController
         return $block_content->get_updated_html();
     }
 
-    private static function AppendModificationArrays($modification_key, $value, &$added_html_classes, &$added_html_styles, &$added_html_attributes)
+    private static function AppendModificationArrays($block, $modification_key, $value, &$added_html_classes, &$added_html_styles, &$added_html_attributes)
     {
+        if (is_array($value)) {
+            $key = key($value);
+            $dynamic_value = $value[$key];
+            switch ($key) {
+                case 'attribute':
+                    $value = isset($block['attrs'][$dynamic_value]) ? $block['attrs'][$dynamic_value] : (isset($value['default']) ? $value['default'] : '');
+                    break;
+                default:
+                    $value = "";
+                    break;
+            }
+        }
         switch ($modification_key) {
             case 'class':
                 $added_html_classes[] = $value;
@@ -225,6 +250,7 @@ class GutenbergEnhancementsController
             self::HIGHLIGHTS_QUICKOPTIONS_KEY => false,
             self::HIGHLIGHTS_QUICKOPTIONS_BOTTOM_KEY => false,
             self::HIDERS_KEY => true,
+            self::ANIMATIONS_KEY => true,
         );
         $enhancements = get_user_meta($user_id, self::ENHANCEMENTS_OPTION, true);
         if (!$enhancements) {

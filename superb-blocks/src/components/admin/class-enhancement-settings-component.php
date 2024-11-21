@@ -31,6 +31,7 @@ class EnhancementSettingsComponent
         <div class="superbaddons-editor-settings-enhancements-wrapper">
             <h5 class="superbaddons-element-flex-center superbaddons-element-text-xs superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0 superbaddons-element-mb1"><img class="superbaddons-admindashboard-content-icon superbaddons-element-mr1" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/purple-gauge.svg'); ?>" /><?= esc_html__("Enhancements", "superb-blocks"); ?></h5>
             <?php new InputCheckbox('superbaddons-enhancement-hiders-input', GutenbergEnhancementsController::HIDERS_KEY, __("\"Hide Block on Device\" Settings", "superb-blocks"), __("When this setting is enabled, all blocks will receive a \"hide block on device\" settings panel where you can decide whether or not certain blocks should be hidden on specific screens and devices.", "superb-blocks"), $this->Settings[GutenbergEnhancementsController::HIDERS_KEY]); ?>
+            <?php new InputCheckbox('superbaddons-enhancement-animations-input', GutenbergEnhancementsController::ANIMATIONS_KEY, __("\"Animations\" Settings", "superb-blocks"), __("When this setting is enabled, all blocks will receive a \"animations\" settings panel where you can decide whether or not certain blocks should be animated.", "superb-blocks"), $this->Settings[GutenbergEnhancementsController::ANIMATIONS_KEY]); ?>
         </div>
 <?php
     }

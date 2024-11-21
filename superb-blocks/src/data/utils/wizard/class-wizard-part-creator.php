@@ -3,6 +3,7 @@
 namespace SuperbAddons\Data\Utils\Wizard;
 
 use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
+use SuperbAddons\Gutenberg\Controllers\GutenbergController;
 use SuperbAddons\Library\Controllers\LibraryRequestController;
 
 defined('ABSPATH') || exit();
@@ -133,7 +134,14 @@ class WizardPartCreator
             LibraryRequestController::GUTENBERG_ENDPOINT_BASE,
             LibraryRequestController::GUTENBERG_ROUTE_TYPE_PATTERNS
         );
-        return $data['content'] ?? false;
+
+        if (!$data || !isset($data['content']) || isset($data['access_failed'])) {
+            return false;
+        }
+
+        $data = GutenbergController::GutenbergDataImportAction($data);
+
+        return $data['content'];
     }
 
     private static function InjectCurrentHeaderNavigationId($template_content)

@@ -115,6 +115,7 @@ return array(
     'SuperbAddons\\Elementor\\Utils\\ElementorSourceExtension' => $baseDir . '/src/elementor/utils/class-elementor-source.php',
     'SuperbAddons\\Gutenberg\\BlocksAPI\\Controllers\\DynamicBlockAssets' => $baseDir . '/src/gutenberg/block-api/class-dynamic-block-assets.php',
     'SuperbAddons\\Gutenberg\\BlocksAPI\\Controllers\\RecentPostsController' => $baseDir . '/src/gutenberg/block-api/class-recent-posts-controller.php',
+    'SuperbAddons\\Gutenberg\\Controllers\\GutenbergBlockStyles' => $baseDir . '/src/gutenberg/class-gutenberg-block-styles.php',
     'SuperbAddons\\Gutenberg\\Controllers\\GutenbergController' => $baseDir . '/src/gutenberg/class-gutenberg-controller.php',
     'SuperbAddons\\Gutenberg\\Controllers\\GutenbergEnhancementsController' => $baseDir . '/src/gutenberg/class-gutenberg-enhancements-controller.php',
     'SuperbAddons\\Library\\Controllers\\LibraryController' => $baseDir . '/src/library/controllers/class-library-controller.php',
