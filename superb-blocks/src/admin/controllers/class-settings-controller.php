@@ -64,6 +64,7 @@ class SettingsController
             case GutenbergEnhancementsController::HIGHLIGHTS_QUICKOPTIONS_KEY:
             case GutenbergEnhancementsController::HIGHLIGHTS_QUICKOPTIONS_BOTTOM_KEY:
             case GutenbergEnhancementsController::HIDERS_KEY:
+            case GutenbergEnhancementsController::ANIMATIONS_KEY:
                 return GutenbergEnhancementsController::OptionsSaveCallback($request);
             case CompatibilitySettingsOptionKey::SPECTRA_BLOCK_SPACING:
                 return $this->SaveCompatibilitySettingsCallback($request['action']);

@@ -224,6 +224,7 @@ class GutenbergEnhancementsController
                 case self::HIGHLIGHTS_QUICKOPTIONS_KEY:
                 case self::HIGHLIGHTS_QUICKOPTIONS_BOTTOM_KEY:
                 case self::HIDERS_KEY:
+                case self::ANIMATIONS_KEY:
                     // Allowed
                     break;
                 default:

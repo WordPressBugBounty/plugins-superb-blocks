@@ -4,7 +4,7 @@ Tags: block, gutenberg, full site editing, elementor, wordpress editor
 Requires at least: 3.0.1
 Tested up to: 6.7
 Requires PHP: 6.0
-Stable tag: 3.4.5
+Stable tag: 3.4.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -224,6 +224,10 @@ With this powerful tool at your fingertips, you'll enjoy access to a vast collec
 5. Theme Designer
 
 == Changelog ==
+= 3.4.6 =
+* Fixed issue where block animation previews would sometimes not play correctly.
+* Fixed issue where the option to disable the block animation settings panel would sometimes not save correctly.
+
 = 3.4.5 =
 * Added block animations. Easily animate any WordPress block with over 40+ animations.
 * Minor improvements and bugfixes.

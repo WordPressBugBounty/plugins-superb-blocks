@@ -321,7 +321,7 @@ class WizardTemplateProvider
 
         // Sort restoration templates by timestamp
         usort($restoration_templates, function ($a, $b) {
-            return $a->timestamp < $b->timestamp;
+            return $a->timestamp <=> $b->timestamp;
         });
 
         $this->SortTemplatesIntoArraysBySlug($restoration_templates, "restoration");

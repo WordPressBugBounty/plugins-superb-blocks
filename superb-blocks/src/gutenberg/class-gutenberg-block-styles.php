@@ -18,7 +18,7 @@ class GutenbergBlockStyles
         }
 
         register_block_style(
-            ['core/group'],
+            'core/group',
             [
                 'name'       => 'superbaddons-card',
                 'label'      => __('Card', 'superb-blocks'),
