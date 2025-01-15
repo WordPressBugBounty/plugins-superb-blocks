@@ -18,7 +18,10 @@ class WizardStageUtil
 
     public function __construct($type = false)
     {
-        $this->type = $type ? $type : $_GET[WizardController::ACTION_QUERY_PARAM];
+        // If type is not set, get it from the query parameter
+        // No need to verify nonce here, as we are simply reading the value to determine the type of stage and not submitting any data
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $this->type = !$type && isset($_GET[WizardController::ACTION_QUERY_PARAM]) ? sanitize_text_field(wp_unslash($_GET[WizardController::ACTION_QUERY_PARAM])) : $type;
         $this->Init();
     }
 

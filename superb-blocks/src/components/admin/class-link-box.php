@@ -34,18 +34,18 @@ class LinkBox
     private function Render()
     {
 ?>
-        <div class="superbaddons-admindashboard-content-box <?= $this->classes ? esc_attr($this->classes) : ''; ?>" <?php if ($this->id) : ?>id="<?= esc_attr($this->id); ?>" <?php endif; ?>>
+        <div class="superbaddons-admindashboard-content-box <?php echo $this->classes ? esc_attr($this->classes) : ''; ?>" <?php if ($this->id) : ?>id="<?php echo esc_attr($this->id); ?>" <?php endif; ?>>
             <div class="superbaddons-admindashboard-link-box-inner">
                 <?php if ($this->pro) : ?>
-                    <span class="superbaddons-element-pro-badge"><?= esc_html__("Premium", "superb-blocks"); ?></span>
+                    <span class="superbaddons-element-pro-badge"><?php echo esc_html__("Premium", "superb-blocks"); ?></span>
                 <?php endif; ?>
-                <img class="superbaddons-admindashboard-content-icon superbaddons-element-mb1" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $this->icon); ?>" />
-                <h4 class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark superbaddons-element-m0"><?= esc_html($this->title); ?> </h4>
+                <img class="superbaddons-admindashboard-content-icon superbaddons-element-mb1" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $this->icon); ?>" />
+                <h4 class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark superbaddons-element-m0"><?php echo esc_html($this->title); ?> </h4>
                 <p class="superbaddons-element-text-xxs superbaddons-element-text-gray">
-                    <?= esc_html($this->description); ?>
+                    <?php echo esc_html($this->description); ?>
                 </p>
                 <?php if ($this->cta && $this->link) : ?>
-                    <a <?= !$this->same_window ? 'target="_blank"' : ''; ?> class="<?= $this->pro ? 'superbaddons-element-button-pro' : 'superbaddons-element-colorlink'; ?> superbaddons-element-text-xs" href="<?= esc_url($this->link); ?>"><?= esc_html($this->cta); ?></a>
+                    <a <?php echo !$this->same_window ? 'target="_blank"' : ''; ?> class="<?php echo $this->pro ? 'superbaddons-element-button-pro' : 'superbaddons-element-colorlink'; ?> superbaddons-element-text-xs" href="<?php echo esc_url($this->link); ?>"><?php echo esc_html($this->cta); ?></a>
                 <?php endif; ?>
             </div>
         </div>

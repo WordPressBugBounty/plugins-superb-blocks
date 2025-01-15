@@ -7,8 +7,10 @@ defined('ABSPATH') || exit();
 use SuperbAddons\Admin\Controllers\SettingsController;
 use SuperbAddons\Admin\Controllers\Wizard\WizardController;
 use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Data\Controllers\CompatibilitySettingsOptionKey;
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
 use SuperbAddons\Data\Utils\ScriptTranslations;
 use SuperbAddons\Gutenberg\BlocksAPI\Controllers\DynamicBlockAssets;
 use SuperbAddons\Gutenberg\BlocksAPI\Controllers\RecentPostsController;
@@ -123,7 +125,7 @@ class GutenbergController
     public function EnqueueVariableFallbacks()
     {
         $fallbacks = ":root{--wp--preset--color--primary:#1f7cec;--wp--preset--color--primary-hover:#3993ff;--wp--preset--color--base:#fff;--wp--preset--color--featured:#0a284b;--wp--preset--color--contrast-light:#fff;--wp--preset--color--contrast-dark:#000;--wp--preset--color--mono-1:#0d3c74;--wp--preset--color--mono-2:#64748b;--wp--preset--color--mono-3:#e2e8f0;--wp--preset--color--mono-4:#f8fafc;--wp--preset--spacing--superbspacing-xxsmall:clamp(5px,1vw,10px);--wp--preset--spacing--superbspacing-xsmall:clamp(10px,2vw,20px);--wp--preset--spacing--superbspacing-small:clamp(20px,4vw,40px);--wp--preset--spacing--superbspacing-medium:clamp(30px,6vw,60px);--wp--preset--spacing--superbspacing-large:clamp(40px,8vw,80px);--wp--preset--spacing--superbspacing-xlarge:clamp(50px,10vw,100px);--wp--preset--spacing--superbspacing-xxlarge:clamp(60px,12vw,120px);--wp--preset--font-size--superbfont-tiny:clamp(10px,0.625rem + ((1vw - 3.2px) * 0.227),12px);--wp--preset--font-size--superbfont-xxsmall:clamp(12px,0.75rem + ((1vw - 3.2px) * 0.227),14px);--wp--preset--font-size--superbfont-xsmall:clamp(16px,1rem + ((1vw - 3.2px) * 1),16px);--wp--preset--font-size--superbfont-small:clamp(16px,1rem + ((1vw - 3.2px) * 0.227),18px);--wp--preset--font-size--superbfont-medium:clamp(18px,1.125rem + ((1vw - 3.2px) * 0.227),20px);--wp--preset--font-size--superbfont-large:clamp(24px,1.5rem + ((1vw - 3.2px) * 0.909),32px);--wp--preset--font-size--superbfont-xlarge:clamp(32px,2rem + ((1vw - 3.2px) * 1.818),48px);--wp--preset--font-size--superbfont-xxlarge:clamp(40px,2.5rem + ((1vw - 3.2px) * 2.727),64px)}.has-primary-color{color:var(--wp--preset--color--primary)!important}.has-primary-hover-color{color:var(--wp--preset--color--primary-hover)!important}.has-base-color{color:var(--wp--preset--color--base)!important}.has-featured-color{color:var(--wp--preset--color--featured)!important}.has-contrast-light-color{color:var(--wp--preset--color--contrast-light)!important}.has-contrast-dark-color{color:var(--wp--preset--color--contrast-dark)!important}.has-mono-1-color{color:var(--wp--preset--color--mono-1)!important}.has-mono-2-color{color:var(--wp--preset--color--mono-2)!important}.has-mono-3-color{color:var(--wp--preset--color--mono-3)!important}.has-mono-4-color{color:var(--wp--preset--color--mono-4)!important}.has-primary-background-color{background-color:var(--wp--preset--color--primary)!important}.has-primary-hover-background-color{background-color:var(--wp--preset--color--primary-hover)!important}.has-base-background-color{background-color:var(--wp--preset--color--base)!important}.has-featured-background-color{background-color:var(--wp--preset--color--featured)!important}.has-contrast-light-background-color{background-color:var(--wp--preset--color--contrast-light)!important}.has-contrast-dark-background-color{background-color:var(--wp--preset--color--contrast-dark)!important}.has-mono-1-background-color{background-color:var(--wp--preset--color--mono-1)!important}.has-mono-2-background-color{background-color:var(--wp--preset--color--mono-2)!important}.has-mono-3-background-color{background-color:var(--wp--preset--color--mono-3)!important}.has-mono-4-background-color{background-color:var(--wp--preset--color--mono-4)!important}.has-superbfont-tiny-font-size{font-size:var(--wp--preset--font-size--superbfont-tiny)!important}.has-superbfont-xxsmall-font-size{font-size:var(--wp--preset--font-size--superbfont-xxsmall)!important}.has-superbfont-xsmall-font-size{font-size:var(--wp--preset--font-size--superbfont-xsmall)!important}.has-superbfont-small-font-size{font-size:var(--wp--preset--font-size--superbfont-small)!important}.has-superbfont-medium-font-size{font-size:var(--wp--preset--font-size--superbfont-medium)!important}.has-superbfont-large-font-size{font-size:var(--wp--preset--font-size--superbfont-large)!important}.has-superbfont-xlarge-font-size{font-size:var(--wp--preset--font-size--superbfont-xlarge)!important}.has-superbfont-xxlarge-font-size{font-size:var(--wp--preset--font-size--superbfont-xxlarge)!important}";
-        wp_register_style('superb-addons-variable-fallbacks', false);
+        wp_register_style('superb-addons-variable-fallbacks', false, array(), SUPERBADDONS_VERSION);
         wp_enqueue_style('superb-addons-variable-fallbacks');
         wp_add_inline_style('superb-addons-variable-fallbacks', $fallbacks);
     }
@@ -161,7 +163,8 @@ class GutenbergController
             'superb-addons-gutenberg-library',
             SUPERBADDONS_ASSETS_PATH . '/js/gutenberg/pattern-library.js',
             array("jquery", "wp-plugins", "wp-hooks", "wp-data", "wp-element", "wp-i18n", "wp-components", "wp-compose", "wp-blocks", "wp-editor"),
-            SUPERBADDONS_VERSION
+            SUPERBADDONS_VERSION,
+            true
         );
         ScriptTranslations::Set('superb-addons-gutenberg-library');
         wp_localize_script('superb-addons-gutenberg-library', 'superblayoutlibrary_g', array(
@@ -178,7 +181,8 @@ class GutenbergController
                 "base" => \get_rest_url(),
                 "namespace" => RestController::NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest")
-            )
+            ),
+            "addons_link_id" => AdminLinkUtil::GetLinkID()
         ));
         wp_enqueue_style(
             'superb-addons-elements',
@@ -274,31 +278,35 @@ class GutenbergController
     private static function EditorEnhancements()
     {
         add_action('admin_footer', function () {
+            AllowedTemplateHTMLUtil::enable_safe_styles();
             ob_start();
             include(SUPERBADDONS_PLUGIN_DIR . 'src/gutenberg/templates/block-quick-options.php');
             $template = ob_get_clean();
-            echo '<script type="text/template" id="tmpl-gutenberg-superb-block-quick-options">' . $template . '</script>';
+            echo '<script type="text/template" id="tmpl-gutenberg-superb-block-quick-options">' . wp_kses($template, "post") . '</script>';
+            AllowedTemplateHTMLUtil::disable_safe_styles();
         });
     }
 
     public static function AddonsLibrary()
     {
         add_action('admin_footer', function () {
+            AllowedTemplateHTMLUtil::enable_safe_styles();
             ///// Buttons
             ob_start();
             include(SUPERBADDONS_PLUGIN_DIR . 'src/gutenberg/templates/library-button.php');
             $template = ob_get_clean();
-            echo '<script type="text/template" id="tmpl-gutenberg-superb-library-button">' . $template . '</script>';
+            echo '<script type="text/template" id="tmpl-gutenberg-superb-library-button">' . wp_kses($template, "post") . '</script>';
             //
             ob_start();
             include(SUPERBADDONS_PLUGIN_DIR . 'src/gutenberg/templates/pattern-tab-library-button.php');
             $template = ob_get_clean();
-            echo '<script type="text/template" id="tmpl-gutenberg-superb-library-button-patternstab">' . $template . '</script>';
+            echo '<script type="text/template" id="tmpl-gutenberg-superb-library-button-patternstab">' . wp_kses($template, "post") . '</script>';
             //
             ob_start();
             include(SUPERBADDONS_PLUGIN_DIR . 'src/gutenberg/templates/appender-button.php');
             $template = ob_get_clean();
-            echo '<script type="text/template" id="tmpl-gutenberg-superb-library-appender-button">' . $template . '</script>';
+            echo '<script type="text/template" id="tmpl-gutenberg-superb-library-appender-button">' . wp_kses($template, "post") . '</script>';
+            AllowedTemplateHTMLUtil::disable_safe_styles();
             ////// Library
             LibraryController::InsertTemplatesWithWrapper();
         });

@@ -160,6 +160,9 @@ class GutenbergEnhancementsController
         }
         if (!empty($added_html_styles)) {
             $styles = $block_content->get_attribute("style") ?? "";
+            if (!empty($styles) && substr($styles, -1) !== ";") {
+                $styles .= ";";
+            }
             $block_content->set_attribute("style", $styles . join(" ", $added_html_styles));
         }
         if (!empty($added_html_classes)) {

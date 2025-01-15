@@ -2,6 +2,8 @@
 
 namespace SuperbAddons\Components\Slots;
 
+use SuperbAddons\Admin\Utils\AdminLinkSource;
+
 defined('ABSPATH') || exit();
 
 class CssBlocksExportSelectedSlot extends PremiumSlot
@@ -13,11 +15,13 @@ class CssBlocksExportSelectedSlot extends PremiumSlot
             function () {
 ?>
             <button class="superbaddons-element-button superbaddons-element-m0">
-                <img class="superbaddons-element-button-icon" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/download-simple-duotone.svg'); ?>" />
-                <?= esc_html__("Export", "superb-blocks"); ?>
+                <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/download-simple-duotone.svg'); ?>" />
+                <?php echo esc_html__("Export", "superb-blocks"); ?>
             </button>
 <?php
-            }
+            },
+            array(),
+            AdminLinkSource::CSS_EXPORT
         );
     }
 }

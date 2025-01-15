@@ -8,6 +8,7 @@ use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Data\Utils\ThemeInstaller;
+use SuperbAddons\Data\Utils\ThemeInstallerException;
 use SuperbAddons\Data\Utils\Wizard\AddonsPageTemplateUtil;
 use SuperbAddons\Data\Utils\Wizard\WizardActionParameter;
 use SuperbAddons\Data\Utils\Wizard\WizardException;
@@ -209,12 +210,9 @@ class WizardController
 
     public static function GetCompletedWizardType()
     {
-        return isset($_GET[self::COMPLETED_QUERY_PARAM]) ? $_GET[self::COMPLETED_QUERY_PARAM] : false;
-    }
-
-    private static function isAction($param, $action)
-    {
-        return isset($_GET[$param]) && $_GET[$param] === $action;
+        // determine the type of wizard page that was completed.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        return isset($_GET[self::COMPLETED_QUERY_PARAM]) ? sanitize_text_field(wp_unslash($_GET[self::COMPLETED_QUERY_PARAM])) : false;
     }
 
     private static function isAllowedAction($action)
@@ -228,7 +226,9 @@ class WizardController
 
     public static function IsWizardStages()
     {
-        if (!isset($_GET[self::ACTION_QUERY_PARAM]) || !self::isAllowedAction($_GET[self::ACTION_QUERY_PARAM])) {
+        // determine if we are on a wizard stage page.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if (!isset($_GET[self::ACTION_QUERY_PARAM]) || !self::isAllowedAction(sanitize_text_field(wp_unslash($_GET[self::ACTION_QUERY_PARAM])))) {
             return false;
         }
 
@@ -237,7 +237,9 @@ class WizardController
 
     public static function IsCompleteScreen()
     {
-        return self::isAction(self::ACTION_QUERY_PARAM, WizardActionParameter::COMPLETE);
+        // determine if we are on the wizard complete screen.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        return isset($_GET[self::ACTION_QUERY_PARAM]) && sanitize_text_field(wp_unslash($_GET[self::ACTION_QUERY_PARAM])) === WizardActionParameter::COMPLETE;
     }
 
     public static function ThemeHasCompletedWizard()
@@ -308,7 +310,7 @@ class WizardController
     private static function SwitchThemeCallback($request)
     {
         try {
-            $theme_slug = $request['theme'];
+            $theme_slug = sanitize_text_field($request['theme']);
             if (empty($theme_slug)) {
                 return rest_ensure_response(['success' => false, 'text' => esc_html__("Couldn't find selected theme.", "superb-blocks")]);
             }
@@ -330,6 +332,8 @@ class WizardController
             $installed = ThemeInstaller::Install($theme_slug);
 
             return rest_ensure_response(['success' => $installed]);
+        } catch (ThemeInstallerException $tex) {
+            return rest_ensure_response(['success' => false, 'text' => $tex->getMessage()]);
         } catch (Exception $ex) {
             LogController::HandleException($ex);
             return new \WP_Error('internal_error_plugin', 'Internal Plugin Error', array('status' => 500));

@@ -10,6 +10,8 @@ use SuperbAddons\Admin\Pages\DashboardPage;
 use SuperbAddons\Admin\Pages\SettingsPage;
 use SuperbAddons\Admin\Pages\SupportPage;
 use SuperbAddons\Admin\Pages\Wizard\PageWizardMainPage;
+use SuperbAddons\Admin\Utils\AdminLinkSource;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Components\Admin\FeedbackModal;
 use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\RestController;
@@ -17,6 +19,7 @@ use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Components\Admin\Navigation;
 use SuperbAddons\Data\Controllers\CSSController;
 use SuperbAddons\Data\Controllers\KeyController;
+use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
 use SuperbAddons\Data\Utils\ScriptTranslations;
 use SuperbAddons\Data\Utils\Wizard\WizardActionParameter;
 use SuperbAddons\Elementor\Controllers\ElementorController;
@@ -62,7 +65,7 @@ class DashboardController
         );
         $actions = array_merge($added_actions, $actions);
         if (!KeyController::HasValidPremiumKey()) {
-            $actions[] = "<a href='" . esc_url("https://superbthemes.com/superb-addons/") . "' class='" . self::PREMIUM_CLASS . "' target='_blank'>" . esc_html__('Get Premium', "superb-blocks") . "</a>";
+            $actions[] = "<a href='" . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::WP_PLUGIN_PAGE)) . "' class='" . self::PREMIUM_CLASS . "' target='_blank'>" . esc_html__('Get Premium', "superb-blocks") . "</a>";
         }
         return $actions;
     }
@@ -131,7 +134,7 @@ class DashboardController
     {
 ?>
         <style>
-            tbody#the-list .<?= self::PREMIUM_CLASS ?> {
+            tbody#the-list .<?php echo esc_html(self::PREMIUM_CLASS); ?> {
                 color: #4312E2;
                 font-weight: 900;
             }
@@ -464,10 +467,12 @@ class DashboardController
 
     public function TroubleshootingTemplates()
     {
+        AllowedTemplateHTMLUtil::enable_safe_styles();
         ob_start();
         include(SUPERBADDONS_PLUGIN_DIR . 'src/admin/templates/troubleshooting-step.php');
         $template = ob_get_clean();
-        echo '<script type="text/template" id="tmpl-superb-addons-troubleshooting-step">' . $template . '</script>';
+        echo '<script type="text/template" id="tmpl-superb-addons-troubleshooting-step">' . wp_kses($template, "post") . '</script>';
+        AllowedTemplateHTMLUtil::disable_safe_styles();
     }
 
     public function SuperbDashboard()

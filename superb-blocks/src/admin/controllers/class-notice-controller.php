@@ -119,7 +119,7 @@ class AdminNoticeController
         <script>
             window.addEventListener("load", function() {
                 setTimeout(function() {
-                    var notice_ids = <?php echo json_encode(array_column(self::$notices, 'unique_id')); ?>;
+                    var notice_ids = <?php echo wp_json_encode(array_column(self::$notices, 'unique_id')); ?>;
                     var nonce = "<?php echo esc_attr(wp_create_nonce('spbtic_dismiss_notice')); ?>";
                     var ajaxurl = "<?php echo esc_url(admin_url('admin-ajax.php')); ?>";
 
@@ -168,7 +168,7 @@ class AdminNoticeController
         }
 
         // Notice ID exists in array, so we can safely use it.
-        $notice_id = sanitize_text_field($_POST['id']);
+        $notice_id = sanitize_text_field(wp_unslash($_POST['id']));
 
         // Security check: Make sure nonce is OK. check_ajax_referer exits if it fails.
         check_ajax_referer('spbtic_dismiss_notice', 'nonce', true);

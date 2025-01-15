@@ -4,6 +4,7 @@ namespace SuperbAddons\Admin\Controllers\Wizard;
 
 use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\CacheController;
+use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
 use SuperbAddons\Data\Utils\CacheTypes;
 use SuperbAddons\Data\Utils\GutenbergCache;
 use SuperbAddons\Data\Utils\Wizard\AddonsPageTemplateUtil;
@@ -20,6 +21,9 @@ class WizardTemplatePreviewController
     const USE_PAGE_TEMPLATE_KEY = 'superbaddons-template-custom';
     const TEMPLATE_PART_PREVIEW_TRANSIENT = 'superbaddons_template_part_preview';
 
+    const TEMPLATE_PREVIEW_NONCE = 'superbaddons-template-preview-nonce';
+    const TEMPLATE_PREVIEW_NONCE_ACTION = 'superbaddons-template-preview-action';
+
     public static function InitializeTemplatePreview()
     {
         if (is_admin()) {
@@ -27,29 +31,35 @@ class WizardTemplatePreviewController
         }
 
         add_action('wp_loaded', function () {
-            if (isset($_GET[self::TEMPLATE_PREVIEW_KEY]) && isset($_GET[self::TEMPLATE_TYPE_KEY]) && isset($_GET[self::USE_PAGE_TEMPLATE_KEY])) {
-                if (!current_user_can(Capabilities::ADMIN)) return;
-                $template_id = $_GET[self::TEMPLATE_PREVIEW_KEY];
-                $template_type = $_GET[self::TEMPLATE_TYPE_KEY];
-                $template_custom = $_GET[self::USE_PAGE_TEMPLATE_KEY] == 1;
-                show_admin_bar(false);
-                switch ($template_type) {
-                    case WizardItemTypes::WP_TEMPLATE:
-                    case WizardItemTypes::WP_TEMPLATE_PART:
-                        self::SetPlaceholderFilters($template_id, $template_type);
-                        self::PreviewBlockTemplate($template_id, $template_type, $template_custom);
-                        exit();
-                        break;
-                    case WizardItemTypes::PATTERN:
-                    case WizardItemTypes::PAGE:
-                        self::SetPlaceholderFilters($template_id, $template_type);
-                        self::PreviewSuperbTemplate($template_id, $template_type, $template_custom);
-                        exit();
-                        break;
-                    default:
-                        // Static preview
-                        break;
-                }
+            if (!isset($_GET[self::TEMPLATE_PREVIEW_KEY]) || !isset($_GET[self::TEMPLATE_TYPE_KEY]) || !isset($_GET[self::USE_PAGE_TEMPLATE_KEY]) || !isset($_GET[self::TEMPLATE_PREVIEW_NONCE])) {
+                return;
+            }
+            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET[self::TEMPLATE_PREVIEW_NONCE])), self::TEMPLATE_PREVIEW_NONCE_ACTION)) {
+                return;
+            }
+            if (!current_user_can(Capabilities::ADMIN)) {
+                return;
+            }
+            $template_id = sanitize_text_field(wp_unslash($_GET[self::TEMPLATE_PREVIEW_KEY]));
+            $template_type = sanitize_text_field(wp_unslash($_GET[self::TEMPLATE_TYPE_KEY]));
+            $template_custom = $_GET[self::USE_PAGE_TEMPLATE_KEY] == 1;
+            show_admin_bar(false);
+            switch ($template_type) {
+                case WizardItemTypes::WP_TEMPLATE:
+                case WizardItemTypes::WP_TEMPLATE_PART:
+                    self::SetPlaceholderFilters($template_id, $template_type);
+                    self::PreviewBlockTemplate($template_id, $template_type, $template_custom);
+                    exit();
+                    break;
+                case WizardItemTypes::PATTERN:
+                case WizardItemTypes::PAGE:
+                    self::SetPlaceholderFilters($template_id, $template_type);
+                    self::PreviewSuperbTemplate($template_id, $template_type, $template_custom);
+                    exit();
+                    break;
+                default:
+                    // Static preview
+                    break;
             }
         });
     }
@@ -113,7 +123,7 @@ class WizardTemplatePreviewController
                     'post_status' => 'publish',
                     'post_type' => 'post',
                     'post_author' => 1,
-                    'post_date' => date('Y-m-d H:i:s'),
+                    'post_date' => gmdate('Y-m-d H:i:s'),
                 );
             }
             return $placeholder_posts;
@@ -325,9 +335,9 @@ class WizardTemplatePreviewController
 
         <body <?php body_class(); ?>>
             <?php wp_body_open(); ?>
-
-            <?php echo $content; ?>
-
+            <?php AllowedTemplateHTMLUtil::enable_safe_styles(); ?>
+            <?php echo wp_kses($content, "post"); ?>
+            <?php AllowedTemplateHTMLUtil::disable_safe_styles(); ?>
             <?php wp_footer(); ?>
         </body>
 

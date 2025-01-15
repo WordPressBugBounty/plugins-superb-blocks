@@ -45,20 +45,28 @@ class WizardTemplateProvider
 
     private function HasModifiedTemplate($slug, $template_type)
     {
-        $modifiedTemplatePost = get_posts(
-            array(
-                'post_type' => $template_type,
-                'name' => $slug,
-                'posts_per_page' => 1,
-                'tax_query' => array(
-                    array(
-                        'taxonomy' => 'wp_theme',
-                        'field' => 'slug',
-                        'terms' => get_stylesheet()
-                    )
+        $args = array(
+            'post_type' => $template_type,
+            'posts_per_page' => 1,
+            'post_name__in' => array($slug),
+            'tax_query' => array(
+                array(
+                    'taxonomy' => 'wp_theme',
+                    'field' => 'name',
+                    'terms' => get_stylesheet()
                 )
             )
         );
+        if ($template_type === WizardItemTypes::WP_TEMPLATE_PART) {
+            $args['tax_query'][] = array(
+                'taxonomy' => 'wp_template_part_area',
+                'field' => 'name',
+                'terms' => $slug
+            );
+            $args['tax_query']['relation'] = 'AND';
+        }
+
+        $modifiedTemplatePost = get_posts($args);
 
         return $modifiedTemplatePost && !empty($modifiedTemplatePost) && $modifiedTemplatePost[0]->post_name === $slug;
     }

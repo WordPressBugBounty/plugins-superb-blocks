@@ -83,6 +83,6 @@ class WizardItem
 
     public function GetPreviewURL()
     {
-        return add_query_arg(array(WizardTemplatePreviewController::TEMPLATE_PREVIEW_KEY => $this->GetId(), WizardTemplatePreviewController::TEMPLATE_TYPE_KEY => $this->type, WizardTemplatePreviewController::USE_PAGE_TEMPLATE_KEY => $this->use_custom_page_template_preview, 'superb-preview-time' => time()), $this->permalink);
+        return add_query_arg(array(WizardTemplatePreviewController::TEMPLATE_PREVIEW_KEY => $this->GetId(), WizardTemplatePreviewController::TEMPLATE_TYPE_KEY => $this->type, WizardTemplatePreviewController::USE_PAGE_TEMPLATE_KEY => $this->use_custom_page_template_preview, 'superb-preview-time' => time(), WizardTemplatePreviewController::TEMPLATE_PREVIEW_NONCE => wp_create_nonce(WizardTemplatePreviewController::TEMPLATE_PREVIEW_NONCE_ACTION)), $this->permalink);
     }
 }

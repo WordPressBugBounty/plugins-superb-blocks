@@ -208,7 +208,7 @@ class CSSController
             }
 
             foreach ($file_blocks as $file_block) {
-                $block = $this->SanitizeBlock(false, json_encode($file_block));
+                $block = $this->SanitizeBlock(false, wp_json_encode($file_block));
                 $block_id = wp_generate_uuid4();
                 $imported_blocks[$block_id] = $block;
                 $block_amount++;
@@ -223,7 +223,7 @@ class CSSController
         $blocks = array_merge($blocks, $imported_blocks);
         self::UpdateBlocks($blocks);
 
-        return rest_ensure_response(['success' => true, "text" => esc_html(sprintf(__("%d CSS Block(s) imported successfully", "superb-blocks"), $block_amount))]);
+        return rest_ensure_response(['success' => true, "text" => esc_html(sprintf(/* translators: %d: amount of blocks */__("%d CSS Block(s) imported successfully", "superb-blocks"), $block_amount))]);
     }
 
     private static function GenerateOptimizedCSS()
@@ -359,12 +359,19 @@ class CSSController
 
         $css_optimized = wp_strip_all_tags($css_optimized);
 
+        global $wp_filesystem;
+        if (!is_object($wp_filesystem)) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+
         $upload_dir = self::GetCSSDirectory();
-        if (!is_dir($upload_dir)) {
+        if (!$wp_filesystem->is_dir($upload_dir)) {
             wp_mkdir_p($upload_dir);
         }
-        $created_bytes = file_put_contents($upload_dir . $filename, $css_optimized);
-        if (!$created_bytes) {
+
+        $success = $wp_filesystem->put_contents($upload_dir . $filename, $css_optimized, FS_CHMOD_FILE);
+        if (!$success) {
             return false;
         }
 

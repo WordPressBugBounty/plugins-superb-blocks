@@ -11,14 +11,14 @@ $url = add_query_arg(
     admin_url("admin.php")
 );
 ?>
-<div class="notice notice-info superb-addons-wizard-notification is-dismissible <?= esc_attr($notice['unique_id']); ?>" style="background-image:url(<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/illustration-cards-medium.jpg'); ?>);">
-    <div class="superbthemes-module-purple-badge"><?= esc_html__("Superb Addons", "superb-blocks"); ?></div>
+<div class="notice notice-info superb-addons-wizard-notification is-dismissible <?php echo esc_attr($notice['unique_id']); ?>" style="background-image:url(<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/illustration-cards-medium.jpg'); ?>);">
+    <div class="superbthemes-module-purple-badge"><?php echo esc_html__("Superb Addons", "superb-blocks"); ?></div>
     <br>
-    <h2 class="notice-title"><?= esc_html__("Start Designing", "superb-blocks"); ?> <br><?= esc_html__("Your Website", "superb-blocks"); ?></h2>
-    <p><?= esc_html__("Quickly customize your website’s design. Choose layouts for your menu, footer, homepage, blog, and more. Launch the Theme Designer now to easily create a website that looks just the way you want!", "superb-blocks"); ?></p>
+    <h2 class="notice-title"><?php echo esc_html__("Start Designing", "superb-blocks"); ?> <br><?php echo esc_html__("Your Website", "superb-blocks"); ?></h2>
+    <p><?php echo esc_html__("Quickly customize your website’s design. Choose layouts for your menu, footer, homepage, blog, and more. Launch the Theme Designer now to easily create a website that looks just the way you want!", "superb-blocks"); ?></p>
 
-    <a class='button button-large button-secondary' href='<?= esc_url($url); ?>'><?= esc_html__("Read More", "superb-blocks"); ?></a>
-    <a class='button button-large button-primary' href='<?= esc_url($url); ?>'><?= esc_html__("Launch Theme Designer", "superb-blocks"); ?></a>
+    <a class='button button-large button-secondary' href='<?php echo esc_url($url); ?>'><?php echo esc_html__("Read More", "superb-blocks"); ?></a>
+    <a class='button button-large button-primary' href='<?php echo esc_url($url); ?>'><?php echo esc_html__("Launch Theme Designer", "superb-blocks"); ?></a>
 
     <style>
         .superb-addons-wizard-notification {

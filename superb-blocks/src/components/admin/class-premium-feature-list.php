@@ -30,7 +30,7 @@ class PremiumFeatureList
 ?>
         <ul class="superbaddons-admindashboard-feature-list">
             <?php foreach ($this->Features as $feature) : ?>
-                <li class="superbaddons-element-text-xs superbaddons-element-text-gray"><img class="superbaddons-admindashboard-feature-list-checkmark" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/checkmark.svg'); ?>" /><?= esc_html($feature); ?></li>
+                <li class="superbaddons-element-text-xs superbaddons-element-text-gray"><img class="superbaddons-admindashboard-feature-list-checkmark" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/checkmark.svg'); ?>" /><?php echo esc_html($feature); ?></li>
             <?php endforeach; ?>
         </ul>
 <?php

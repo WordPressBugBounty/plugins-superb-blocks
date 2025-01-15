@@ -3,15 +3,17 @@
 namespace SuperbAddons;
 
 /*
-Plugin Name: Superb Addons: WordPress Blocks, Patterns & Theme Designer
+Plugin Name: Superb Addons: Blocks, Patterns & Theme Designer
 Plugin URI: http://superbthemes.com/
-Description: Superb Addons: WordPress Blocks, Patterns & Theme Designer
-Version: 3.4.6
+Description: Superb Addons: Blocks, Patterns & Theme Designer
+Version: 3.5.0
 Author: SuperbThemes
 Author URI: http://superbthemes.com/
+License: GPL-3.0+
+License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 Text Domain: superb-blocks
-* Elementor tested up to: 3.25
-* Elementor Pro tested up to: 3.25
+* Elementor tested up to: 3.26
+* Elementor Pro tested up to: 3.26
 */
 
 defined('ABSPATH') || exit;
@@ -21,7 +23,7 @@ if (!defined('WPINC')) {
 }
 // Constants
 if (!defined('SUPERBADDONS_VERSION')) {
-    define('SUPERBADDONS_VERSION', '3.4.6');
+    define('SUPERBADDONS_VERSION', '3.5.0');
 }
 
 if (!defined('SUPERBADDONS_LIBRARY_VERSION')) {

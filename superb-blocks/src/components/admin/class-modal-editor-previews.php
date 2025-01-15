@@ -18,8 +18,8 @@ class EditorPreviewsModal
             <div class="superbaddons-admindashboard-modal-overlay"></div>
             <div class="superbaddons-admindashboard-modal">
                 <div class="superbaddons-admindashboard-modal-header">
-                    <span class="superbaddons-admindashboard-modal-title superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-flex-center superbaddons-element-flexwrap"><img class="superbaddons-element-mr1" src="<?= SUPERBADDONS_ASSETS_PATH . "/img/icon-superb.svg"; ?>" /><?= esc_html__("Blocks & WordPress Editor Enhancements", "superb-blocks"); ?></span>
-                    <div class="superbaddons-admindashboard-modal-close-button" class="superb-addons-template-library-button superb-addons-template-library-button-secondary"><img src="<?= SUPERBADDONS_ASSETS_PATH . "/img/x.svg"; ?>" alt="<?= esc_attr__("Close", "superb-blocks"); ?>" /></div>
+                    <span class="superbaddons-admindashboard-modal-title superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-flex-center superbaddons-element-flexwrap"><img class="superbaddons-element-mr1" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/icon-superb.svg"); ?>" /><?php echo esc_html__("Blocks & WordPress Editor Enhancements", "superb-blocks"); ?></span>
+                    <div class="superbaddons-admindashboard-modal-close-button" class="superb-addons-template-library-button superb-addons-template-library-button-secondary"><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/x.svg"); ?>" alt="<?php echo esc_attr__("Close", "superb-blocks"); ?>" /></div>
                 </div>
                 <div class="superbaddons-admindashboard-modal-content superbaddons-element-text-xs">
                     <!-- Editor Highlights -->

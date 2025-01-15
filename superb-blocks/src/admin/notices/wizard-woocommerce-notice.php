@@ -7,13 +7,13 @@ defined('ABSPATH') || exit;
 
 $url = WizardController::GetWizardURL(WizardActionParameter::WOOCOMMERCE_HEADER);
 ?>
-<div class="notice notice-info superb-addons-wizard-notification is-dismissible <?= esc_attr($notice['unique_id']); ?>">
-    <div class="superbthemes-module-purple-badge"><?= esc_html__("Superb Addons", "superb-blocks"); ?></div>
+<div class="notice notice-info superb-addons-wizard-notification is-dismissible <?php echo esc_attr($notice['unique_id']); ?>">
+    <div class="superbthemes-module-purple-badge"><?php echo esc_html__("Superb Addons", "superb-blocks"); ?></div>
     <br>
-    <h2 class="notice-title"><?= esc_html__("Add a WooCommerce Header", "superb-blocks"); ?> </h2>
-    <p><?= esc_html__("We've noticed that you're using WooCommerce! Improve your store by adding a WooCommerce header with a visible 'Cart' button and other helpful features for your customers.", "superb-blocks"); ?></p>
+    <h2 class="notice-title"><?php echo esc_html__("Add a WooCommerce Header", "superb-blocks"); ?> </h2>
+    <p><?php echo esc_html__("We've noticed that you're using WooCommerce! Improve your store by adding a WooCommerce header with a visible 'Cart' button and other helpful features for your customers.", "superb-blocks"); ?></p>
 
-    <a class='button button-large button-secondary' href='<?= esc_url($url); ?>'><?= esc_html__("Add WooCommerce Header", "superb-blocks"); ?></a>
+    <a class='button button-large button-secondary' href='<?php echo esc_url($url); ?>'><?php echo esc_html__("Add WooCommerce Header", "superb-blocks"); ?></a>
 
     <style>
         .superb-addons-wizard-notification {

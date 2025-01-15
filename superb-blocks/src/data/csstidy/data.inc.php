@@ -59,7 +59,7 @@ $data['csstidy']['units'] = array('in', 'cm', 'mm', 'pt', 'pc', 'px', 'rem', 'em
  * @global array $data['csstidy']['at_rules']
  * @version 1.1
  */
-$data['csstidy']['at_rules'] = array('page' => 'is', 'font-face' => 'atis', 'charset' => 'iv', 'import' => 'iv', 'namespace' => 'iv', 'media' => 'at', 'supports' => 'at', 'keyframes' => 'at', '-moz-keyframes' => 'at', '-o-keyframes' => 'at', '-webkit-keyframes' => 'at', '-ms-keyframes' => 'at');
+$data['csstidy']['at_rules'] = array('page' => 'is', 'font-face' => 'atis', 'charset' => 'iv', 'import' => 'iv', 'namespace' => 'iv', 'media' => 'at', 'supports' => 'at', 'keyframes' => 'at', '-moz-keyframes' => 'at', '-o-keyframes' => 'at', '-webkit-keyframes' => 'at', '-ms-keyframes' => 'at', 'container' => 'at');
 
 /**
  * Properties that need a value with unit
@@ -70,11 +70,49 @@ $data['csstidy']['at_rules'] = array('page' => 'is', 'font-face' => 'atis', 'cha
  * @version 1.2
  */
 $data['csstidy']['unit_values'] = array(
-    'background', 'background-position', 'background-size', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-width',
-    'border-top-width', 'border-right-width', 'border-left-width', 'border-bottom-width', 'bottom', 'border-spacing', 'column-gap', 'column-width',
-    'font-size', 'height', 'left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'max-height',
-    'max-width', 'min-height', 'min-width', 'outline', 'outline-width', 'padding', 'padding-top', 'padding-right',
-    'padding-bottom', 'padding-left', 'perspective', 'right', 'top', 'text-indent', 'letter-spacing', 'word-spacing', 'width'
+	'background',
+	'background-position',
+	'background-size',
+	'border',
+	'border-top',
+	'border-right',
+	'border-bottom',
+	'border-left',
+	'border-width',
+	'border-top-width',
+	'border-right-width',
+	'border-left-width',
+	'border-bottom-width',
+	'bottom',
+	'border-spacing',
+	'column-gap',
+	'column-width',
+	'font-size',
+	'height',
+	'left',
+	'margin',
+	'margin-top',
+	'margin-right',
+	'margin-bottom',
+	'margin-left',
+	'max-height',
+	'max-width',
+	'min-height',
+	'min-width',
+	'outline',
+	'outline-width',
+	'padding',
+	'padding-top',
+	'padding-right',
+	'padding-bottom',
+	'padding-left',
+	'perspective',
+	'right',
+	'top',
+	'text-indent',
+	'letter-spacing',
+	'word-spacing',
+	'width'
 );
 
 /**

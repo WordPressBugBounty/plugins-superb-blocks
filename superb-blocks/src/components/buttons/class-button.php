@@ -31,13 +31,13 @@ class Button
     private function Render()
     {
 ?>
-        <a id="<?= esc_attr($this->id); ?>" <?= !empty($this->url) ? 'href="' . esc_url($this->url) . '"' : ''; ?> <?= !empty($this->target) ? 'target="' . esc_attr($this->target) . '"' : ''; ?>class="superb-addons-template-library-button superb-addons-template-library-button-<?= esc_attr($this->type); ?> <?= esc_attr($this->class); ?>">
+        <a id="<?php echo esc_attr($this->id); ?>" <?php echo !empty($this->url) ? 'href="' . esc_url($this->url) . '"' : ''; ?> <?php echo !empty($this->target) ? 'target="' . esc_attr($this->target) . '"' : ''; ?> class="superb-addons-template-library-button superb-addons-template-library-button-<?php echo esc_attr($this->type); ?> <?php echo esc_attr($this->class); ?>">
             <?php if (!empty($this->text)) {
                 echo esc_html($this->text);
             }
 
             if (!empty($this->icon)) : ?>
-                <img src="<?= SUPERBADDONS_ASSETS_PATH . "/img/" . esc_attr($this->icon); ?>" />
+                <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/" . esc_attr($this->icon)); ?>" />
             <?php endif; ?>
         </a>
 <?php

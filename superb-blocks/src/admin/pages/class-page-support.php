@@ -4,6 +4,7 @@ namespace SuperbAddons\Admin\Pages;
 
 defined('ABSPATH') || exit();
 
+use SuperbAddons\Admin\Utils\AdminLinkSource;
 use SuperbAddons\Components\Admin\ContentBoxLarge;
 use SuperbAddons\Components\Admin\LinkBox;
 use SuperbAddons\Components\Admin\Modal;
@@ -40,7 +41,7 @@ class SupportPage
                     <div class="spbaddons-troubleshooting-steps">
                         <!-- Handled by JS -->
                     </div>
-                    <button id="spbaddons-troubleshooting-submit-btn" class="superbaddons-element-button superbaddons-element-m0" type="button"><?= esc_html__('Start Troubleshooting Process', "superb-blocks"); ?></button>
+                    <button id="spbaddons-troubleshooting-submit-btn" class="superbaddons-element-button superbaddons-element-m0" type="button"><?php echo esc_html__('Start Troubleshooting Process', "superb-blocks"); ?></button>
                     <div class="spbaddons-troubleshooting-result-wrapper" style="display:none;">
                         <?php
                         $this->AddResultBox(
@@ -91,8 +92,8 @@ class SupportPage
                     </div>
                 </div>
                 <div class="superbaddons-additional-content-wrapper">
-                    <h4 class="superbaddons-element-text-sm superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><?= esc_html__("Guided Tutorials", "superb-blocks"); ?></h4>
-                    <p class="superbaddons-element-text-xs superbaddons-element-text-gray "><?= esc_html__("Get started with our guided tutorials of Superb Addons features.", "superb-blocks"); ?></p>
+                    <h4 class="superbaddons-element-text-sm superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><?php echo esc_html__("Guided Tutorials", "superb-blocks"); ?></h4>
+                    <p class="superbaddons-element-text-xs superbaddons-element-text-gray "><?php echo esc_html__("Get started with our guided tutorials of Superb Addons features.", "superb-blocks"); ?></p>
                     <div class="superbaddons-admindashboard-linkbox-wrapper">
                         <?php
                         new LinkBox(
@@ -102,7 +103,15 @@ class SupportPage
                                 "title" => __("Gutenberg Patterns", "superb-blocks"),
                                 "description" => __("Let's show you where and how to use our library of Gutenberg patterns!", "superb-blocks"),
                                 "cta" => __("Start Tutorial", "superb-blocks"),
-                                "link" => esc_url(admin_url("post-new.php?" . TourController::TOUR_GUTENBERG . "=" . TourController::GUTENBERG_TOUR_PATTERNS)),
+                                "link" => esc_url(
+                                    add_query_arg(
+                                        array(
+                                            TourController::TOUR_GUTENBERG => TourController::GUTENBERG_TOUR_PATTERNS,
+                                            TourController::TOUR_NONCE_PARAM => wp_create_nonce(TourController::TOUR_NONCE_ACTION)
+                                        ),
+                                        admin_url('post-new.php')
+                                    )
+                                ),
                                 "classes" => 'superbaddons-start-tutorial-link-gutenberg'
                             )
                         );
@@ -113,7 +122,15 @@ class SupportPage
                                 "title" => __("Gutenberg Blocks", "superb-blocks"),
                                 "description" => __("How do you insert the included blocks? This tutorial will show you.", "superb-blocks"),
                                 "cta" => __("Start Tutorial", "superb-blocks"),
-                                "link" => esc_url(admin_url("post-new.php?" . TourController::TOUR_GUTENBERG . "=" . TourController::GUTENBERG_TOUR_BLOCKS)),
+                                "link" => esc_url(
+                                    add_query_arg(
+                                        array(
+                                            TourController::TOUR_GUTENBERG => TourController::GUTENBERG_TOUR_BLOCKS,
+                                            TourController::TOUR_NONCE_PARAM => wp_create_nonce(TourController::TOUR_NONCE_ACTION)
+                                        ),
+                                        admin_url('post-new.php')
+                                    )
+                                ),
                                 "classes" => 'superbaddons-start-tutorial-link-gutenberg'
                             )
                         );
@@ -134,8 +151,8 @@ class SupportPage
                     </div>
                 </div>
                 <div class="superbaddons-additional-content-wrapper">
-                    <h4 class="superbaddons-element-text-sm superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><?= esc_html__("Knowledge Base", "superb-blocks"); ?></h4>
-                    <p class="superbaddons-element-text-xs superbaddons-element-text-gray "><?= esc_html__("Looking for answers? Our knowledge base may have what you're looking for.", "superb-blocks"); ?></p>
+                    <h4 class="superbaddons-element-text-sm superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><?php echo esc_html__("Knowledge Base", "superb-blocks"); ?></h4>
+                    <p class="superbaddons-element-text-xs superbaddons-element-text-gray "><?php echo esc_html__("Looking for answers? Our knowledge base may have what you're looking for.", "superb-blocks"); ?></p>
                     <div class="superbaddons-admindashboard-linkbox-wrapper">
                         <?php
                         new LinkBox(
@@ -199,7 +216,7 @@ class SupportPage
 
             <div class="superbaddons-admindashboard-sidebarlayout-right">
                 <?php
-                new PremiumBox();
+                new PremiumBox(AdminLinkSource::SUPPORT);
                 new SupportBox();
                 new ReviewBox();
                 ?>
@@ -213,11 +230,11 @@ class SupportPage
     private function AddResultBox($identity, $icon, $title, $text_arr)
     {
     ?>
-        <div class="spbaddons-troubleshooting-result-item spbaddons-troubleshooting-result-<?= esc_attr($identity); ?>" style="display:none;">
+        <div class="spbaddons-troubleshooting-result-item spbaddons-troubleshooting-result-<?php echo esc_attr($identity); ?>" style="display:none;">
             <div class="spbaddons-troubleshooting-result-item-header">
-                <img class="spbaddons-troubleshooting-result-icon" src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $icon); ?>" />
+                <img class="spbaddons-troubleshooting-result-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $icon); ?>" />
                 <h5>
-                    <?= esc_html($title); ?>
+                    <?php echo esc_html($title); ?>
                 </h5>
             </div>
             <div class="spbaddons-troubleshooting-result-item-body">
@@ -228,7 +245,7 @@ class SupportPage
                     }
                 ?>
                     <p>
-                        <?= esc_html($text); ?>
+                        <?php echo esc_html($text); ?>
                     </p>
                 <?php
                 }

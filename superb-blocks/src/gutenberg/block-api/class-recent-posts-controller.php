@@ -45,14 +45,14 @@ class RecentPostsController
         // If no posts found
         if (count($recent_posts) <= 0) : ?>
             <div class="superbaddons-recentposts-wrapper">
-                <p style="font-weight:500;"><?= esc_html__("No posts found", "superbrecentposts"); ?></p>
+                <p style="font-weight:500;"><?php echo esc_html__("No posts found", "superb-blocks"); ?></p>
             </div>
         <?php return ob_get_clean();
         endif;
 
         // If posts found
         ?>
-        <div class="superbaddons-recentposts-wrapper superbaddons-recentposts-alignment-<?= esc_attr($attributes['toolbarAlignment']); ?>">
+        <div class="superbaddons-recentposts-wrapper superbaddons-recentposts-alignment-<?php echo esc_attr($attributes['toolbarAlignment']); ?>">
             <ul class="superbaddons-recentposts-list">
                 <?php
                 $wrapperTag = $attributes['IsInEditor'] ? 'span' : 'a';
@@ -63,49 +63,49 @@ class RecentPostsController
                     $thumbnail_url = !$temp_thumbnail_url ? SUPERBADDONS_ASSETS_PATH . '/img/post-thumbnail-placeholder.png' : $temp_thumbnail_url;
                 ?>
                     <li class="superbaddons-recentposts-item">
-                        <<?= $wrapperTag ?> href="<?= esc_url($permalink) ?>" <?= $attributes['linksTargetBlank'] && !$attributes['IsInEditor'] ? 'target="_blank"' : '' ?>>
+                        <<?php echo esc_html($wrapperTag); ?> href="<?php echo esc_url($permalink) ?>" <?php echo $attributes['linksTargetBlank'] && !$attributes['IsInEditor'] ? 'target="_blank"' : '' ?>>
                             <div class="superbaddons-recentposts-item-inner">
                                 <?php if ($attributes['displayThumbnails'] && ($attributes['displayPlaceholderThumbnails'] || $temp_thumbnail_url !== false)) : ?>
                                     <div class="superbaddons-recentposts-item-left">
-                                        <img width="<?= esc_attr($attributes['thumbnailSize']) ?>" height="<?= esc_attr($attributes['thumbnailSize']) ?>" src="<?= esc_url($thumbnail_url) ?>" <?= $attributes['imgBorderRadiusEnabled'] ? 'style="border-radius:' . esc_attr($attributes['imgBorderRadius'] / 2) . '%;"' : ""; ?> />
+                                        <img width="<?php echo esc_attr($attributes['thumbnailSize']) ?>" height="<?php echo esc_attr($attributes['thumbnailSize']) ?>" src="<?php echo esc_url($thumbnail_url) ?>" <?php echo $attributes['imgBorderRadiusEnabled'] ? 'style="border-radius:' . esc_attr($attributes['imgBorderRadius'] / 2) . '%;"' : ""; ?> />
                                     </div>
                                 <?php endif; ?>
                                 <div class="superbaddons-recentposts-item-right">
                                     <?php if ($attributes['displayDate'] || $attributes['displayAuthor']) : ?>
                                         <!-- Meta -->
-                                        <span style="font-size:<?= esc_attr($attributes['fontSizeMeta']) ?>px; color:<?= esc_attr($attributes['colorMeta']) ?>;">
+                                        <span style="font-size:<?php echo esc_attr($attributes['fontSizeMeta']) ?>px; color:<?php echo esc_attr($attributes['colorMeta']) ?>;">
                                             <?php if ($attributes['displayDate']) : ?>
                                                 <time class="superbaddons-recentposts-item-date">
-                                                    <?= esc_html(get_the_date(get_option('date_format', 'F j, Y'), $post['ID'])); ?>
+                                                    <?php echo esc_html(get_the_date(get_option('date_format', 'F j, Y'), $post['ID'])); ?>
                                                 </time>
                                             <?php endif; ?>
                                             <?php if ($attributes['displayAuthor']) : ?>
                                                 <span class="superbaddons-recentposts-item-author">
-                                                    <?= esc_html(__("by", "superbrecentposts") . " " . get_the_author_meta($attributes['useAuthorDisplayName'] ? 'display_name' : 'user_nicename', $post['post_author'])); ?>
+                                                    <?php echo esc_html(__("by", "superb-blocks") . " " . get_the_author_meta($attributes['useAuthorDisplayName'] ? 'display_name' : 'user_nicename', $post['post_author'])); ?>
                                                 </span>
                                             <?php endif; ?>
                                         </span>
                                     <?php endif; ?>
 
                                     <!-- Title -->
-                                    <span style="font-size:<?= esc_attr($attributes['fontSizeTitle']) ?>px; color:<?= esc_attr($attributes['colorTitle']) ?>;"><?= esc_html($the_post_title); ?></span>
+                                    <span style="font-size:<?php echo esc_attr($attributes['fontSizeTitle']) ?>px; color:<?php echo esc_attr($attributes['colorTitle']) ?>;"><?php echo esc_html($the_post_title); ?></span>
 
                                     <?php if ($attributes['displayExcerpt']) : ?>
                                         <!-- Excerpt -->
-                                        <span style="font-size:<?= esc_attr($attributes['fontSizeExcerpt']) ?>px; color:<?= esc_attr($attributes['colorExcerpt']) ?>;">
-                                            <?= esc_html(wp_trim_words(excerpt_remove_blocks(strip_shortcodes($post['post_content'])), $attributes['excerptLength'], apply_filters('excerpt_more', ' ' . '[&hellip;]'))); ?>
+                                        <span style="font-size:<?php echo esc_attr($attributes['fontSizeExcerpt']) ?>px; color:<?php echo esc_attr($attributes['colorExcerpt']) ?>;">
+                                            <?php echo esc_html(wp_trim_words(excerpt_remove_blocks(strip_shortcodes($post['post_content'])), $attributes['excerptLength'], apply_filters('excerpt_more', ' ' . '[&hellip;]'))); ?>
                                         </span>
                                     <?php endif; ?>
 
                                     <?php if ($attributes['displayCommentCount']) : ?>
                                         <!-- Comment Count -->
-                                        <span style="font-size:<?= esc_attr($attributes['fontSizeCommentCount']); ?>px; color:<?= esc_attr($attributes['colorCommentCount']); ?>;">
-                                            <?= esc_html(get_comment_count($post['ID'])['approved'] . " " . __("comment(s)", "superbrecentposts")); ?>
+                                        <span style="font-size:<?php echo esc_attr($attributes['fontSizeCommentCount']); ?>px; color:<?php echo esc_attr($attributes['colorCommentCount']); ?>;">
+                                            <?php echo esc_html(get_comment_count($post['ID'])['approved'] . " " . __("comment(s)", "superb-blocks")); ?>
                                         </span>
                                     <?php endif; ?>
                                 </div>
                             </div>
-                        </<?= $wrapperTag ?>>
+                        </<?php echo esc_html($wrapperTag) ?>>
                     </li>
                 <?php
                 }

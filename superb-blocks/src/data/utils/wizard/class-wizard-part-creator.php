@@ -18,7 +18,7 @@ class WizardPartCreator
             }
 
             if (!isset($selection_data[$stage_type])) {
-                throw new WizardException(__('Couldn\'t process template part selections. If the issue persists, please contact support.', 'superb-blocks'));
+                throw new WizardException(esc_html__('Couldn\'t process template part selections. If the issue persists, please contact support.', 'superb-blocks'));
             }
 
             $template_part_data = isset($selection_data[$stage_type][0]) ? $selection_data[$stage_type][0] : [];
@@ -30,11 +30,11 @@ class WizardPartCreator
             $template_part_slug = $stage_type === WizardStageTypes::HEADER_STAGE ? 'header' : 'footer';
             $restoration_point = WizardRestorationPointController::CreateTemplateRestorationPoint($template_part_slug, WizardItemTypes::WP_TEMPLATE_PART);
             if (!$restoration_point) {
-                throw new WizardException(__('Template part restoration point could not be created. If the issue persists, please contact support.', 'superb-blocks'));
+                throw new WizardException(esc_html__('Template part restoration point could not be created. If the issue persists, please contact support.', 'superb-blocks'));
             }
             $part_created = self::CreateTemplatePart($template_part_slug, $template_part_data['slug'], $template_part_data['package'], $template_part_data['type']);
             if (!$part_created) {
-                throw new WizardException(__('Template part could not be created. If the issue persists, please contact support.', 'superb-blocks'));
+                throw new WizardException(esc_html__('Template part could not be created. If the issue persists, please contact support.', 'superb-blocks'));
             }
         }
 
@@ -51,7 +51,7 @@ class WizardPartCreator
             || empty($data['package'])
             || empty($data['type'])
         ) {
-            throw new WizardException(__('Missing template part selection data. If the issue persists, please contact support.', 'superb-blocks'));
+            throw new WizardException(esc_html__('Missing template part selection data. If the issue persists, please contact support.', 'superb-blocks'));
         }
     }
 

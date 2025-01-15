@@ -36,7 +36,7 @@ class CacheController
             // Cache expired or invalid -> Update service info cache
             $service_status = DomainShiftController::GetServiceStatus();
             if (!$service_status['online']) {
-                throw new CacheException($service_status['message']);
+                throw new CacheException(esc_html($service_status['message']));
             }
 
             self::SetCache(CacheOptions::SERVICE_VERSION, $service_status);
@@ -55,7 +55,7 @@ class CacheController
                     }
                     break;
                 default:
-                    throw new CacheException(__("Invalid cache type:", "superb-blocks") . " " . $cache_type);
+                    throw new CacheException(esc_html(__("Invalid cache type:", "superb-blocks") . " " . $cache_type));
             }
         }
 
@@ -114,7 +114,7 @@ class CacheController
             case GutenbergCache::PAGES:
                 return Option::PREFIX . GutenbergCache::PAGES;
             default:
-                throw new CacheException(__("Invalid cache option:", "superb-blocks") . " " . $cache_option);
+                throw new CacheException(esc_html(__("Invalid cache option:", "superb-blocks") . " " . $cache_option));
         }
     }
 }

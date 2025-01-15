@@ -19,7 +19,7 @@ class KeyController
         try {
             $is_valid = strlen($key) === 23 && preg_match('/^[A-Z0-9]{5}(-[A-Z0-9]{5}){3}$/', $key);
             if (!$is_valid) {
-                throw new KeyException(__("Invalid License Key. Please check that the license key was entered correctly.", "superb-blocks"));
+                throw new KeyException(esc_html__("Invalid License Key. Please check that the license key was entered correctly.", "superb-blocks"));
             }
 
             $option_controller = new OptionController();
@@ -28,27 +28,27 @@ class KeyController
             $response_code = wp_remote_retrieve_response_code($response);
             if (!is_array($response) || is_wp_error($response) || $response_code !== 200) {
                 if ($response_code === 404) {
-                    throw new KeyException(__("License key could not be validated. Please check that the license key was entered correctly.", "superb-blocks"), true, $response_code);
+                    throw new KeyException(esc_html__("License key could not be validated. Please check that the license key was entered correctly.", "superb-blocks"), true, $response_code);
                 } else {
-                    throw new KeyException(__("Unable to validate license key. Please contact support for assistance.", "superb-blocks"), false, $response_code);
+                    throw new KeyException(esc_html__("Unable to validate license key. Please contact support for assistance.", "superb-blocks"), false, $response_code);
                 }
             }
 
             $data = json_decode($response['body']);
             if (!isset($data->level) || !isset($data->active) || !$data->active || !isset($data->expired) || !isset($data->verification) || !$data->verification || !isset($data->verification->exceeded) || !isset($data->verification->verified) || !isset($data->verification->stamp)) {
-                throw new KeyException(__("License key not currently active. Please contact support for assistance.", "superb-blocks"));
+                throw new KeyException(esc_html__("License key not currently active. Please contact support for assistance.", "superb-blocks"));
             }
 
             if ($data->verification->exceeded) {
-                throw new KeyException(__("You have already used up all your domain activations for this license key.", "superb-blocks"));
+                throw new KeyException(esc_html__("You have already used up all your domain activations for this license key.", "superb-blocks"));
             }
 
             if ((!$data->verification->verified || !$data->verification->stamp) && $data->active && !$data->expired) {
-                throw new KeyException(__("License key verification could not complete. Please contact support for assistance.", "superb-blocks"));
+                throw new KeyException(esc_html__("License key verification could not complete. Please contact support for assistance.", "superb-blocks"));
             }
 
             if ($data->expired && $data->level !== KeyType::STANDARD) {
-                throw new KeyException(__("License key has expired. Please renew your subscription to re-activate your license.", "superb-blocks"));
+                throw new KeyException(esc_html__("License key has expired. Please renew your subscription to re-activate your license.", "superb-blocks"));
             }
 
             try {
@@ -57,13 +57,13 @@ class KeyController
                 return array("type" => $data->level, "active" => $data->active, "expired" => $data->expired, "verified" => $data->verification->verified, "exceeded" => $data->exceeded);
             } catch (OptionException $o_ex) {
                 self::RemoveKey($key, $data->verification->stamp);
-                throw new KeyException(__("Unable to store license in WordPress. If the problem persists, please contact support.", "superb-blocks"));
+                throw new KeyException(esc_html__("Unable to store license in WordPress. If the problem persists, please contact support.", "superb-blocks"));
             }
         } catch (KeyException $k_ex) {
             throw $k_ex;
         } catch (Exception $ex) {
             LogController::HandleException($ex);
-            throw new KeyException(__("Internal Error Occurred During License Key Registration", "superb-blocks"));
+            throw new KeyException(esc_html__("Internal Error Occurred During License Key Registration", "superb-blocks"));
         }
     }
 
@@ -76,7 +76,7 @@ class KeyController
             $response = DomainShiftController::RemoteGet(self::ENDPOINT_BASE . 'keys/remove?key=' . $key . '&dm=' . urlencode(home_url()) . '&stamp=' . absint($stamp));
             $response_code = wp_remote_retrieve_response_code($response);
             if (!is_array($response) || is_wp_error($response) || $response_code !== 200) {
-                throw new Exception(__("License key removal record not received.", "superb-blocks"), $response_code);
+                throw new Exception(esc_html__("License key removal record not received.", "superb-blocks"), $response_code);
             }
         } catch (Exception $ex) {
             LogController::HandleException($ex);

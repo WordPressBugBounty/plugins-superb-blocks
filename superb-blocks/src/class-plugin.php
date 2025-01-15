@@ -47,7 +47,7 @@ class SuperbAddonsPlugin
     public function ActivationHookFunction()
     {
         try {
-            add_option('superbaddons_pre_activation', time(), false);
+            add_option('superbaddons_pre_activation', time(), "", false);
             WizardController::MaybeSetWizardRecommenderTransient();
         } catch (Exception $e) {
             LogController::HandleException($e);

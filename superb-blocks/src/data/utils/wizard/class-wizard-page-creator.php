@@ -22,7 +22,7 @@ class WizardPageCreator
         $page_stages = self::GetPageStages($wizardData);
 
         if (empty($page_stages)) {
-            throw new WizardException(__('Something went wrong. No page stages found in selections.', 'superb-blocks'));
+            throw new WizardException(esc_html__('Something went wrong. No page stages found in selections.', 'superb-blocks'));
         }
 
         $menu_items = self::CreateAndGetPageMenuItems(
@@ -238,7 +238,7 @@ class WizardPageCreator
     {
         $restoration_point = WizardRestorationPointController::CreateTemplateRestorationPoint($template_object->slug, WizardItemTypes::WP_TEMPLATE);
         if (!$restoration_point) {
-            throw new WizardException(__('Template restoration point could not be created. If the issue persists, please contact support.', 'superb-blocks'));
+            throw new WizardException(esc_html__('Template restoration point could not be created. If the issue persists, please contact support.', 'superb-blocks'));
         }
 
         $template_content = $include_addons_template_content ? AddonsPageTemplateUtil::GetAddonsPageTemplateContent($template_content) : $template_content;
@@ -262,7 +262,7 @@ class WizardPageCreator
                     'comment_status' => 'closed',
                     'ping_status' => 'closed',
                     'tax_input' => array(
-                        'wp_theme' => get_stylesheet()
+                        'wp_theme' => array(get_stylesheet())
                     )
                 )
             );

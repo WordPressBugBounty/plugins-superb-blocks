@@ -240,7 +240,7 @@ class LibraryRequestController
                     $data = GutenbergController::GutenbergDataImportAction($data);
                     return rest_ensure_response(["content" => $data['content'], "name" => esc_html(isset($data['title']) ? $data['title'] : '')]);
                 default:
-                    throw new Exception(__("Invalid endpoint specifier. Unable to import data.", "superb-blocks"));
+                    throw new Exception(esc_html__("Invalid endpoint specifier. Unable to import data.", "superb-blocks"));
             }
 
             return new \WP_Error('internal_error_plugin', 'Unexpected Internal Plugin Error', array('status' => 500));
@@ -271,7 +271,7 @@ class LibraryRequestController
         $data = json_decode($response['body'], true);
         if (isset($data['code']) && isset($data['data']) && isset($data['message'])) {
             $status = isset($data['data']['status']) ? $data['data']['status'] : 500;
-            throw new RequestException($data['message'], $status);
+            throw new RequestException(esc_html($data['message']), intval($status));
         }
         if (isset($data['level'])) {
             KeyController::UpdateKeyType($data['level'], $data['active'], $data['expired'], $data['exceeded']);

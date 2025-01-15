@@ -31,7 +31,11 @@ class NewsletterSignupController
             wp_send_json_error(array('message' => __("You do not have permission to perform this action.", "superb-blocks")));
         }
 
-        $email = sanitize_email($_POST['email']);
+        if (!isset($_POST['email']) || empty($_POST['email'])) {
+            wp_send_json_error(array('message' => __("Email address is required.", "superb-blocks")));
+        }
+
+        $email = sanitize_email(wp_unslash($_POST['email']));
         if (!is_email($email)) {
             wp_send_json_error(array('message' => __("Invalid email address.", "superb-blocks")));
         }
@@ -42,7 +46,7 @@ class NewsletterSignupController
             array(
                 'headers' => array('Content-Type' => 'application/json'),
                 'method' => 'POST',
-                'body' => json_encode(
+                'body' => wp_json_encode(
                     array(
                         'action' => 'signup_newsletter',
                         'email' => $email

@@ -96,7 +96,7 @@ class WizarditemRestorationPoint extends WizardItem
         $this->timestamp = $restorationPointArray['timestamp'];
         $this->id = $restorationPointId;
         $this->SetSlug($restorationPointArray['slug']);
-        $this->title = date($datetime_format, $restorationPointArray['timestamp']);
+        $this->title = gmdate($datetime_format, $restorationPointArray['timestamp']);
         $this->type = $restorationPointArray['type'];
         $this->datatype = $this->type;
         $this->is_restoration_point = true;

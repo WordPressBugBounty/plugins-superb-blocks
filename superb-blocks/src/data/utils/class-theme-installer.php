@@ -4,6 +4,7 @@ namespace SuperbAddons\Data\Utils;
 
 defined('ABSPATH') || exit();
 
+use Exception;
 use SuperbAddons\Data\Utils\QuietSkin;
 
 require_once(ABSPATH . 'wp-admin/includes/theme-install.php');
@@ -62,6 +63,13 @@ class ThemeInstaller
         // Activate theme
         $theme = wp_get_theme($theme_slug);
         if ($theme->exists()) {
+            if (function_exists('validate_theme_requirements')) {
+                $validated = validate_theme_requirements($theme_slug);
+                if (is_wp_error($validated)) {
+                    throw new ThemeInstallerException(esc_html(wp_strip_all_tags($validated->get_error_message())));
+                }
+            }
+
             switch_theme($theme->get_stylesheet());
             return true;
         }

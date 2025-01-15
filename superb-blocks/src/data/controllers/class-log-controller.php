@@ -147,7 +147,7 @@ class LogController
                 array(
                     'headers' => array('Content-Type' => 'application/json'),
                     'method' => 'POST',
-                    'body' => json_encode(
+                    'body' => wp_json_encode(
                         array(
                             'action' => 'share_error_logs',
                             'logs' => $logs_to_share
@@ -157,7 +157,7 @@ class LogController
             );
             $status = wp_remote_retrieve_response_code($response);
             if (!is_array($response) || is_wp_error($response) || $status !== 200) {
-                throw new Exception(sprintf(__("Error logs could not be shared. Status %d.", "superb-blocks"), $status));
+                throw new Exception(esc_html(sprintf(/* translators: %d: http status code */__("Error logs could not be shared. Status %d.", "superb-blocks"), $status)));
             }
 
             foreach ($logs as &$log) {
@@ -170,21 +170,21 @@ class LogController
         }
     }
 
-    public static function SendFeedback($message)
+    public static function SendFeedback($sanitized_message)
     {
-        if (strlen($message) > 1000) {
-            $message = substr($message, 0, 1000) . "...";
+        if (strlen($sanitized_message) > 1000) {
+            $sanitized_message = substr($sanitized_message, 0, 1000) . "...";
         }
         $response = DomainShiftController::RemotePost(
             self::FEEDBACK_ENDPOINT,
             array(
                 'headers' => array('Content-Type' => 'application/json'),
                 'method' => 'POST',
-                'body' => json_encode(
+                'body' => wp_json_encode(
                     array(
                         'action' => 'share_feedback',
                         'feedback' => array(
-                            'message' => sanitize_text_field($message),
+                            'message' => $sanitized_message,
                             "time" => time(),
                             "premium" => KeyController::HasValidPremiumKey(),
                             "version" => sanitize_text_field(SUPERBADDONS_VERSION),
@@ -195,7 +195,7 @@ class LogController
         );
         $status = wp_remote_retrieve_response_code($response);
         if (!is_array($response) || is_wp_error($response) || $status !== 200) {
-            throw new Exception(sprintf(__("Feedback could not be shared. Status %d.", "superb-blocks"), $status));
+            throw new Exception(esc_html(sprintf(/* translators: %d: http status code */__("Feedback could not be shared. Status %d.", "superb-blocks"), $status)));
         }
     }
 

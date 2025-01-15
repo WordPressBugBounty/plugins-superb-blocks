@@ -3,6 +3,7 @@
 namespace SuperbAddons\Admin\Pages\Wizard;
 
 use SuperbAddons\Admin\Controllers\Wizard\WizardController;
+use SuperbAddons\Admin\Utils\AdminLinkSource;
 use SuperbAddons\Components\Admin\InputCheckbox;
 use SuperbAddons\Components\Admin\Modal;
 use SuperbAddons\Components\Admin\OutdatedBrowserWarning;
@@ -49,15 +50,15 @@ class PageWizardStagesPage
             );
         }
 ?>
-        <div class="superbaddons-theme-template-menu" data-wizard="<?= esc_attr($this->stageUtil->GetType()); ?>">
+        <div class="superbaddons-theme-template-menu" data-wizard="<?php echo esc_attr($this->stageUtil->GetType()); ?>">
             <div class="superbaddons-theme-template-menu-inner">
                 <div class="superbaddons-template-menu-buttons superbaddons-template-menu-buttons-left">
-                    <a href="<?= esc_url($this->cancel_url); ?>" id="superbaddons-template-cancel-button" class="superbthemes-module-cta"><?= esc_html__("Cancel", "superb-blocks"); ?></a>
+                    <a href="<?php echo esc_url($this->cancel_url); ?>" id="superbaddons-template-cancel-button" class="superbthemes-module-cta"><?php echo esc_html__("Cancel", "superb-blocks"); ?></a>
                 </div>
                 <div class="superbaddons-theme-template-steps">
                 </div>
                 <div class="superbaddons-template-menu-buttons superbaddons-template-menu-buttons-right">
-                    <button id="superbaddons-template-next-button" data-complete-url="<?= esc_url($this->complete_url); ?>" class="superbthemes-module-cta superbthemes-module-cta-green"><?= esc_html__("Continue", "superb-blocks"); ?></button>
+                    <button id="superbaddons-template-next-button" data-complete-url="<?php echo esc_url($this->complete_url); ?>" class="superbthemes-module-cta superbthemes-module-cta-green"><?php echo esc_html__("Continue", "superb-blocks"); ?></button>
                 </div>
             </div>
         </div>
@@ -84,13 +85,13 @@ class PageWizardStagesPage
             $firstSelectionIndex = 1;
         }
     ?>
-        <div class="superbaddons-template-stage" data-stageid="<?= esc_attr($stage_id); ?>" data-type="<?= esc_attr($properties['type']); ?>" data-required="<?= boolval($properties['required']); ?>" data-hastitleinput="<?= esc_attr($properties['has-title-input'] ?? ""); ?>" style="display:none;">
-            <div class="superbaddons-wizard-wrapper-small" data-stage-label="<?= esc_attr($this->stageUtil->GetStageLabel($stage_id)); ?>" data-title-input-suggestion="<?= esc_attr($properties['input-suggestion'] ?? ''); ?>">
+        <div class="superbaddons-template-stage" data-stageid="<?php echo esc_attr($stage_id); ?>" data-type="<?php echo esc_attr($properties['type']); ?>" data-required="<?php echo esc_attr(boolval($properties['required'])); ?>" data-hastitleinput="<?php echo esc_attr($properties['has-title-input'] ?? ""); ?>" style="display:none;">
+            <div class="superbaddons-wizard-wrapper-small" data-stage-label="<?php echo esc_attr($this->stageUtil->GetStageLabel($stage_id)); ?>" data-title-input-suggestion="<?php echo esc_attr($properties['input-suggestion'] ?? ''); ?>">
                 <div class="superbaddons-wizard-heading">
-                    <img src="<?= esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $properties['icon']); ?>" width="60" height="60" aria-hidden="true">
-                    <h1><span class="superbaddons-wizard-heading-number"></span> <?= esc_html($this->stageUtil->GetStageTitle($stage_id)); ?></h1>
+                    <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $properties['icon']); ?>" width="60" height="60" aria-hidden="true">
+                    <h1><span class="superbaddons-wizard-heading-number"></span> <?php echo esc_html($this->stageUtil->GetStageTitle($stage_id)); ?></h1>
                 </div>
-                <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><?= esc_html($this->stageUtil->GetStageDescription($stage_id)); ?></p>
+                <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><?php echo esc_html($this->stageUtil->GetStageDescription($stage_id)); ?></p>
 
                 <?php if (isset($properties['unique_render']) && $properties['unique_render']):
                     if ($stage_id === WizardStageTypes::NAVIGATION_MENU_STAGE):
@@ -136,34 +137,34 @@ class PageWizardStagesPage
         if (!$rendering_with_premium_wrapper && $premium && !$premium_available) {
             new PremiumOptionWrapper(function () use ($template, $is_locked, $is_selected) {
                 $this->RenderTemplate($template, $is_locked, $is_selected, true);
-            }, array(), true);
+            }, array(), AdminLinkSource::DESIGNER, true);
             return;
         }
     ?>
-        <div class="superbaddons-theme-page-template superbaddons-element-text-dark <?= $update_required ? "superbaddons-theme-page-template-update-required" : ""; ?> <?= $external_plugin_required ? "superbaddons-theme-page-template-external-plugin-required" : ""; ?> <?= $premium_available ? "superbaddons-premium-element-option" : ($premium ? "superbaddons-theme-page-template-unavailable-premium" : ""); ?> <?= $template->IsPattern() ? "superbaddons-theme-page-template-part" : ""; ?> <?= $is_locked ? 'superbaddons-theme-page-template-locked' : ''; ?> <?= $is_selected ? 'superbaddons-theme-page-template-selected' : ''; ?>" data-slug="<?= esc_attr($template->GetSlug()); ?>" data-title="<?= esc_attr($template->title); ?>" data-type="<?= esc_attr($template->datatype); ?>" data-package="<?= $premium ? 'premium' : 'free'; ?>">
+        <div class="superbaddons-theme-page-template superbaddons-element-text-dark <?php echo $update_required ? "superbaddons-theme-page-template-update-required" : ""; ?> <?php echo $external_plugin_required ? "superbaddons-theme-page-template-external-plugin-required" : ""; ?> <?php echo $premium_available ? "superbaddons-premium-element-option" : ($premium ? "superbaddons-theme-page-template-unavailable-premium" : ""); ?> <?php echo $template->IsPattern() ? "superbaddons-theme-page-template-part" : ""; ?> <?php echo $is_locked ? 'superbaddons-theme-page-template-locked' : ''; ?> <?php echo $is_selected ? 'superbaddons-theme-page-template-selected' : ''; ?>" data-slug="<?php echo esc_attr($template->GetSlug()); ?>" data-title="<?php echo esc_attr($template->title); ?>" data-type="<?php echo esc_attr($template->datatype); ?>" data-package="<?php echo $premium ? 'premium' : 'free'; ?>">
             <div class="superbaddons-template-content-wrapper">
                 <?php if ($template->id) : ?>
                     <div class="superbaddons-template-preview-container">
-                        <iframe data-id="<?= esc_attr($template->id . "//" . $template->GetSlug()); ?>" aria-hidden="true" class="superbaddons-template-preview-content" data-status="loading" data-noreload="<?= $template->no_reload ? "noreload" : ""; ?>" loading="lazy" src="" data-src="<?= esc_url($template->GetPreviewURL()); ?>" style="display:none;"></iframe>
+                        <iframe data-id="<?php echo esc_attr($template->id . "//" . $template->GetSlug()); ?>" aria-hidden="true" class="superbaddons-template-preview-content" data-status="loading" data-noreload="<?php echo $template->no_reload ? "noreload" : ""; ?>" loading="lazy" src="" data-src="<?php echo esc_url($template->GetPreviewURL()); ?>" style="display:none;"></iframe>
                     </div>
                     <div class=" superbaddons-preview-spinner-container">
-                        <img class="superbaddons-preview-spinner" src="<?= SUPERBADDONS_ASSETS_PATH ?>/img/blocks-spinner.svg" width="30px" height="auto" style="user-select:none;margin:auto;" />
+                        <img class="superbaddons-preview-spinner" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/blocks-spinner.svg"); ?>" width="30px" height="auto" style="user-select:none;margin:auto;" />
                     </div>
                 <?php endif; ?>
             </div>
             <div class="superbaddons-template-information">
                 <div class="superbaddons-template-information-inner superbaddons-element-flex-center">
                     <div class="superbaddons-template-information-title superbaddons-element-text-sm">
-                        <?= esc_html($template->title); ?>
-                        <img class="superbaddons-template-locked" src="<?= SUPERBADDONS_ASSETS_PATH ?>/img/lock.svg" width="24px" height="auto" />
+                        <?php echo esc_html($template->title); ?>
+                        <img class="superbaddons-template-locked" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/lock.svg"); ?>" width="24px" height="auto" />
                     </div>
                     <div class="superbaddons-template-information-package superbaddons-element-text-xs superbaddons-element-text-gray">
                         <?php if ($update_required): ?>
-                            <span class="superbaddons-template-update-required"><?= esc_html__("Plugin Update Required", "superb-blocks"); ?></span>
+                            <span class="superbaddons-template-update-required"><?php echo esc_html__("Plugin Update Required", "superb-blocks"); ?></span>
                         <?php elseif ($external_plugin_required): ?>
-                            <span class="superbaddons-template-external-plugin-required" title="<?= esc_attr($external_plugin_tooltip_text); ?>"><?= esc_html($external_plugin_required_text); ?></span>
+                            <span class="superbaddons-template-external-plugin-required" title="<?php echo esc_attr($external_plugin_tooltip_text); ?>"><?php echo esc_html($external_plugin_required_text); ?></span>
                         <?php else: ?>
-                            <?= $premium ? ($premium_available ? esc_html__("Premium", "superb-blocks") : esc_html__("Unlock With Premium", "superb-blocks")) : esc_html__("Free", "superb-blocks"); ?>
+                            <?php echo $premium ? ($premium_available ? esc_html__("Premium", "superb-blocks") : esc_html__("Unlock With Premium", "superb-blocks")) : esc_html__("Free", "superb-blocks"); ?>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -176,7 +177,7 @@ class PageWizardStagesPage
     private function RenderNavigationUpdateStage($displayReplaceMenu, $displayAppendMenu)
     {
     ?>
-        <div class="superbaddons-checkbox-large-wrapper <?= $displayReplaceMenu && $displayAppendMenu ? 'superbaddons-checkbox-large-wrapper-three' : ''; ?>">
+        <div class="superbaddons-checkbox-large-wrapper <?php echo $displayReplaceMenu && $displayAppendMenu ? 'superbaddons-checkbox-large-wrapper-three' : ''; ?>">
             <?php if ($displayReplaceMenu) : ?>
                 <div class="superbaddons-checkbox-large-item">
                     <?php new InputCheckbox(WizardNavigationMenuOptions::CREATE_NEW_MENU, __('Replace Menu Items', 'superb-blocks'), __('Replace Menu Items', 'superb-blocks'), __('Updates the navigation block with menu items for the front page, blog page and the selected pages.', 'superb-blocks'), true); ?>

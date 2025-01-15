@@ -18,6 +18,9 @@ class TourController
 
     const TOUR_ELEMENTOR_PAGE_ID_OPTION = 'superbaddons_elementor_tour_id';
 
+    const TOUR_NONCE_ACTION = 'superbaddons-tour';
+    const TOUR_NONCE_PARAM = 'superbaddons-tour-nonce';
+
     public function __construct()
     {
         add_action('enqueue_block_editor_assets', array($this, 'MaybeLoadGutenbergTour'), 0);
@@ -26,20 +29,20 @@ class TourController
 
     public function MaybeLoadGutenbergTour()
     {
-        if (!isset($_GET[self::TOUR_GUTENBERG])) return;
-
+        if (!isset($_GET[self::TOUR_GUTENBERG]) || !isset($_GET[self::TOUR_NONCE_PARAM])) return;
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_GET[self::TOUR_NONCE_PARAM])), self::TOUR_NONCE_ACTION)) return;
         global $pagenow;
         if ('post-new.php' !== $pagenow) {
             return;
         }
 
-        $this->GutenbergTourAssets();
+        $tour_param = sanitize_text_field(wp_unslash($_GET[self::TOUR_GUTENBERG]));
+        $this->GutenbergTourAssets($tour_param);
     }
 
     public function MaybeLoadElementorTour()
     {
         if (!isset($_GET[self::TOUR_ELEMENTOR])) return;
-
         global $pagenow;
         if ('post.php' !== $pagenow) {
             return;
@@ -50,37 +53,43 @@ class TourController
         $tour_page_id = get_option(self::TOUR_ELEMENTOR_PAGE_ID_OPTION);
         if (!$tour_page_id || $tour_page_id !== $_GET['post']) return;
 
-        $this->ElementorTourAssets();
+        $tour_param = sanitize_text_field(wp_unslash($_GET[self::TOUR_ELEMENTOR]));
+        if (!wp_verify_nonce($tour_param, 'superbaddons-tour-' . $tour_page_id)) {
+            return;
+        }
+        $this->ElementorTourAssets($tour_param);
     }
 
-    private function GutenbergTourAssets()
+    private function GutenbergTourAssets($tour_param)
     {
         $this->TourAssets();
         add_action('admin_footer', function () {
             new Modal();
         });
 
-        if ($_GET[self::TOUR_GUTENBERG] === self::GUTENBERG_TOUR_BLOCKS) {
+        if ($tour_param === self::GUTENBERG_TOUR_BLOCKS) {
             wp_enqueue_script(
                 'superb-addons-guided-tours',
                 SUPERBADDONS_ASSETS_PATH . '/js/guided-tours/gutenberg-blocks.js',
                 array('wp-i18n', 'jquery'),
-                SUPERBADDONS_VERSION
+                SUPERBADDONS_VERSION,
+                true
             );
             ScriptTranslations::Set('superb-addons-guided-tours');
         } else 
-        if ($_GET[self::TOUR_GUTENBERG] === self::GUTENBERG_TOUR_PATTERNS) {
+        if ($tour_param === self::GUTENBERG_TOUR_PATTERNS) {
             wp_enqueue_script(
                 'superb-addons-guided-tours',
                 SUPERBADDONS_ASSETS_PATH . '/js/guided-tours/gutenberg-patterns.js',
                 array('wp-i18n', 'jquery'),
-                SUPERBADDONS_VERSION
+                SUPERBADDONS_VERSION,
+                true
             );
             ScriptTranslations::Set('superb-addons-guided-tours');
         }
     }
 
-    private function ElementorTourAssets()
+    private function ElementorTourAssets($tour_param)
     {
         $this->TourAssets();
         add_action('elementor/editor/footer', function () {
@@ -90,7 +99,8 @@ class TourController
             'superb-addons-guided-tours',
             SUPERBADDONS_ASSETS_PATH . '/js/guided-tours/elementor-sections.js',
             array('wp-i18n', 'jquery'),
-            SUPERBADDONS_VERSION
+            SUPERBADDONS_VERSION,
+            true
         );
         ScriptTranslations::Set('superb-addons-guided-tours');
         wp_localize_script('superb-addons-guided-tours', 'superbaddonstroubleshooting_g', array(
@@ -98,7 +108,7 @@ class TourController
                 "base" => \get_rest_url(),
                 "namespace" => RestController::NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
-                "tour_nonce" => isset($_GET[self::TOUR_ELEMENTOR]) ? $_GET[self::TOUR_ELEMENTOR] : false,
+                "tour_nonce" => isset($tour_param) ? esc_html($tour_param) : false,
                 "routes" => array(
                     "tutorial" => TroubleshootingController::TUTORIAL_ROUTE,
                 )

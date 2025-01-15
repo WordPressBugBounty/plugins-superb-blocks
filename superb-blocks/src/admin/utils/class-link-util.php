@@ -1,0 +1,60 @@
+<?php
+
+namespace SuperbAddons\Admin\Utils;
+
+class AdminLinkUtil
+{
+    public static function GetLinkID()
+    {
+        return apply_filters('superb_addons_link_id', '');
+    }
+
+    public static function GetLink($source, $anchor = false)
+    {
+        if (!in_array($source, AdminLinkSource::ALLOWED_SOURCE)) {
+            $source = AdminLinkSource::DEFAULT;
+        }
+        $args = array(
+            'su_source' => $source,
+        );
+        $id = self::GetLinkID();
+        if (!empty($id)) {
+            $args['ref'] = substr(sanitize_text_field($id), 0, 25);
+        }
+        $url = 'https://superbthemes.com/superb-addons/';
+        if ($anchor) {
+            $url .= '#' . $anchor;
+        }
+        return add_query_arg($args, $url);
+    }
+}
+
+class AdminLinkSource
+{
+    const DEFAULT = 'superb-addons';
+    const NOTICE = 'notice';
+    const WP_PLUGIN_PAGE = 'plugin-page';
+    const NAVIGATION = 'navigation';
+    const SETTINGS = 'settings';
+    const LIBRARY_ITEM_PREVIEW = 'library-item-preview';
+    const LIBRARY_ITEM = 'library-item';
+    const DESIGNER = 'designer';
+    const CSS = 'css';
+    const CSS_TARGET = 'css-target';
+    const CSS_EXPORT = 'css-export';
+    const SUPPORT = 'support';
+
+    const ALLOWED_SOURCE = array(
+        self::NOTICE,
+        self::WP_PLUGIN_PAGE,
+        self::NAVIGATION,
+        self::SETTINGS,
+        self::LIBRARY_ITEM_PREVIEW,
+        self::LIBRARY_ITEM,
+        self::DESIGNER,
+        self::CSS,
+        self::CSS_TARGET,
+        self::CSS_EXPORT,
+        self::SUPPORT
+    );
+}

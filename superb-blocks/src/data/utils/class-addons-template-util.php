@@ -2,6 +2,7 @@
 
 namespace SuperbAddons\Data\Utils\Wizard;
 
+use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
 use WP_Block_Template;
 
 defined('ABSPATH') || exit();
@@ -63,18 +64,20 @@ class AddonsPageTemplateUtil
 
     public static function GetAddonsPageTemplateContent($page_content)
     {
+        AllowedTemplateHTMLUtil::enable_safe_styles();
         ob_start();
 ?>
         <!-- wp:template-part {"slug":"header","lock":{"move":true,"remove":true}} /-->
 
         <!-- wp:group {"tagName":"main","lock":{"move":true,"remove":true},"style":{"spacing":{"margin":{"top":"0rem"},"padding":{"top":"0","bottom":"0","left":"0","right":"0"},"blockGap":"var:preset|spacing|superbspacing-medium"}},"layout":{"type":"default"}} -->
         <main class="wp-block-group" style="margin-top:0rem;padding-top:0;padding-right:0;padding-bottom:0;padding-left:0">
-            <?= $page_content ?>
+            <?php echo wp_kses($page_content, "post"); ?>
         </main>
         <!-- /wp:group -->
 
         <!-- wp:template-part {"slug":"footer","lock":{"move":true,"remove":true}} /-->
 <?php
+        AllowedTemplateHTMLUtil::disable_safe_styles();
         return ob_get_clean();
     }
 }

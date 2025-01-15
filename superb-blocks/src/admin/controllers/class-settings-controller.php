@@ -48,7 +48,7 @@ class SettingsController
         }
         switch ($request['action']) {
             case 'submit_feedback':
-                return $this->SubmitFeedbackCallback();
+                return $this->SubmitFeedbackCallback($request);
             case 'addkey':
                 return $this->RegisterKeyCallback($request);
             case 'removekey':
@@ -73,12 +73,16 @@ class SettingsController
         }
     }
 
-    private function SubmitFeedbackCallback()
+    private function SubmitFeedbackCallback($request)
     {
         try {
-            if (!isset($_POST['spbaddons_reason']) || empty($_POST['spbaddons_reason'])) throw new SettingsException(__('Unable to send feedback. No feedback provided.', "superb-blocks"));
+            if (!isset($request['spbaddons_reason']) || empty($request['spbaddons_reason'])) throw new SettingsException(__('Unable to send feedback. No feedback provided.', "superb-blocks"));
 
-            $message = $_POST['spbaddons_reason'] === 'other' ? $_POST['spbaddons_other'] : $_POST['spbaddons_reason'];
+            if ($request['spbaddons_reason'] === 'other' && isset($request['spbaddons_other'])) {
+                $message = sanitize_text_field(wp_unslash($request['spbaddons_other']));
+            } else {
+                $message = sanitize_text_field(wp_unslash($request['spbaddons_reason']));
+            }
             LogController::SendFeedback($message);
 
             return rest_ensure_response(['success' => true]);

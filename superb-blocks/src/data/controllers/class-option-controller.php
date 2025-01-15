@@ -12,9 +12,7 @@ class OptionController
 {
     private $current_keydomain_option = false;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /* Domains */
     public function GetPreferredDomain($refresh = false)
@@ -27,7 +25,7 @@ class OptionController
     {
         $domain = absint($domain);
         if ($domain < 0 || $domain >= count(Config::API_DOMAINS)) {
-            throw new OptionException(__("Invalid Domain Key. Option could not be updated.", "superb-blocks"));
+            throw new OptionException(esc_html(__("Invalid Domain Key. Option could not be updated.", "superb-blocks")));
         }
         $current_option = self::GetKeyDomainOption(true);
         $current_option[KeyDomainOptionKey::DOMAIN] = $domain;
@@ -109,7 +107,7 @@ class OptionController
     public function UpdateKey($key, $stamp)
     {
         if (strlen($key) !== 23) {
-            throw new OptionException(__("Invalid License Key. Option could not be updated.", "superb-blocks"));
+            throw new OptionException(esc_html(__("Invalid License Key. Option could not be updated.", "superb-blocks")));
         }
         $current_option = self::GetKeyDomainOption(true);
         $current_option[KeyDomainOptionKey::KEY] = $key;

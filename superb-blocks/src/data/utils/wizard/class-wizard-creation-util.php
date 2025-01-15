@@ -180,8 +180,8 @@ class WizardCreationUtil
                 'comment_status' => 'closed',
                 'ping_status' => 'closed',
                 'tax_input' => array(
-                    'wp_theme' => get_stylesheet(),
-                    'wp_template_part_area' => $slug
+                    'wp_theme' => array(get_stylesheet()),
+                    'wp_template_part_area' => array($slug)
                 )
             )
         );
