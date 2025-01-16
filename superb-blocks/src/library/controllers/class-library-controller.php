@@ -22,6 +22,7 @@ class LibraryController
     private static function OutputTemplates($with_wrapper = true)
     {
         AllowedTemplateHTMLUtil::enable_safe_styles();
+        $allowed_html = AllowedTemplateHTMLUtil::get_allowed_html();
         ob_start();
         if ($with_wrapper) {
             echo '<div class="superb-addons-template-library-page-wrapper" style="display:none;">';
@@ -31,15 +32,15 @@ class LibraryController
             echo '</div>';
         }
         $template = ob_get_clean();
-        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-page">' . wp_kses($template, "post") . '</script>';
+        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-page">' . wp_kses($template, $allowed_html) . '</script>';
         ob_start();
         include(SUPERBADDONS_PLUGIN_DIR . 'src/library/templates/library-item.php');
         $template = ob_get_clean();
-        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-item">' . wp_kses($template, "post") . '</script>';
+        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-item">' . wp_kses($template, $allowed_html) . '</script>';
         ob_start();
         include(SUPERBADDONS_PLUGIN_DIR . 'src/library/templates/library-menu-item.php');
         $template = ob_get_clean();
-        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-menu-item">' . wp_kses($template, "post") . '</script>';
+        echo '<script type="text/template" id="tmpl-superbaddons-superb-library-menu-item">' . wp_kses($template, $allowed_html) . '</script>';
         AllowedTemplateHTMLUtil::disable_safe_styles();
     }
 }

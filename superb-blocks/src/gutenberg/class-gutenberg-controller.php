@@ -282,7 +282,7 @@ class GutenbergController
             ob_start();
             include(SUPERBADDONS_PLUGIN_DIR . 'src/gutenberg/templates/block-quick-options.php');
             $template = ob_get_clean();
-            echo '<script type="text/template" id="tmpl-gutenberg-superb-block-quick-options">' . wp_kses($template, "post") . '</script>';
+            echo '<script type="text/template" id="tmpl-gutenberg-superb-block-quick-options">' . wp_kses($template, AllowedTemplateHTMLUtil::get_allowed_html()) . '</script>';
             AllowedTemplateHTMLUtil::disable_safe_styles();
         });
     }
