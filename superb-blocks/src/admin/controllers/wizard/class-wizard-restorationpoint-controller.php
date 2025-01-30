@@ -59,7 +59,7 @@ class WizardRestorationPointController
         }
 
         $restoration_transient = self::GetRestorationPointsTransient();
-        $restoration_transient[get_stylesheet()] ??= array();
+        $restoration_transient[get_stylesheet()] = $restoration_transient[get_stylesheet()] ?? array();
         $restoration_transient[get_stylesheet()][$current_template->slug . "//" . $template_type . "//" . time()] = array(
             "timestamp" => time(),
             "type" => $template_type,

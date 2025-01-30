@@ -188,7 +188,7 @@ class LibraryRequestController
                 foreach ($item->required_plugins as $required_plugin) {
                     if (!is_plugin_active($required_plugin)) {
                         $item->external_plugin_required = true;
-                        $item->required_plugin_names ??= array();
+                        $item->required_plugin_names = $item->required_plugin_names ?? array();
                         if (isset(self::PLUGIN_NAMES[$required_plugin])) {
                             $item->required_plugin_names[] = self::PLUGIN_NAMES[$required_plugin];
                         } else {

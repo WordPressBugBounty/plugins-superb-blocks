@@ -5,7 +5,7 @@ use SuperbAddons\Admin\Utils\AdminLinkUtil;
 
 defined('ABSPATH') || exit;
 ?>
-<div class="notice notice-info is-dismissible <?php esc_attr($notice['unique_id']); ?>">
+<div class="notice notice-info is-dismissible <?php echo esc_attr($notice['unique_id']); ?>">
     <h2 class="notice-title"><?php echo esc_html__("Unlock All Features with Superb Addons Premium – Limited Time Offer", "superb-blocks"); ?></h2>
     <p>
         <?php echo esc_html__("Take advantage of the up to", "superb-blocks"); ?> <span style='font-weight:bold;'><?php echo esc_html__("40% discount", "superb-blocks"); ?></span> <?php echo esc_html__("and unlock all features with Superb Addons Premium.", "superb-blocks"); ?>
