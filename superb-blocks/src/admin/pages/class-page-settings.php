@@ -6,7 +6,6 @@ defined('ABSPATH') || exit();
 
 use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Admin\Controllers\SettingsController;
-use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Admin\Utils\AdminLinkSource;
 use SuperbAddons\Components\Admin\EnhancementSettingsComponent;
 use SuperbAddons\Components\Admin\InputCheckbox;

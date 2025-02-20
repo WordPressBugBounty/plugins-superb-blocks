@@ -34,6 +34,7 @@ class ComposerStaticInita94ee717fbe31078ea93f7c04889a4f8
         'SuperbAddons\\Components\\Admin\\ContentBoxLarge' => __DIR__ . '/../..' . '/src/components/admin/class-content-box-large.php',
         'SuperbAddons\\Components\\Admin\\EditorPreviewsModal' => __DIR__ . '/../..' . '/src/components/admin/class-modal-editor-previews.php',
         'SuperbAddons\\Components\\Admin\\EnhancementSettingsComponent' => __DIR__ . '/../..' . '/src/components/admin/class-enhancement-settings-component.php',
+        'SuperbAddons\\Components\\Admin\\FeatureRequestBox' => __DIR__ . '/../..' . '/src/components/admin/class-feature-request-box.php',
         'SuperbAddons\\Components\\Admin\\FeedbackModal' => __DIR__ . '/../..' . '/src/components/admin/class-modal-feedback.php',
         'SuperbAddons\\Components\\Admin\\InputCheckbox' => __DIR__ . '/../..' . '/src/components/admin/class-input-checkbox.php',
         'SuperbAddons\\Components\\Admin\\LinkBox' => __DIR__ . '/../..' . '/src/components/admin/class-link-box.php',

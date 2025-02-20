@@ -33,6 +33,7 @@ return array(
     'SuperbAddons\\Components\\Admin\\ContentBoxLarge' => $baseDir . '/src/components/admin/class-content-box-large.php',
     'SuperbAddons\\Components\\Admin\\EditorPreviewsModal' => $baseDir . '/src/components/admin/class-modal-editor-previews.php',
     'SuperbAddons\\Components\\Admin\\EnhancementSettingsComponent' => $baseDir . '/src/components/admin/class-enhancement-settings-component.php',
+    'SuperbAddons\\Components\\Admin\\FeatureRequestBox' => $baseDir . '/src/components/admin/class-feature-request-box.php',
     'SuperbAddons\\Components\\Admin\\FeedbackModal' => $baseDir . '/src/components/admin/class-modal-feedback.php',
     'SuperbAddons\\Components\\Admin\\InputCheckbox' => $baseDir . '/src/components/admin/class-input-checkbox.php',
     'SuperbAddons\\Components\\Admin\\LinkBox' => $baseDir . '/src/components/admin/class-link-box.php',

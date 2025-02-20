@@ -9,7 +9,7 @@ class AdminLinkUtil
         return apply_filters('superb_addons_link_id', '');
     }
 
-    public static function GetLink($source, $anchor = false)
+    public static function GetLink($source, $options = false)
     {
         if (!in_array($source, AdminLinkSource::ALLOWED_SOURCE)) {
             $source = AdminLinkSource::DEFAULT;
@@ -21,9 +21,9 @@ class AdminLinkUtil
         if (!empty($id)) {
             $args['ref'] = substr(sanitize_text_field($id), 0, 25);
         }
-        $url = 'https://superbthemes.com/superb-addons/';
-        if ($anchor) {
-            $url .= '#' . $anchor;
+        $url = is_array($options) && isset($options['url']) ? $options['url'] : 'https://superbthemes.com/superb-addons/';
+        if (is_array($options) && isset($options['anchor'])) {
+            $url .= '#' . $options['anchor'];
         }
         return add_query_arg($args, $url);
     }

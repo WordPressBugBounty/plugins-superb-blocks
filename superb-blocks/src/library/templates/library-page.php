@@ -18,7 +18,7 @@ use SuperbAddons\Components\Buttons\PreviewButton;
         <div class="superb-addons-template-library-page-header-logo-area">
             <div class="superb-addons-template-library-page-header-logo">
                 <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/icon-superb.svg'); ?>" />
-                <span class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark">Superb Addons</span>
+                <span class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark">Superb Addons <span class="superbaddons-element-text-gray">Design Library</span></span>
             </div>
         </div>
         <div class="superb-addons-template-library-page-header-items-area">

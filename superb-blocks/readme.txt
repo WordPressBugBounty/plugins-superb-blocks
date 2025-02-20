@@ -4,7 +4,7 @@ Tags: block, blocks, gutenberg, gutenberg blocks, editor
 Requires at least: 3.0.1
 Tested up to: 6.7
 Requires PHP: 6.0
-Stable tag: 3.5.2
+Stable tag: 3.5.3
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -231,6 +231,9 @@ Superb Addons works seamlessly with all WordPress themes, including popular ones
 5. Theme Designer
 
 == Changelog ==
+= 3.5.3 =
+* Fixed issue where pre-built template pages could not be added if the site was missing a navigation block.
+
 = 3.5.2 =
 * Various bugfixes and improvements.
 

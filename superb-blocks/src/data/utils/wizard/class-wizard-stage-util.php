@@ -14,7 +14,7 @@ class WizardStageUtil
     private $hasPages;
     private $isRestore;
 
-    private $stageUtil;
+    private $templateProvider;
 
     public function __construct($type = false)
     {
@@ -81,28 +81,23 @@ class WizardStageUtil
 
     public function InitializeTemplates()
     {
-        $this->stageUtil = new WizardTemplateProvider();
+        $this->templateProvider = new WizardTemplateProvider();
 
         if ($this->HasPatterns()) {
             if ($this->GetType() === WizardActionParameter::WOOCOMMERCE_HEADER) {
-                $this->stageUtil->InitializePatterns("woocommerce/woocommerce.php");
+                $this->templateProvider->InitializePatterns("woocommerce/woocommerce.php");
             } else {
-                $this->stageUtil->InitializePatterns();
+                $this->templateProvider->InitializePatterns();
             }
         }
 
         if ($this->HasPages()) {
-            $this->stageUtil->InitalizePageTemplates();
+            $this->templateProvider->InitalizePageTemplates();
         }
 
         if ($this->IsRestore()) {
-            $this->stageUtil->InitializeRestorationTemplates();
+            $this->templateProvider->InitializeRestorationTemplates();
         }
-    }
-
-    public function GetStageUtil()
-    {
-        return $this->stageUtil;
     }
 
     /**
@@ -169,15 +164,28 @@ class WizardStageUtil
         return $available_stages;
     }
 
-    private function GetStageConfigs()
+    public function GetMenuAvailability()
     {
         $displayReplaceMenu = $this->GetType() === WizardActionParameter::THEME_DESIGNER;
         $displayAppendMenu = WizardCreationUtil::GetNavigationTemplatePartMenuId('header') !== false;
 
+        return array(
+            'replace' => $displayReplaceMenu,
+            'append' => $displayAppendMenu,
+            'available' => $displayReplaceMenu || $displayAppendMenu
+        );
+    }
+
+    private function GetStageConfigs()
+    {
+        $menuAvailability = $this->GetMenuAvailability();
+        $displayReplaceMenu = $menuAvailability['replace'];
+        $displayAppendMenu = $menuAvailability['append'];
+
         return [
             WizardStageTypes::HEADER_STAGE => [
-                'enabled' => !empty($this->stageUtil->GetHeaderTemplates()),
-                'templates' => $this->stageUtil->GetHeaderTemplates(),
+                'enabled' => !empty($this->templateProvider->GetHeaderTemplates()),
+                'templates' => $this->templateProvider->GetHeaderTemplates(),
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => false,
@@ -186,8 +194,8 @@ class WizardStageUtil
                 'label' => __("Menu Layout", "superb-blocks"),
             ],
             WizardStageTypes::FOOTER_STAGE => [
-                'enabled' => !empty($this->stageUtil->GetFooterTemplates()),
-                'templates' => $this->stageUtil->GetFooterTemplates(),
+                'enabled' => !empty($this->templateProvider->GetFooterTemplates()),
+                'templates' => $this->templateProvider->GetFooterTemplates(),
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => false,
@@ -195,8 +203,8 @@ class WizardStageUtil
                 'lockable' => false,
             ],
             WizardStageTypes::FRONT_PAGE_STAGE => [
-                'enabled' => !empty($this->stageUtil->GetFrontPageTemplates()),
-                'templates' => $this->stageUtil->GetFrontPageTemplates(),
+                'enabled' => !empty($this->templateProvider->GetFrontPageTemplates()),
+                'templates' => $this->templateProvider->GetFrontPageTemplates(),
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => $this->GetType() !== WizardActionParameter::RESTORE,
@@ -205,8 +213,8 @@ class WizardStageUtil
                 'lockable' => false,
             ],
             WizardStageTypes::BLOG_PAGE_STAGE => [
-                'enabled' => !empty($this->stageUtil->GetBlogTemplates()),
-                'templates' => $this->stageUtil->GetBlogTemplates(),
+                'enabled' => !empty($this->templateProvider->GetBlogTemplates()),
+                'templates' => $this->templateProvider->GetBlogTemplates(),
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => $this->GetType() !== WizardActionParameter::RESTORE,
@@ -215,8 +223,8 @@ class WizardStageUtil
                 'lockable' => true,
             ],
             WizardStageTypes::TEMPLATE_PAGE_STAGE => [
-                'enabled' => !empty($this->stageUtil->GetTemplatePages()),
-                'templates' => $this->stageUtil->GetTemplatePages(),
+                'enabled' => !empty($this->templateProvider->GetTemplatePages()),
+                'templates' => $this->templateProvider->GetTemplatePages(),
                 'type' => 'multi-selection',
                 'required' => $this->GetType() === WizardActionParameter::ADD_NEW_PAGES,
                 'has-title-input' => $this->GetType() !== WizardActionParameter::RESTORE,

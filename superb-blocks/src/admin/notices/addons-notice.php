@@ -12,6 +12,6 @@ defined('ABSPATH') || exit;
         <?php echo esc_html__("The discount is only available for a limited time.", "superb-blocks"); ?>
     </p>
     <p>
-        <a style='margin-bottom:15px;' class='button button-large button-secondary' target='_blank' href='<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NOTICE)); ?>'><?php echo esc_html__("Read More", "superb-blocks"); ?></a> <a style='margin-bottom:15px;' class='button button-large button-primary' target='_blank' href='<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NOTICE, 'pricingplans')); ?>'><?php echo esc_html__("Upgrade Now", "superb-blocks"); ?></a>
+        <a style='margin-bottom:15px;' class='button button-large button-secondary' target='_blank' href='<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NOTICE)); ?>'><?php echo esc_html__("Read More", "superb-blocks"); ?></a> <a style='margin-bottom:15px;' class='button button-large button-primary' target='_blank' href='<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NOTICE, array("anchor" => 'pricingplans'))); ?>'><?php echo esc_html__("Upgrade Now", "superb-blocks"); ?></a>
     </p>
 </div>

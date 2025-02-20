@@ -6,6 +6,8 @@ defined('ABSPATH') || exit();
 
 use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Admin\Controllers\Wizard\WizardController;
+use SuperbAddons\Admin\Utils\AdminLinkSource;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Components\Admin\EditorPreviewsModal;
 use SuperbAddons\Components\Admin\NewsletterForm;
 use SuperbAddons\Data\Utils\Wizard\WizardActionParameter;
@@ -109,7 +111,7 @@ class DashboardPage
             <div class="superbthemes-module-feature-grid-small-item" style="background-image:url(<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/get-help.svg'); ?>)">
                 <h3><?php echo esc_html__("Get Help", "superb-blocks"); ?></h3>
                 <p><?php echo esc_html__("Our team is here to assist you. If you have any questions or issues, please don't hesitate to reach out.", "superb-blocks"); ?></p>
-                <a href="https://superbthemes.com/contact/" target="_blank" class="superbthemes-module-cta-link"><?php echo esc_html__("Contact support", "superb-blocks"); ?></a>
+                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/"))); ?>" target="_blank" class="superbthemes-module-cta-link"><?php echo esc_html__("Contact support", "superb-blocks"); ?></a>
             </div>
         </div>
 

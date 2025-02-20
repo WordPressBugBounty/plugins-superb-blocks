@@ -5,7 +5,9 @@ namespace SuperbAddons\Admin\Pages;
 defined('ABSPATH') || exit();
 
 use SuperbAddons\Admin\Utils\AdminLinkSource;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Components\Admin\ContentBoxLarge;
+use SuperbAddons\Components\Admin\FeatureRequestBox;
 use SuperbAddons\Components\Admin\LinkBox;
 use SuperbAddons\Components\Admin\Modal;
 use SuperbAddons\Components\Admin\PremiumBox;
@@ -161,7 +163,7 @@ class SupportPage
                                 "title" => __("All tutorials", "superb-blocks"),
                                 "description" => __("We have a library of step by step tutorials which make it easy for you to create the best possible website.", "superb-blocks"),
                                 "cta" => __("View all tutorials", "superb-blocks"),
-                                "link" => "https://superbthemes.com/documentation/",
+                                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/")),
                             )
                         );
                         new LinkBox(
@@ -170,7 +172,7 @@ class SupportPage
                                 "title" => __("Installation", "superb-blocks"),
                                 "description" => __("Get help with the installation process, how to find your license key, how to import demo content, and more.", "superb-blocks"),
                                 "cta" => __("View tutorials", "superb-blocks"),
-                                "link" => "https://superbthemes.com/documentation/category/installation-process/",
+                                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/category/installation-process/")),
                             )
                         );
                         new LinkBox(
@@ -179,7 +181,7 @@ class SupportPage
                                 "title" => __("Block Themes", "superb-blocks"),
                                 "description" => __("Discover how to utilize the WordPress site editor for personalizing your website, including templates, logo, and navigation.", "superb-blocks"),
                                 "cta" => __("View tutorials", "superb-blocks"),
-                                "link" => "https://superbthemes.com/documentation/category/block-themes/",
+                                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/category/block-themes/")),
                             )
                         );
                         new LinkBox(
@@ -188,7 +190,7 @@ class SupportPage
                                 "title" => __("Classic Themes", "superb-blocks"),
                                 "description" => __("Get a better looking site by learning how to design it properly. Learn how to change colors, fonts, header image and a lot more.", "superb-blocks"),
                                 "cta" => __("View tutorials", "superb-blocks"),
-                                "link" => "https://superbthemes.com/documentation/category/classic-themes/",
+                                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/category/classic-themes/")),
                             )
                         );
                         new LinkBox(
@@ -197,7 +199,7 @@ class SupportPage
                                 "title" => __("Superb Addons", "superb-blocks"),
                                 "description" => __("Do you need help with Superb Addons? We've compiled responses to address the most frequently asked questions.", "superb-blocks"),
                                 "cta" => __("View tutorials", "superb-blocks"),
-                                "link" => "https://superbthemes.com/documentation/category/superb-addons/",
+                                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/category/superb-addons/")),
                             )
                         );
                         new LinkBox(
@@ -206,14 +208,17 @@ class SupportPage
                                 "title" => __("Miscellaneous", "superb-blocks"),
                                 "description" => __("Learn how to create a child theme, install WooCommerce, and how to optimize your site through a SEO plugin.", "superb-blocks"),
                                 "cta" => __("View tutorials", "superb-blocks"),
-                                "link" => "https://superbthemes.com/documentation/category/miscellaneous/",
+                                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/category/miscellaneous/")),
                             )
                         );
                         ?>
                     </div>
                 </div>
+                <!-- Link Boxes -->
+                <div class="superbaddons-admindashboard-linkbox-wrapper">
+                    <?php new FeatureRequestBox(); ?>
+                </div>
             </div>
-
             <div class="superbaddons-admindashboard-sidebarlayout-right">
                 <?php
                 new PremiumBox(AdminLinkSource::SUPPORT);

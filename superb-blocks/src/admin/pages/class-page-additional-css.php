@@ -8,6 +8,8 @@ use SuperbAddons\Components\Admin\LinkBox;
 use SuperbAddons\Components\Admin\ReviewBox;
 use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Admin\Utils\AdminLinkSource;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
+use SuperbAddons\Components\Admin\FeatureRequestBox;
 use SuperbAddons\Components\Admin\InputCheckbox;
 use SuperbAddons\Components\Admin\Modal;
 use SuperbAddons\Components\Admin\PremiumBox;
@@ -268,15 +270,7 @@ class AdditionalCSSPage
                             "same_window" => true,
                         )
                     );
-                    new LinkBox(
-                        array(
-                            "icon" => "purple-bulb.svg",
-                            "title" => __("Request a feature", "superb-blocks"),
-                            "description" => __("We're always looking for ways to improve Superb Addons. If you have a feature request or suggestion, we'd love to hear from you.", "superb-blocks"),
-                            "cta" => __("Request feature", "superb-blocks"),
-                            "link" => "https://superbthemes.com/feature-request/",
-                        )
-                    );
+                    new FeatureRequestBox();
                     ?>
                 </div>
             </div>

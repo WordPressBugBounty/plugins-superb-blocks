@@ -16,6 +16,7 @@ use SuperbAddons\Data\Utils\Wizard\WizardItemTypes;
 use SuperbAddons\Data\Utils\Wizard\WizardMenuCreator;
 use SuperbAddons\Data\Utils\Wizard\WizardPageCreator;
 use SuperbAddons\Data\Utils\Wizard\WizardPartCreator;
+use SuperbAddons\Data\Utils\Wizard\WizardStageTypes;
 use SuperbAddons\Data\Utils\Wizard\WizardStageUtil;
 use SuperbAddons\Gutenberg\Controllers\GutenbergController;
 use WP_Error;
@@ -390,6 +391,11 @@ class WizardController
         foreach ($stageUtil->GetStages() as $stage_type) {
             if (!isset($selection_data[$stage_type])) {
                 if ($stageUtil->GetType() === WizardActionParameter::RESTORE) {
+                    // If stages are missing, but the action is restore, then we can continue as the restore action can have any number of stages.
+                    continue;
+                }
+                if ($stage_type === WizardStageTypes::NAVIGATION_MENU_STAGE && !$stageUtil->GetMenuAvailability()['available']) {
+                    // If the navigation stage is missing and navigation menu is not available, then we can continue.
                     continue;
                 }
                 return false;
