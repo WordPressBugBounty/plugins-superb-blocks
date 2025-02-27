@@ -6,15 +6,6 @@ defined('ABSPATH') || exit();
 
 class FeedbackModal
 {
-    const FEEDBACK_REASONS = [
-        "I no longer need this plugin",
-        "I found a better plugin",
-        "I'm temporarily deactivating this plugin",
-        "I couldn't get the plugin to work",
-    ];
-
-    private $Reasons;
-
     public function __construct()
     {
         $this->Render();
@@ -66,6 +57,7 @@ class FeedbackModal
                     <button type="button" class="superbaddons-element-button superbaddons-element-m0 superbaddons-admindashboard-modal-cancel-btn"><?php echo esc_html__("Deactivate", "superb-blocks"); ?></button>
                 </div>
             </div>
-    <?php
+        </div>
+<?php
     }
 }

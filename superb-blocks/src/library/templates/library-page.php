@@ -57,7 +57,7 @@ use SuperbAddons\Components\Buttons\PreviewButton;
                 <div class="superb-addons-template-library-page-content-inner-list-footer">
                     <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/icon-superb.svg"); ?>" />
                     <div class="superb-addons-template-library-footer-excerpt">
-                        <?php echo esc_html(sprintf(/* translators: %s: plural pattern type. (pages, patterns etc.) */__('Stay tuned! More awesome %s coming real soon ✌️', "superb-blocks"), '<span></span>')); ?>
+                        <?php echo wp_kses(sprintf(/* translators: %s: plural pattern type. (pages, patterns etc.) */__('Stay tuned! More awesome %s coming real soon 🎉', "superb-blocks"), '<span></span>'), array("span" => true)); ?>
                     </div>
                 </div>
             </div>
