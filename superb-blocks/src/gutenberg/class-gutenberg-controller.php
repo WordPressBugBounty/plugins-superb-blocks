@@ -32,7 +32,8 @@ class GutenbergController
         ['path' => "cover-image", "args" => []],
         ['path' => "google-maps", "args" => []],
         ['path' => "reveal-buttons", "args" => []],
-        ['path' => "reveal-button", "args" => ['render_callback' => array(DynamicBlockAssets::class, 'EnqueueRevealButton')]]
+        ['path' => "reveal-button", "args" => ['render_callback' => array(DynamicBlockAssets::class, 'EnqueueRevealButton')]],
+        ['path' => "accordion", "args" => ['render_callback' => array(DynamicBlockAssets::class, 'EnqueueAccordion')]]
     );
 
     public function __construct()

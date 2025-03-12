@@ -29,4 +29,16 @@ class DynamicBlockAssets
         );
         return $content;
     }
+
+    public static function EnqueueAccordion($attr, $content)
+    {
+        wp_enqueue_script(
+            'superbaddons-accordion',
+            SUPERBADDONS_ASSETS_PATH . '/js/dynamic-blocks/accordion.js',
+            [],
+            SUPERBADDONS_VERSION,
+            true
+        );
+        return $content;
+    }
 }

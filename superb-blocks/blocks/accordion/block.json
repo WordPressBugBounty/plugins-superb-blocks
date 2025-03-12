@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "superb-addons/accordion-block",
+  "version": "0.1.0",
+  "title": "Superb Accordion",
+  "category": "superb-addons-blocks",
+  "icon": "arrow-down-alt2",
+  "description": "A simple, user-friendly accordion block for expanding and collapsing content.",
+  "keywords": ["accordion", "toggle", "collapse", "expand", "faq"],
+  "supports": {
+    "html": false,
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true,
+      "gradients": true
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true,
+      "__experimentalFontFamily": true,
+      "__experimentalFontWeight": true,
+      "__experimentalFontStyle": true,
+      "__experimentalTextTransform": true
+    },
+    "border": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    }
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "source": "html",
+      "selector": ".superb-accordion-title"
+    },
+    "accordionId": {
+      "type": "string"
+    }
+  },
+  "textdomain": "superb-blocks",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "viewScript": "file:./view.js"
+}
