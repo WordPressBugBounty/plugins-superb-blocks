@@ -10,10 +10,12 @@ use SuperbAddons\Data\Controllers\KeyController;
 class PremiumBox
 {
     private $source;
+    private $options;
 
-    public function __construct($source)
+    public function __construct($source, $options = false)
     {
         $this->source = $source;
+        $this->options = $options;
         if (KeyController::HasValidPremiumKey()) {
             return;
         }
@@ -32,7 +34,7 @@ class PremiumBox
                     <p class="superbaddons-element-text-xxs superbaddons-element-text-gray">
                         <?php echo esc_html__("No Hidden Fees • Money Back Guarantee", "superb-blocks"); ?>
                     </p>
-                    <a class="superbaddons-element-button-pro" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink($this->source)); ?>"><?php echo esc_html__("Upgrade to Premium", "superb-blocks"); ?></a>
+                    <a class="superbaddons-element-button-pro" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink($this->source, $this->options)); ?>"><?php echo esc_html__("Upgrade to Premium", "superb-blocks"); ?></a>
                 </div>
                 <span class="superbaddons-element-text-xs superbaddons-element-text-800 superbaddons-element-text-dark"><?php echo esc_html__("All this included", "superb-blocks"); ?><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/pointing_arrow.png'); ?>" /></span>
                 <?php new PremiumFeatureList(); ?>

@@ -21,7 +21,8 @@ class CssBlocksBaseSlot extends PremiumSlot
 <?php
             },
             array("superbaddons-element-ml1"),
-            AdminLinkSource::CSS_EXPORT
+            AdminLinkSource::CSS_EXPORT,
+            ['url' => 'https://superbthemes.com/features/advanced-custom-css/']
         );
     }
 }

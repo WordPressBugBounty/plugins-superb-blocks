@@ -21,7 +21,8 @@ class CssBlocksExportSelectedSlot extends PremiumSlot
 <?php
             },
             array(),
-            AdminLinkSource::CSS_EXPORT
+            AdminLinkSource::CSS_EXPORT,
+            ['url' => 'https://superbthemes.com/features/advanced-custom-css/']
         );
     }
 }

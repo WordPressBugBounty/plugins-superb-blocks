@@ -50,7 +50,7 @@ class EditorPreviewsModal
                             "title" => __("Animations", "superb-blocks"),
                             "description" => __("Easily animate any WordPress block with over 40+ pre-made animations using our simple block animation settings.", "superb-blocks"),
                             "image" => "block-animations.jpg",
-                            "icon" => "monitor-play-duotone.svg",
+                            "icon" => "sneaker-move-duotone.svg",
                             "class" => 'superbaddons-admindashboard-gutenberg-block-control'
                         )
                     );
@@ -141,6 +141,17 @@ class EditorPreviewsModal
                             "image" => "asset-large-superbrevealbuttons.jpg",
                             "icon" => "purple-pointing.svg",
                             "class" => 'superbaddons-admindashboard-gutenberg-block-box superbaddons-admindashboard-gutenberg-block-box-reveal-buttons'
+                        )
+                    );
+                    ?>
+                    <!-- Accordion Block -->
+                    <?php new ContentBoxLarge(
+                        array(
+                            "title" => __("Accordion Block", "superb-blocks"),
+                            "description" => __("Easily and neatly organizes content into collapsible sections. It's ideal for FAQs, product details, or any text-heavy sections.", "superb-blocks"),
+                            "image" => "asset-large-accordion-preview.jpg",
+                            "icon" => "accordion-icon-purple.svg",
+                            "class" => 'superbaddons-admindashboard-gutenberg-block-box superbaddons-admindashboard-gutenberg-block-box-accordion'
                         )
                     );
                     ?>

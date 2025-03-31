@@ -27,7 +27,7 @@ class SupportLinkBoxes
                 array(
                     "icon" => "purple-crown.svg",
                     "title" => __("Thank you!", "superb-blocks"),
-                    "description" => __("We want to extend a heartfelt thank you for choosing to support Superb Addons. Your decision plays a significant role in helping us grow and improve. We're committed to providing you with the best experience possible and are excited to have you on board. If you ever have any questions or suggestions, feel free to reach out!", "superb-blocks"),
+                    "description" => __("We want to extend a heartfelt thank you for choosing to support SuperbThemes. Your decision plays a significant role in helping us grow and improve. We're committed to providing you with the best experience possible and are excited to have you on board. If you ever have any questions or suggestions, feel free to reach out!", "superb-blocks"),
                     "pro" => true
                 )
             );

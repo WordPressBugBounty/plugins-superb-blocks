@@ -9,6 +9,8 @@ use SuperbAddons\Library\Controllers\LibraryController;
 use SuperbAddons\Library\Controllers\LibraryRequestController;
 use SuperbAddons\Elementor\Utils\ElementorSourceExtension;
 use Exception;
+use SuperbAddons\Admin\Utils\AdminLinkSource;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
 
 class ElementorController
 {
@@ -54,6 +56,7 @@ class ElementorController
         return array(
             array(
                 "id" => "sections",
+                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_ITEM, ["url" => "https://superbthemes.com/features/patterns/"]),
                 "title" => esc_html__('Sections', "superb-blocks"),
                 "routes" => array(
                     "list" => LibraryRequestController::ELEMENTOR_LIST_ROUTE,
@@ -76,6 +79,8 @@ class ElementorController
                 "insert_error" => esc_html__('Something went wrong while attempting to insert this element. Please try again or contact support if the problem persists.', "superb-blocks"),
                 "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks")
             ),
+            'premium_page_url' => 'https://superbthemes.com/features/page-library/',
+            'premium_pattern_url' => 'https://superbthemes.com/features/patterns/',
             "menu_items" => self::GetElementorLibraryMenuItems(),
             "rest" => array(
                 "base" => \get_rest_url(),

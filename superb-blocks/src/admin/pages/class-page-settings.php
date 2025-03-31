@@ -84,7 +84,7 @@ class SettingsPage
                     <div class="superbaddons-cache-settings-wrapper">
                         <!-- Cache Settings -->
                         <h5 class="superbaddons-element-flex-center superbaddons-element-text-xs superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><img class="superbaddons-admindashboard-content-icon superbaddons-element-mr1" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/purple-database.svg'); ?>" /><?php echo esc_html__("Cache", "superb-blocks"); ?></h5>
-                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-mb1"><?php echo esc_html__("Superb Addons caches data for faster loading and processing. Clearing the cache will force data and images to be refreshed and reloaded. If you are not experiencing any problems with the plugin, the cache should not be cleared.", "superb-blocks"); ?></p>
+                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-mb1"><?php echo esc_html__("Superb Addons caches data for faster loading and processing. Clearing the cache will force data to be refreshed and reloaded. If you are not experiencing any problems with the plugin, the cache should not be cleared.", "superb-blocks"); ?></p>
                         <button type="button" class="superbaddons-element-button spbaddons-admin-btn-danger superbaddons-element-m0 superbaddons-element-mb1" id="superbaddons-clear-cache-btn"><img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/trash-light.svg'); ?>" /><?php echo esc_html__("Clear Cache", "superb-blocks"); ?></button>
                     </div>
 
