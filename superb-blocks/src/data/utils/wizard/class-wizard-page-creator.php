@@ -85,10 +85,6 @@ class WizardPageCreator
             return [self::GetMenuItemArr(0, $selection)];
         }
 
-        if ($datatype === 'front-page' && self::HasStaticFrontPage()) {
-            return [self::GetMenuItemArr(0, $selection)];
-        }
-
         if ($datatype === 'static') {
             return [self::GetMenuItemArr(0, $selection)];
         }
@@ -104,11 +100,6 @@ class WizardPageCreator
         update_option('show_on_front', 'page');
         update_option('page_on_front', $created_page_id);
         return [self::GetMenuItemArr(0, $selection)];
-    }
-
-    private static function HasStaticFrontPage()
-    {
-        return get_option('show_on_front') === 'page' && get_option('page_on_front');
     }
 
     private static function HandleBlogPageCreation($selection, $available_templates)
@@ -177,7 +168,15 @@ class WizardPageCreator
         $is_restoration_point = WizardCreationUtil::IsRestorationPoint($selection['slug'], $selection['type'], WizardItemTypes::WP_TEMPLATE);
         $is_file_template = WizardCreationUtil::IsFileTemplate($selection['slug'], $selection['type'], WizardItemTypes::WP_TEMPLATE);
         $is_theme_template_page = $selection['slug'] !== "front-page" && $selection['slug'] !== "home" && $selection['slug'] !== "index";
-        if ($is_theme_template_page) {
+
+        if ($is_restoration_point) {
+            $template_slug = $selection['slug'];
+            $restoration_point = WizardRestorationPointController::GetTemplateRestorationPoint($template_slug, WizardItemTypes::WP_TEMPLATE);
+            if (!$restoration_point) {
+                return [false, false];
+            }
+            $template_content = $restoration_point['content'];
+        } else if ($is_theme_template_page) {
             if (!in_array($selection['slug'], $available_templates)) {
                 return [false, false];
             }
@@ -193,13 +192,6 @@ class WizardPageCreator
                 return [false, false];
             }
             $template_content = $file_template->content;
-        } else if ($is_restoration_point) {
-            $template_slug = $selection['slug'];
-            $restoration_point = WizardRestorationPointController::GetTemplateRestorationPoint($template_slug, WizardItemTypes::WP_TEMPLATE);
-            if (!$restoration_point) {
-                return [false, false];
-            }
-            $template_content = $restoration_point['content'];
         } else {
             $template_slug = $selection['slug'];
             $block_template = get_block_template(get_stylesheet() . '//' . $template_slug, WizardItemTypes::WP_TEMPLATE);

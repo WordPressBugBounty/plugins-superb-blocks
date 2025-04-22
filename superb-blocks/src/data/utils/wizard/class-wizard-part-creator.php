@@ -18,6 +18,10 @@ class WizardPartCreator
             }
 
             if (!isset($selection_data[$stage_type])) {
+                if ($wizardData->IsRestore()) {
+                    // If the wizard is in restore mode, the template part stages may not be present in the selection data if there are no parts to restore.
+                    continue;
+                }
                 throw new WizardException(esc_html__('Couldn\'t process template part selections. If the issue persists, please contact support.', 'superb-blocks'));
             }
 

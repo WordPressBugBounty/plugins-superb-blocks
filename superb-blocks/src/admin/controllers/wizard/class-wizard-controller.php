@@ -361,7 +361,11 @@ class WizardController
                 $menu_items = WizardPageCreator::CreateTemplatePages($selection_data, $stageUtil);
 
                 if (empty($menu_items)) {
-                    return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. Templates and/or pages were not able to be properly processed.", "superb-blocks")]);
+                    // If the wizard is in restore mode, we can continue even if no menu items are created.
+                    if (!$stageUtil->IsRestore()) {
+                        // If the wizard is not in restore mode, we need to throw an error.
+                        return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. Templates and/or pages were not able to be properly processed.", "superb-blocks")]);
+                    }
                 }
 
                 WizardMenuCreator::MaybeUpdateMenu($selection_data, $menu_items);

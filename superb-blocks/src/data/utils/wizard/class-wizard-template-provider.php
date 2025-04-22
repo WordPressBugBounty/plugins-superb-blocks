@@ -73,7 +73,6 @@ class WizardTemplateProvider
 
     private function InitializePart($slugOrWizardItem, $type, $regularTitle, $modifiedTitle)
     {
-
         if ($slugOrWizardItem instanceof WizarditemRestorationPoint) {
             $this->AddToAppropriateArray($slugOrWizardItem, $slugOrWizardItem->GetBaseSlug());
             return;
