@@ -92,7 +92,7 @@ class GutenbergController
         return array(
             array(
                 "id" => "patterns",
-                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_ITEM, ["url" => "https://superbthemes.com/features/patterns/"]),
+                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_ITEM),
                 "title" => esc_html__('Patterns', "superb-blocks"),
                 "routes" => array(
                     "list" => LibraryRequestController::GUTENBERG_LIST_ROUTE . LibraryRequestController::GUTENBERG_ROUTE_TYPE_PATTERNS,
@@ -102,7 +102,7 @@ class GutenbergController
             ),
             array(
                 "id" => "pages",
-                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_ITEM, ["url" => "https://superbthemes.com/features/page-library/"]),
+                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_PAGE_ITEM),
                 "title" => esc_html__('Pages', "superb-blocks"),
                 "routes" => array(
                     "list" => LibraryRequestController::GUTENBERG_LIST_ROUTE . LibraryRequestController::GUTENBERG_ROUTE_TYPE_PAGES,

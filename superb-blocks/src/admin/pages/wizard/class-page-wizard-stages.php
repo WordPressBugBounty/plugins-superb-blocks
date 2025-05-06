@@ -137,7 +137,7 @@ class PageWizardStagesPage
         if (!$rendering_with_premium_wrapper && $premium && !$premium_available) {
             new PremiumOptionWrapper(function () use ($template, $is_locked, $is_selected) {
                 $this->RenderTemplate($template, $is_locked, $is_selected, true);
-            }, array(), AdminLinkSource::DESIGNER, ['url' => 'https://superbthemes.com/features/theme-designer/'], true);
+            }, array(), AdminLinkSource::DESIGNER, false, true);
             return;
         }
     ?>

@@ -8,7 +8,7 @@ defined('ABSPATH') || exit();
 
 class PremiumOptionWrapper
 {
-    public function __construct($contentCallback, $classes = array(), $source, $link_options = false, $allow_pointer_events = false)
+    public function __construct($contentCallback, $classes = array(), $source = false, $link_options = false, $allow_pointer_events = false)
     {
         $this->Render($contentCallback, $classes, $source, $link_options, $allow_pointer_events);
     }

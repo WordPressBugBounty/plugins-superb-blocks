@@ -34,6 +34,7 @@ class DashboardController
     const SUPPORT = 'superbaddons-support';
 
     const PAGE_WIZARD = 'superbaddons-page-wizard';
+    const THEME_DESIGNER_REDIRECT_SLUG = 'superbaddons-theme-designer';
 
     const PREMIUM_CLASS = 'superbaddons-get-premium';
 
@@ -47,6 +48,7 @@ class DashboardController
         $this->hooks = array();
         add_action("admin_menu", array($this, 'SuperbAddonsAdminMenu'));
         add_action("admin_menu", array($this, 'AdminMenuAdditions'));
+        add_action('admin_init', array($this, 'ConditionalThemeDesignerRedirect'));
         add_filter('plugin_action_links_' . SUPERBADDONS_BASE, array($this, 'PluginActions'));
         add_action('admin_enqueue_scripts', array($this, 'AdminMenuEnqueues'), 1000);
         if (!KeyController::HasValidPremiumKey()) {
@@ -113,8 +115,65 @@ class DashboardController
             __('Theme Designer', "superb-blocks"),
             __('Theme Designer', "superb-blocks"),
             Capabilities::ADMIN,
-            WizardController::GetWizardURL(WizardActionParameter::INTRO)
+            self::THEME_DESIGNER_REDIRECT_SLUG,
+            array($this, 'ThemeDesignerRedirectFallbackPage')
         );
+    }
+
+    public function ConditionalThemeDesignerRedirect()
+    {
+        // Check if we are heading to the theme designer page. Ensure the user has the required capability. 
+        // Nonce not required as this is a simple redirect.
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if (isset($_GET['page']) && self::THEME_DESIGNER_REDIRECT_SLUG === sanitize_text_field(wp_unslash($_GET['page'])) && current_user_can(Capabilities::ADMIN)) {
+            $target_url = WizardController::GetWizardURL(WizardActionParameter::INTRO);
+            if ($target_url) {
+                wp_safe_redirect($target_url);
+                exit;
+            }
+
+            // If the target URL is not set, redirect to the default plugin page.
+            wp_safe_redirect(admin_url('admin.php?page=' . self::MENU_SLUG));
+            exit;
+        }
+    }
+
+    public function ThemeDesignerRedirectFallbackPage()
+    {
+        // This content will be shown if the ConditionalThemeDesignerRedirect redirect fails or is bypassed.
+        echo '<div class="wrap">';
+        echo '</div>';
+
+        echo '<div class="superbaddons-theme-designer-redirect">';
+        echo '<div class="superbaddons-theme-designer-redirect-card">';
+        echo '<div class="superbaddons-theme-designer-redirect-header">';
+        echo '<img src="' . esc_url(SUPERBADDONS_ASSETS_PATH . '/img/icon-superb-dashboard-menu.png') . '" alt="' . esc_attr__('Superb Addons', 'superb-blocks') . '">';
+        echo '<h1>' . esc_html__('Theme Designer', 'superb-blocks') . '</h1>';
+        echo '</div>';
+        $target_url = WizardController::GetWizardURL(WizardActionParameter::INTRO);
+        if (!$target_url) {
+            $target_url = admin_url('admin.php?page=' . self::MENU_SLUG); // Fallback URL
+        }
+
+        echo '<p>' . esc_html__('Oops. Looks like you were not correctly redirected. Please click the link below.', 'superb-blocks') . '</p>';
+        echo '<p><a href="' . esc_url($target_url) . '">' . esc_html__('Go to Theme Designer', 'superb-blocks') . '</a></p>';
+
+        echo '<style>';
+        echo '.superbaddons-theme-designer-redirect { display: flex; justify-content: baseline; align-items: center; }';
+        echo '.superbaddons-theme-designer-redirect-card { display: flex; flex-direction: column; align-items: center; background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }';
+        echo '.superbaddons-theme-designer-redirect-header { display: flex; align-items: center; }';
+        echo '.superbaddons-theme-designer-redirect-header img { width: 20px; height: 20px; margin-right: 10px; }';
+        echo '.superbaddons-theme-designer-redirect-header h1 { font-size: 24px; }';
+        echo '.superbaddons-theme-designer-redirect p { font-size: 16px; }';
+        echo '.superbaddons-theme-designer-redirect a { color: #0073aa; text-decoration: none; }';
+        echo '.superbaddons-theme-designer-redirect a:hover { text-decoration: underline; }';
+        echo '</style>';
+        echo '<div class="superbaddons-theme-designer-redirect-footer">';
+        echo '<p>' . esc_html__('If you continue to experience issues, please contact support.', 'superb-blocks') . '</p>';
+        echo '<p><a href="' . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DESIGNER, array('url' => 'https://superbthemes.com/contact/'))) . '" target="_blank" rel="noopener">' . esc_html__('Contact Support', 'superb-blocks') . '</a></p>';
+
+        echo '</div>';
+        echo '</div>';
     }
 
     private function GetAdminMenuNotification()

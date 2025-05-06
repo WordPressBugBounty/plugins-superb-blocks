@@ -8,7 +8,6 @@ use SuperbAddons\Components\Admin\LinkBox;
 use SuperbAddons\Components\Admin\ReviewBox;
 use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Admin\Utils\AdminLinkSource;
-use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Components\Admin\FeatureRequestBox;
 use SuperbAddons\Components\Admin\InputCheckbox;
 use SuperbAddons\Components\Admin\Modal;

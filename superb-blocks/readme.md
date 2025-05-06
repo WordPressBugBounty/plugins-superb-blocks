@@ -4,7 +4,7 @@ Tags: block, blocks, gutenberg, gutenberg blocks, editor
 Requires at least: 3.0.1
 Tested up to: 6.8
 Requires PHP: 6.0
-Stable tag: 3.5.8
+Stable tag: 3.5.9
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -205,6 +205,11 @@ Superb Addons works seamlessly with all WordPress themes, including popular ones
 5. Theme Designer
 
 == Changelog ==
+= 3.5.9 =
+
+- Fixed link to the theme designer placed in the themes page.
+- Accordion block '+' icon now correctly follows the selected color.
+
 = 3.5.8 =
 
 - Fixed issue where the theme designer would sometimes not work correctly on some installations.

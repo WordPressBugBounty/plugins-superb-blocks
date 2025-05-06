@@ -36,8 +36,8 @@ class AdminLinkSource
     const WP_PLUGIN_PAGE = 'plugin-page';
     const NAVIGATION = 'navigation';
     const SETTINGS = 'settings';
-    const LIBRARY_ITEM_PREVIEW = 'library-item-preview';
-    const LIBRARY_ITEM = 'library-item';
+    const LIBRARY_ITEM = 'pattern-library';
+    const LIBRARY_PAGE_ITEM = 'prebuilt-pages';
     const DESIGNER = 'designer';
     const CSS = 'css';
     const CSS_TARGET = 'css-target';
@@ -49,8 +49,8 @@ class AdminLinkSource
         self::WP_PLUGIN_PAGE,
         self::NAVIGATION,
         self::SETTINGS,
-        self::LIBRARY_ITEM_PREVIEW,
         self::LIBRARY_ITEM,
+        self::LIBRARY_PAGE_ITEM,
         self::DESIGNER,
         self::CSS,
         self::CSS_TARGET,

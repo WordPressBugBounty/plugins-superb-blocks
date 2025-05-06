@@ -96,7 +96,7 @@ use SuperbAddons\Components\Buttons\PreviewButton;
                         new AvailableBadge();
                         new UpdateRequiredBadge();
                         new ExternalPluginRequiredBadge();
-                        new PremiumButton(AdminLinkSource::LIBRARY_ITEM_PREVIEW);
+                        new PremiumButton(AdminLinkSource::LIBRARY_ITEM);
                         new InsertButton();
                         ?>
                     </div>
