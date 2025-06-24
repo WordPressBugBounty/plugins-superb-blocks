@@ -95,7 +95,7 @@ class OptionController
     public function HasPremiumKey()
     {
         $current_option = self::GetKeyDomainOption();
-        return !!$current_option[KeyDomainOptionKey::KEY] && $current_option[KeyDomainOptionKey::KEYTYPE] === KeyType::PREMIUM;
+        return !!$current_option[KeyDomainOptionKey::KEY] && in_array($current_option[KeyDomainOptionKey::KEYTYPE], array(KeyType::PREMIUM, KeyType::ADDONS), true);
     }
 
     public function HasStandardKey()

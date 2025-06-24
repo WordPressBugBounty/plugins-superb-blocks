@@ -34,7 +34,9 @@ class DashboardController
     const SUPPORT = 'superbaddons-support';
 
     const PAGE_WIZARD = 'superbaddons-page-wizard';
+
     const THEME_DESIGNER_REDIRECT_SLUG = 'superbaddons-theme-designer';
+    const STYLEBOOK_REDIRECT_SLUG = 'superbaddons-stylebook';
 
     const PREMIUM_CLASS = 'superbaddons-get-premium';
 
@@ -48,7 +50,7 @@ class DashboardController
         $this->hooks = array();
         add_action("admin_menu", array($this, 'SuperbAddonsAdminMenu'));
         add_action("admin_menu", array($this, 'AdminMenuAdditions'));
-        add_action('admin_init', array($this, 'ConditionalThemeDesignerRedirect'));
+        add_action('admin_init', array($this, 'ConditionalThemePageRedirect'));
         add_filter('plugin_action_links_' . SUPERBADDONS_BASE, array($this, 'PluginActions'));
         add_action('admin_enqueue_scripts', array($this, 'AdminMenuEnqueues'), 1000);
         if (!KeyController::HasValidPremiumKey()) {
@@ -118,28 +120,84 @@ class DashboardController
             self::THEME_DESIGNER_REDIRECT_SLUG,
             array($this, 'ThemeDesignerRedirectFallbackPage')
         );
+        add_theme_page(
+            __('Stylebook', "superb-blocks"),
+            __('Stylebook', "superb-blocks"),
+            Capabilities::ADMIN,
+            self::STYLEBOOK_REDIRECT_SLUG,
+            array($this, 'StylesRedirectFallbackPage')
+        );
     }
 
-    public function ConditionalThemeDesignerRedirect()
+    public function ConditionalThemePageRedirect()
     {
-        // Check if we are heading to the theme designer page. Ensure the user has the required capability. 
+        // Check if we are heading to a theme page. Ensure the user has the required capability. 
         // Nonce not required as this is a simple redirect.
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if (isset($_GET['page']) && self::THEME_DESIGNER_REDIRECT_SLUG === sanitize_text_field(wp_unslash($_GET['page'])) && current_user_can(Capabilities::ADMIN)) {
-            $target_url = WizardController::GetWizardURL(WizardActionParameter::INTRO);
-            if ($target_url) {
-                wp_safe_redirect($target_url);
-                exit;
-            }
+        if (!isset($_GET['page'])) {
+            return;
+        }
 
-            // If the target URL is not set, redirect to the default plugin page.
-            wp_safe_redirect(admin_url('admin.php?page=' . self::MENU_SLUG));
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $page = sanitize_text_field(wp_unslash($_GET['page']));
+        if (!in_array($page, array(self::THEME_DESIGNER_REDIRECT_SLUG, self::STYLEBOOK_REDIRECT_SLUG)) || !current_user_can(Capabilities::ADMIN)) {
+            return;
+        }
+
+        $target_url = false;
+        switch ($page) {
+            case self::THEME_DESIGNER_REDIRECT_SLUG:
+                $target_url = WizardController::GetWizardURL(WizardActionParameter::INTRO);
+                break;
+            case self::STYLEBOOK_REDIRECT_SLUG:
+                $target_url = $this->GetStylebookURL();
+                break;
+        }
+
+        if ($target_url) {
+            wp_safe_redirect($target_url);
             exit;
         }
+
+        // If the target URL is not set, redirect to the default plugin page.
+        wp_safe_redirect(admin_url('admin.php?page=' . self::MENU_SLUG));
+        exit;
+    }
+
+    private function GetStylebookURL()
+    {
+        $stylebook_url = add_query_arg(
+            array(
+                'p' => urlencode('/styles'),
+                'preview' => 'stylebook'
+            ),
+            admin_url('site-editor.php')
+        );
+        return $stylebook_url;
+    }
+
+    public function StylesRedirectFallbackPage()
+    {
+        $target_url = $this->GetStylebookURL();
+        $target_page_label = __('Stylebook', "superb-blocks");
+        $this->GenericRedirectFallbackPage($target_page_label, $target_url);
     }
 
     public function ThemeDesignerRedirectFallbackPage()
     {
+        $target_url = WizardController::GetWizardURL(WizardActionParameter::INTRO);
+        $target_page_label = __('Theme Designer', "superb-blocks");
+        $this->GenericRedirectFallbackPage($target_page_label, $target_url);
+    }
+
+    private function GenericRedirectFallbackPage($target_page_label = false, $target_url = false)
+    {
+        if (!$target_page_label) {
+            $target_page_label = __('Superb Addons', "superb-blocks");
+        }
+        if (!$target_url) {
+            $target_url = admin_url('admin.php?page=' . self::MENU_SLUG); // Fallback URL
+        }
         // This content will be shown if the ConditionalThemeDesignerRedirect redirect fails or is bypassed.
         echo '<div class="wrap">';
         echo '</div>';
@@ -150,13 +208,9 @@ class DashboardController
         echo '<img src="' . esc_url(SUPERBADDONS_ASSETS_PATH . '/img/icon-superb-dashboard-menu.png') . '" alt="' . esc_attr__('Superb Addons', 'superb-blocks') . '">';
         echo '<h1>' . esc_html__('Theme Designer', 'superb-blocks') . '</h1>';
         echo '</div>';
-        $target_url = WizardController::GetWizardURL(WizardActionParameter::INTRO);
-        if (!$target_url) {
-            $target_url = admin_url('admin.php?page=' . self::MENU_SLUG); // Fallback URL
-        }
 
         echo '<p>' . esc_html__('Oops. Looks like you were not correctly redirected. Please click the link below.', 'superb-blocks') . '</p>';
-        echo '<p><a href="' . esc_url($target_url) . '">' . esc_html__('Go to Theme Designer', 'superb-blocks') . '</a></p>';
+        echo '<p><a href="' . esc_url($target_url) . '">' . esc_html(sprintf(/* translators: %s: title of a page*/__('Go to %s', 'superb-blocks'), $target_page_label)) . '</a></p>';
 
         echo '<style>';
         echo '.superbaddons-theme-designer-redirect { display: flex; justify-content: baseline; align-items: center; }';
@@ -170,7 +224,7 @@ class DashboardController
         echo '</style>';
         echo '<div class="superbaddons-theme-designer-redirect-footer">';
         echo '<p>' . esc_html__('If you continue to experience issues, please contact support.', 'superb-blocks') . '</p>';
-        echo '<p><a href="' . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DESIGNER, array('url' => 'https://superbthemes.com/contact/'))) . '" target="_blank" rel="noopener">' . esc_html__('Contact Support', 'superb-blocks') . '</a></p>';
+        echo '<p><a href="' . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array('url' => 'https://superbthemes.com/contact/'))) . '" target="_blank" rel="noopener">' . esc_html__('Contact Support', 'superb-blocks') . '</a></p>';
 
         echo '</div>';
         echo '</div>';

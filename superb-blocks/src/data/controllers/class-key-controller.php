@@ -149,6 +149,8 @@ class KeyController
                 return __("Premium License", "superb-blocks");
             case KeyType::STANDARD:
                 return __("Theme License", "superb-blocks");
+            case KeyType::ADDONS:
+                return __("Addons License", "superb-blocks");
             case KeyType::FREE_PLUS:
                 return __("Free+ License", "superb-blocks");
             case KeyType::FREE:
@@ -186,6 +188,7 @@ class KeyController
         switch ($keytype) {
             case KeyType::PREMIUM:
             case KeyType::STANDARD:
+            case KeyType::ADDONS:
             case KeyType::FREE_PLUS:
                 // Accepted key types
                 break;

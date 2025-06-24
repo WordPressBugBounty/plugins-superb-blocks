@@ -7,6 +7,7 @@ defined('ABSPATH') || exit();
 use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Admin\Controllers\SettingsController;
 use SuperbAddons\Admin\Utils\AdminLinkSource;
+use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Components\Admin\EnhancementSettingsComponent;
 use SuperbAddons\Components\Admin\InputCheckbox;
 use SuperbAddons\Components\Admin\Modal;
@@ -140,9 +141,7 @@ class SettingsPage
             <?php printf('<img src="%s" alt="%s"/>', esc_url(SUPERBADDONS_ASSETS_PATH . '/img/color-warning-octagon.svg'), esc_attr__("Issue Detected", "superb-blocks")); ?>
             <p>
                 <?php
-                if ($this->KeyStatus['expired'] && $this->KeyStatus['exceeded'] && $this->KeyStatus['type'] === KeyType::STANDARD) {
-                    esc_html_e('It looks like your subscription has expired and your license key is active on too many domains. Please renew your subscription, deactivate your license key on some of your domains, or contact support for assistance.', "superb-blocks");
-                } elseif (
+                if (
                     $this->KeyStatus['expired']
                 ) {
                     esc_html_e('It looks like your subscription has expired. Please renew your subscription or contact support for assistance.', "superb-blocks");
@@ -160,6 +159,19 @@ class SettingsPage
                     esc_html_e('It looks like your license key has been activated on too many domains. Please renew your subscription, deactivate your license key on some of your domains, or contact support for assistance.', "superb-blocks");
                 }
                 ?>
+                <?php if ($this->KeyStatus['expired'] || $this->KeyStatus['exceeded']): ?>
+                    <br />
+                    <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/renew-subscription/"))); ?>" target="_blank" class="superbaddons-element-colorlink">
+                        <?php echo esc_html__("Renew License", "superb-blocks"); ?>
+                    </a>
+                    <br />
+                    <small>
+                        <?php echo esc_html__("If you have already renewed your subscription, please run the troubleshooting process or contact support for assistance.", "superb-blocks"); ?>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=' . DashboardController::SUPPORT)); ?>" class="superbaddons-element-colorlink">
+                            <?php echo esc_html__("Go to Troubleshooting page", "superb-blocks"); ?>
+                        </a>
+                    </small>
+                <?php endif; ?>
             </p>
             <?php
             if (!$this->KeyStatus['verified']) : ?>
