@@ -6,7 +6,7 @@ namespace SuperbAddons;
 Plugin Name: Superb Addons: Blocks, Patterns & Theme Designer
 Plugin URI: http://superbthemes.com/
 Description: Superb Addons: Blocks, Patterns & Theme Designer
-Version: 3.6.0
+Version: 3.6.1
 Author: SuperbThemes
 Author URI: http://superbthemes.com/
 License: GPL-3.0+
@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 }
 // Constants
 if (!defined('SUPERBADDONS_VERSION')) {
-    define('SUPERBADDONS_VERSION', '3.6.0');
+    define('SUPERBADDONS_VERSION', '3.6.1');
 }
 
 if (!defined('SUPERBADDONS_LIBRARY_VERSION')) {

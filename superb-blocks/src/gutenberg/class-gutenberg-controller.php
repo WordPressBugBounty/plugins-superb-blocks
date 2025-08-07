@@ -17,6 +17,7 @@ use SuperbAddons\Gutenberg\BlocksAPI\Controllers\DynamicBlockAssets;
 use SuperbAddons\Gutenberg\BlocksAPI\Controllers\RecentPostsController;
 use SuperbAddons\Library\Controllers\LibraryController;
 use SuperbAddons\Library\Controllers\LibraryRequestController;
+use SuperbAddons\Data\Controllers\OptionController;
 
 class GutenbergController
 {
@@ -322,10 +323,18 @@ class GutenbergController
             return $data;
         }
 
+        $options_controller = new OptionController();
+        $preferred_domain = $options_controller->GetPreferredDomain();
+        // Proxy is preferred if domain starts with https://superbthemes.com
+        $is_proxy_preferred = strpos($preferred_domain, 'https://superbthemes.com') === 0;
+
         $content = $data['content'];
-        $content = preg_replace_callback("/(http)?s?:?(\/\/[^\"']*\.(?:png|jpg|jpeg|gif|png|webp))/", function ($matches) {
+        $content = preg_replace_callback("/(http)?s?:?(\/\/[^\"']*\.(?:png|jpg|jpeg|gif|png|webp))/", function ($matches) use ($preferred_domain, $is_proxy_preferred) {
             // Get the URL
             $url = $matches[0];
+            if ($is_proxy_preferred) {
+                $url = $preferred_domain . "image-library/theme-designer-images?path=" . $url;
+            }
             $basename = pathinfo($url, PATHINFO_BASENAME);
             $title = sanitize_title($basename);
 
