@@ -48,6 +48,7 @@ class GutenbergEnhancementsController
     private static function InitializeEditorEnhancements()
     {
         add_filter('render_block', [__CLASS__, 'FilterEnhancementsRender'], 10, 2);
+        add_filter('render_block', [__CLASS__, 'NavigationEnhancementsRender'], 10, 2);
         add_filter('wp_enqueue_scripts', [__CLASS__, 'EnhancementsEnqueue']);
 
         add_filter('rest_pre_dispatch', array(__CLASS__, 'rest_pre_dispatch'), 10, 3);
@@ -108,6 +109,57 @@ class GutenbergEnhancementsController
                 )
             ));
         }
+
+        return $block_content;
+    }
+
+    public static function NavigationEnhancementsRender($block_content, $block)
+    {
+        if (!isset($block['blockName']) || $block['blockName'] !== 'core/navigation') {
+            return $block_content;
+        }
+
+        if (
+            isset($block['attrs']['spbaddMobileMenuJustification']) &&
+            !empty($block['attrs']['spbaddMobileMenuJustification']) &&
+            $block['attrs']['spbaddMobileMenuJustification'] !== 'default'
+        ) {
+            $block_content = self::MaybeAddBlockTagModifications($block_content, $block, array(
+                'spbaddMobileMenuJustification' => array(
+                    'class' => 'has-superb-addons-overlay-menu-justification',
+                    'required-values' => array(
+                        'left' => array(
+                            'class' => 'superb-addons-overlay-menu-justification-left'
+                        ),
+                        'center' => array(
+                            'class' => 'superb-addons-overlay-menu-justification-center'
+                        ),
+                        'right' => array(
+                            'class' => 'superb-addons-overlay-menu-justification-right'
+                        ),
+                        'stretch' => array(
+                            'class' => 'superb-addons-overlay-menu-justification-stretch'
+                        ),
+                    )
+                )
+            ));
+        }
+        if (
+            isset($block['attrs']['spbaddSubmenuLayout']) &&
+            !empty($block['attrs']['spbaddSubmenuLayout']) &&
+            $block['attrs']['spbaddSubmenuLayout'] !== 'default'
+        ) {
+            $block_content = self::MaybeAddBlockTagModifications($block_content, $block, array(
+                'spbaddSubmenuLayout' => array(
+                    'required-values' => array(
+                        'card' => array(
+                            'class' => 'is-superb-addons-submenu-layout-card'
+                        ),
+                    )
+                )
+            ));
+        }
+
 
         return $block_content;
     }
