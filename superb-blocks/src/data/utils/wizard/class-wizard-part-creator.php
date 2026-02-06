@@ -31,18 +31,41 @@ class WizardPartCreator
             }
 
             self::ValidateTemplatePartDataOrThrow($template_part_data);
-            $template_part_slug = $stage_type === WizardStageTypes::HEADER_STAGE ? 'header' : 'footer';
-            $restoration_point = WizardRestorationPointController::CreateTemplateRestorationPoint($template_part_slug, WizardItemTypes::WP_TEMPLATE_PART);
-            if (!$restoration_point) {
-                throw new WizardException(esc_html__('Template part restoration point could not be created. If the issue persists, please contact support.', 'superb-blocks'));
-            }
-            $part_created = self::CreateTemplatePart($template_part_slug, $template_part_data['slug'], $template_part_data['package'], $template_part_data['type']);
-            if (!$part_created) {
-                throw new WizardException(esc_html__('Template part could not be created. If the issue persists, please contact support.', 'superb-blocks'));
+            // Sanitize
+            $template_part_data['slug'] = sanitize_text_field($template_part_data['slug']);
+            $template_part_data['package'] = sanitize_text_field($template_part_data['package']);
+            $template_part_data['type'] = sanitize_text_field($template_part_data['type']);
+
+            $template_part_area = $stage_type === WizardStageTypes::HEADER_STAGE ? 'header' : 'footer';
+            // Get all block template parts
+            $specificUpdatePart = isset($template_part_data['updatedTemplatePart']) && $template_part_data['updatedTemplatePart'] !== 'all' ? sanitize_text_field($template_part_data['updatedTemplatePart']) : false;
+            $templates = get_block_templates(['area' => $template_part_area], 'wp_template_part');
+            foreach ($templates as $template) {
+                if ($specificUpdatePart && !empty($specificUpdatePart) && $template->slug !== $specificUpdatePart) {
+                    // If we only want to update a specific part, skip the others.
+                    continue;
+                }
+                if ($template->area !== $template_part_area) {
+                    // Sometimes get_block_templates returns parts from other areas, skip those.
+                    continue;
+                }
+                self::InitCreateTemplatePartProcess($template, $template_part_data, $template_part_area);
             }
         }
 
         return true;
+    }
+
+    private static function InitCreateTemplatePartProcess($template, $template_part_data, $template_part_area)
+    {
+        $restoration_point = WizardRestorationPointController::CreateTemplateRestorationPoint($template->slug, WizardItemTypes::WP_TEMPLATE_PART, $template_part_area);
+        if (!$restoration_point) {
+            throw new WizardException(esc_html__('Template part restoration point could not be created. If the issue persists, please contact support.', 'superb-blocks'));
+        }
+        $part_created = self::CreateTemplatePart($template->slug, $template_part_data['slug'], $template_part_data['package'], $template_part_data['type'], $template_part_area);
+        if (!$part_created) {
+            throw new WizardException(esc_html__('Template part could not be created. If the issue persists, please contact support.', 'superb-blocks'));
+        }
     }
 
     private static function ValidateTemplatePartDataOrThrow($data)
@@ -59,7 +82,7 @@ class WizardPartCreator
         }
     }
 
-    private static function CreateTemplatePart($slug, $template_id, $package, $template_type)
+    private static function CreateTemplatePart($slug, $template_id, $package, $template_type, $category)
     {
         // Slug is the same as the template id, no need to create a new template part.
         if ($template_type === WizardItemTypes::WP_TEMPLATE_PART && $slug === $template_id) {
@@ -92,7 +115,7 @@ class WizardPartCreator
             return false;
         }
 
-        if ($slug === 'header') {
+        if ($category === 'header') {
             $template_content = self::InjectCurrentHeaderNavigationId($template_content);
         }
 

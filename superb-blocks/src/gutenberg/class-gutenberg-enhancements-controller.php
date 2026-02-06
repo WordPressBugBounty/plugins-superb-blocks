@@ -29,6 +29,7 @@ class GutenbergEnhancementsController
         self::InitializeEnhancementEndpoints();
         self::InitializeEditorEnhancements();
         GutenbergBlockStyles::Initialize();
+        GutenbergSocialIconsController::Initialize();
     }
 
     private static function InitializeEnhancementEndpoints()

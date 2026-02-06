@@ -13,6 +13,7 @@ class WizardItem
     public $type;
     public $datatype;
     public $title;
+    public $category;
     public $permalink;
     public $no_reload;
     public $is_premium;
@@ -22,11 +23,13 @@ class WizardItem
     public $plugin_update_required;
     public $external_plugin_required;
     public $required_plugin_names;
+    public $is_missing_navigation_block;
 
     public function __construct($template)
     {
         $this->id = isset($template->id) ? $template->id : false;
         $this->slug = isset($template->slug) ? $template->slug : $this->id;
+        $this->category = isset($template->category) ? $template->category : $this->slug;
         $this->type = isset($template->type) ? $template->type : false;
         $this->datatype = isset($template->datatype) ? $template->datatype : $this->type;
         if ($this->slug === 'front-page') {
@@ -41,6 +44,7 @@ class WizardItem
         $this->required_plugin_names = isset($template->required_plugin_names) ? $template->required_plugin_names : array();
         $this->is_file_template = false;
         $this->is_restoration_point = false;
+        $this->is_missing_navigation_block = isset($template->is_missing_navigation_block) ? $template->is_missing_navigation_block : false;
         $this->use_custom_page_template_preview = isset($template->use_custom_page_template_preview) ? $template->use_custom_page_template_preview : 0;
     }
 

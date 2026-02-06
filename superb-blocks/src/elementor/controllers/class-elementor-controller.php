@@ -138,6 +138,8 @@ class ElementorController
         $source = new ElementorSourceExtension();
         $source->HandleImport($data['content']);
         try {
+            // constant contains plugin prefix
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound 
             do_action(self::IMPORT_COMPLETION_ACTION . $dynamic_action);
             return $data;
         } catch (Exception $ex) {
@@ -160,6 +162,8 @@ class ElementorController
             update_option('wpr-parallax-background', '');
             update_option('wpr-parallax-multi-layer', '');
 
+            // constant contains plugin prefix
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound 
             add_action(self::IMPORT_COMPLETION_ACTION . $action_affix, function () use ($wpr_args) {
                 update_option('wpr-parallax-background', $wpr_args['wpr-parallax-background']);
                 update_option('wpr-parallax-multi-layer', $wpr_args['wpr-parallax-multi-layer']);

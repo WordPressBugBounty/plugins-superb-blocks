@@ -55,6 +55,17 @@ class EditorPreviewsModal
                         )
                     );
                     ?>
+                    <!-- Navigation Enhancements -->
+                    <?php new ContentBoxLarge(
+                        array(
+                            "title" => __("Navigation Enhancements", "superb-blocks"),
+                            "description" => __("We’ve improved the WordPress navigation block by adding all the features you’ve been missing for the mobile overlay and submenus.", "superb-blocks"),
+                            "image" => "navigation-enhancements.jpg",
+                            "icon" => "purple-list-bullets.svg",
+                            "class" => 'superbaddons-admindashboard-gutenberg-block-control'
+                        )
+                    );
+                    ?>
                     <!-- Rating Block -->
                     <?php new ContentBoxLarge(
                         array(

@@ -167,12 +167,13 @@ class WizardStageUtil
     public function GetMenuAvailability()
     {
         $displayReplaceMenu = $this->GetType() === WizardActionParameter::THEME_DESIGNER;
-        $displayAppendMenu = WizardCreationUtil::GetNavigationTemplatePartMenuId('header') !== false;
+        $hasNavigationTemplatePart = WizardCreationUtil::HasNavigationTemplatePart();
+        $displayAppendMenu = WizardCreationUtil::GetNavigationTemplatePartMenuId() !== false;
 
         return array(
             'replace' => $displayReplaceMenu,
             'append' => $displayAppendMenu,
-            'available' => $displayReplaceMenu || $displayAppendMenu
+            'available' => $hasNavigationTemplatePart && ($displayReplaceMenu || $displayAppendMenu)
         );
     }
 
@@ -181,6 +182,7 @@ class WizardStageUtil
         $menuAvailability = $this->GetMenuAvailability();
         $displayReplaceMenu = $menuAvailability['replace'];
         $displayAppendMenu = $menuAvailability['append'];
+        $hasNavigationTemplatePart = $menuAvailability['available'];
 
         return [
             WizardStageTypes::HEADER_STAGE => [
@@ -191,6 +193,7 @@ class WizardStageUtil
                 'has-title-input' => false,
                 'icon' => 'wizard-menu-layout.svg',
                 'lockable' => false,
+                'has-multiple-parts' => $this->templateProvider->HasMultipleHeaderParts(),
                 'label' => __("Menu Layout", "superb-blocks"),
             ],
             WizardStageTypes::FOOTER_STAGE => [
@@ -200,6 +203,7 @@ class WizardStageUtil
                 'required' => true,
                 'has-title-input' => false,
                 'icon' => 'wizard-footer-layout.svg',
+                'has-multiple-parts' => $this->templateProvider->HasMultipleFooterParts(),
                 'lockable' => false,
             ],
             WizardStageTypes::FRONT_PAGE_STAGE => [
@@ -239,7 +243,7 @@ class WizardStageUtil
                 'has-title-input' => false,
                 'icon' => 'wizard-menu-layout.svg',
                 'unique_render' => true,
-                'args' => [$displayReplaceMenu, $displayAppendMenu]
+                'args' => [$displayReplaceMenu, $displayAppendMenu, $hasNavigationTemplatePart]
             ],
             WizardStageTypes::COMPLETION_STAGE => [
                 'enabled' => true,

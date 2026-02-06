@@ -18,8 +18,9 @@ class RecentPostsController
             ) {
                 return '<!-- Superb Recent Posts Block Hidden -->';
             }
-            $excludecurrent = ($attributes['excludeCurrent'] && !is_front_page() && !is_home()) ? array(get_the_ID()) : array();
-            $recent_posts_args = array("numberposts" => $attributes['numberOfPosts'], "post_status" => "publish", "exclude" => $excludecurrent);
+            $excludecurrent = ($attributes['excludeCurrent'] && !is_front_page() && !is_home()) ? intval(get_the_ID()) : false;
+            $numberOfPosts = $excludecurrent !== false ? intval($attributes['numberOfPosts']) + 1 : intval($attributes['numberOfPosts']);
+            $recent_posts_args = array("numberposts" => $numberOfPosts, "post_status" => "publish");
 
             if (count($attributes['selectedCategories']) > 0) {
                 $recent_posts_args['category__in'] = $attributes['selectedCategories'];
@@ -30,6 +31,22 @@ class RecentPostsController
             $recent_posts_args = apply_filters('superbaddons_recent_posts_block_args', $recent_posts_args, $attributes);
 
             $recent_posts = wp_get_recent_posts($recent_posts_args);
+
+            // Filter in PHP to preserve query cache across pages
+            if ($excludecurrent !== false) {
+                $filtered_posts = array();
+                $limit = intval($attributes['numberOfPosts']);
+                $count = 0;
+                foreach ($recent_posts as $post) {
+                    if (intval($post['ID']) !== $excludecurrent) {
+                        $filtered_posts[] = $post;
+                        if (++$count >= $limit) {
+                            break;
+                        }
+                    }
+                }
+                $recent_posts = $filtered_posts;
+            }
 
             return self::Render($attributes, $recent_posts);
         } catch (Exception $ex) {
@@ -93,7 +110,15 @@ class RecentPostsController
                                     <?php if ($attributes['displayExcerpt']) : ?>
                                         <!-- Excerpt -->
                                         <span style="font-size:<?php echo esc_attr($attributes['fontSizeExcerpt']) ?>px; color:<?php echo esc_attr($attributes['colorExcerpt']) ?>;">
-                                            <?php echo esc_html(wp_trim_words(excerpt_remove_blocks(strip_shortcodes($post['post_content'])), $attributes['excerptLength'], apply_filters('excerpt_more', ' ' . '[&hellip;]'))); ?>
+                                            <?php echo esc_html(
+                                                wp_trim_words(
+                                                    excerpt_remove_blocks(strip_shortcodes($post['post_content'])),
+                                                    $attributes['excerptLength'],
+                                                    // Can't apply this filter using wp_trim_excerpt() as we want to apply the users custom excerpt length without affecting general excerpts.
+                                                    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound 
+                                                    apply_filters('excerpt_more', ' ' . '[&hellip;]')
+                                                )
+                                            ); ?>
                                         </span>
                                     <?php endif; ?>
 

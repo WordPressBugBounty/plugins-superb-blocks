@@ -51,7 +51,7 @@ class WizardRestorationPointController
         return $restoration_points[$template_id];
     }
 
-    public static function CreateTemplateRestorationPoint($template_slug, $template_type)
+    public static function CreateTemplateRestorationPoint($template_slug, $template_type, $category = false)
     {
         $current_template = get_block_template(get_stylesheet() . '//' . $template_slug, $template_type);
         if (!$current_template || !$current_template instanceof WP_Block_Template) {
@@ -59,12 +59,16 @@ class WizardRestorationPointController
         }
 
         $restoration_transient = self::GetRestorationPointsTransient();
-        $restoration_transient[get_stylesheet()] = $restoration_transient[get_stylesheet()] ?? array();
+        if (!is_array($restoration_transient)) {
+            $restoration_transient = [];
+        }
+        $restoration_transient[get_stylesheet()] = isset($restoration_transient[get_stylesheet()]) ? $restoration_transient[get_stylesheet()] : array();
         $restoration_transient[get_stylesheet()][$current_template->slug . "//" . $template_type . "//" . time()] = array(
             "timestamp" => time(),
             "type" => $template_type,
             "slug" => $current_template->slug,
-            "content" => $current_template->content
+            "content" => $current_template->content,
+            "category" => $category ? $category : $current_template->slug,
         );
 
         self::MaybeScheduleRestorationCleanup();

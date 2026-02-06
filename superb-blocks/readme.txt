@@ -1,10 +1,10 @@
-=== Superb Addons: Blocks, Patterns & Theme Designer  ===
+=== Superb Addons: Blocks, Patterns & Theme Designer for the Block Editor & FSE  ===
 Contributors: SuPlugins, superbaddons
 Tags: block, blocks, gutenberg, gutenberg blocks, editor
-Requires at least: 3.0.1
-Tested up to: 6.8
+Requires at least: 4.9
+Tested up to: 6.9
 Requires PHP: 6.0
-Stable tag: 3.6.2
+Stable tag: 3.7.1
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -18,7 +18,8 @@ The last WordPress plugin you’ll ever need. Unlock new blocks, patterns, pre-b
 
 - 10+ new blocks
 - 200+ patterns for every purpose
-- 50+ pre-built pages
+- 50+ pre-built full pages
+- 20+ pre-built headers & footers
 - Powerful Theme Designer
 - Responsive block controls
 - Animations
@@ -31,7 +32,7 @@ Superb Addons makes it easy for anyone to build a website that looks like a pro 
 
 ## Unlock New Possibilities with the WordPress Gutenberg Editor
 
-The WordPress Gutenberg Editor is the default editor for WordPress, and Superb Addons takes it to the next level. Supercharge your website building experience with and unlock the true potential of the Gutenberg Editor. Access a vast library of pages, patterns, blocks, animations, sections, and SEO-friendly themes. Whether you’re creating a blog, business site, portfolio, online store, or landing page, Superb Addons gives you everything you need to build stunning, responsive, and search engine-optimized websites effortlessly.
+The WordPress Gutenberg Editor is the default editor for WordPress, and Superb Addons takes it to the next level. Supercharge your website building experience with and unlock the true potential of the Gutenberg Editor. Access a vast library of pages, patterns, blocks, interactive animations, sections, and SEO-friendly themes. Whether you’re creating a blog, business site, portfolio, online store, or landing page, Superb Addons gives you everything you need to build stunning, responsive, and search engine-optimized websites effortlessly.
 
 
 ## Powerful Theme Designer
@@ -41,12 +42,21 @@ Easily customize every aspect of your WordPress theme, including the header, foo
 
 ## Pre-built Pages and Patterns for Every Purpose  
 
-Superb Addons is designed to help you build any type of website quickly and easily. With hundreds of pre-built pages and patterns, you can create a professional website in just a few clicks. Whether you need layouts for calls to action, content sections, or testimonials, we’ve got you covered.
+Superb Addons is designed to help you build any type of website quickly and easily. With hundreds of pre-built pages and patterns, you can create a professional website in just a few clicks. Whether you need layouts for calls to action, content sections, or testimonials, we’ve got you covered. Just open the editor and insert the pattern you want - our patterns work for all posttypes. 
+
+## Extend the WordPress Navigation Block
+
+We’ve improved the WordPress menu by adding all the features you’ve been missing: New designs, flexible mobile and tablet options & much more.
+
+- Liquid Glass Background 
+- Full Color Customization 
+- 4 Different Designs 
+- Unique Mobile/Tablet Options
 
 
 ### Free Patterns Available for These Categories:  
 
-- Call to Action Patterns
+- CTA ( Call to Action ) Patterns
 - Content Patterns 
 - Contact Patterns 
 - Feature Patterns 
@@ -56,8 +66,10 @@ Superb Addons is designed to help you build any type of website quickly and easi
 - Stats Patterns 
 - Link Patterns 
 - Social Patterns 
-- Posts Patterns 
+- Posts & Query Patterns 
 - Footer Patterns 
+- Archive patterns
+- Announcement pattern
 
 
 ### Pre-built Pages Available for These Categories:  
@@ -71,17 +83,21 @@ Superb Addons is designed to help you build any type of website quickly and easi
 
 ## Not Just for the WordPress Editor: Also Compatible with Page Builders Like Elementor, Divi, and More
 
-Superb Addons extends its power beyond the WordPress editor, it's integrated with popular page builders like Elementor, Divi, and others. Unlock 300+ unique sections, elements, widgets, and blocks to create pixel-perfect designs fast.
+Superb Addons extends its power beyond the WordPress editor, it's integrated with popular page builders like Elementor, Divi, and others. Unlock 300+ unique sections, elements, widgets, and blocks to create pixel-perfect designs fast. 
 
 
 ## Every Free WordPress Block You'll Ever Need  
 
-Superb Addons offers a wide range of powerful and easy-to-use WordPress Gutenberg Blocks. If you feel a specific block is missing, let us know. We’re always creating new features based on user feedback.  
+Superb Addons offers a wide range of powerful and easy-to-use WordPress Gutenberg Blocks. If you feel a specific block is missing, let us know. We’re always creating new features based on user feedback. You don't need a license or account to get started, just activate the plugin and start.
 
 
 ### Free Rating Block  
 
 Add customizable star and rating bars to your site. Rate anything from 1 to 10 in a beautiful way, making it ideal for review websites.  
+
+### Accordion Block  
+
+The Accordion block neatly organizes content into collapsible sections. It's ideal for FAQs accordions, product details, or any text-heavy sections. With various styling and layout options, you can easily integrate it into your site’s design. 
 
 
 ### Free About The Author Box Block  
@@ -89,9 +105,9 @@ Add customizable star and rating bars to your site. Rate anything from 1 to 10 i
 Add a professional "About the Author" section to your posts or pages with one click. Include your image, description, and social links. Perfect for bloggers and personal sites.  
 
 
-### Free Table of Contents Block  
+### Free Table of Contents  Block 
 
-Automatically generate a table of contents from your headings, complete with clickable links to each section of your article. This block is a must-have for blogs and content heavy websites.  
+Automatically generate a TOC from your headings with anchor links, complete with clickable links to each section of your article. This block is a must-have for blogs and content heavy websites. It offers full customizations for borders, backgrounds, paragraphs etc.
 
 
 ### Free Recent Posts With Images Block  
@@ -106,17 +122,25 @@ Embed an interactive Google Map to display your office, restaurant, café, or an
 
 ### Free Cover Image Block  
 
-Showcase your images in any size or aspect ratio. Ideal for photographers, galleries, or anyone wanting to customize and crop images easily.  
+Showcase your images in any size or aspect ratio. Ideal for photographers, galleries, or anyone who displays cropped images to their readers.  
 
 
 ### Free Coupon Reveal Buttons  
 
-Add customizable reveal buttons to reveal coupon or bonus codes. Loved by coupon, betting, and casino affiliate websites, this block drives user engagement.  
+Add a customizable reveal button to reveal coupon or bonus codes. Loved by coupon, betting, and casino affiliate websites, this block drives user engagement. You choose the layout, appearance and reveal conditions. You can style the buttons you wish and control how it's revealed. It's a great block for improving conversion rate.
 
+
+## Extended social media buttons for the Social Icons Block
+
+We have added following social medias to the Social Icon Block: Bilibili, Buy Me a Coffee, GitLab, Gumroad, KakaoTalk, Kick, Ko-fi, Letterboxd, LINE, Linktree, Locals, Notion, pixiv, Rumble, Signal, Slack, Steam, Substack, Tripadvisor, WeChat & Weibo.
+
+## Drop caps for paragraphs
+
+Add a customizable drop cap to any paragraph block to give it a classic and elegant look.
 
 ## Make Any WordPress Theme Mobile Responsive with Responsive Block Control  
 
-Superb Addons' Responsive Block Control feature makes it simple to create a fully responsive website. With just one click, you can control which blocks and sections of your site are displayed on mobile, tablet, and desktop devices.  
+Superb Addons' Responsive Block Control feature makes it simple to create a fully responsive website. With just one click, you can control which blocks and sections of your site are displayed on mobile, tablet, and desktop devices. Responsiveness for the win! 
 
 Whether you're using a block-based theme or a custom layout, this tool ensures your site looks perfect on any screen size. It's the easiest way to make your WordPress website and theme responsive.  
 
@@ -125,19 +149,19 @@ Whether you're using a block-based theme or a custom layout, this tool ensures y
 
 Superb Addons includes an Advanced Custom CSS feature that lets you easily add and manage custom CSS while keeping your website fast and optimized. Your custom CSS is automatically delivered in a lightweight and compressed format to ensure quick loading times and top-notch performance.  
 
-With this feature, you can also control where your custom CSS is applied, choosing specific pages or sections to load your custom styles. This flexibility allows you to keep your site clean and efficient.
+If something appear wrong on your website like a comparison table, then our team can send you CSS blocks which you can easily upload to Superb Addons - secure and easy. With this feature, you can also control where your custom CSS is applied, choosing specific pages or sections to load your custom styles. This flexibility allows you to keep your site clean and efficient.
 
 
 ## Add Animations to Any WordPress Block or Section of Your Website  
 
-Looking to beautify your website with stunning animations for images, text, headlines, or other elements? Superb Addons makes it simple! With over 30+ animation options, you can bring your content to life and engage your visitors.  
+Looking to beautify your website with stunning animations for images, text, headlines, or other elements? Superb Addons makes it simple! With over 30+ animation options, you can bring your content to life and engage your visitors. we have animations for flipping, fading, sliding and much more. Choose animation triggers like scroll, click, hover, and more through our toggle menus.
 
 
 ## Use Cases  
 
 Superb Addons is versatile and works exceptionally well for a variety of websites. Here's how:  
 
-- **Blog Websites**: Perfect for bloggers with customizable blocks and patterns designed for storytelling and content sharing.  
+- **Blog Websites**: Perfect for bloggers with customizable blocks and patterns designed for blogging and content sharing.  
 - **Affiliate Websites and Marketing**: Optimized for AdSense and banner ads, making it ideal for generating advertisement revenue.  
 - **Elementor Websites**: Includes 300+ sections created for Elementor.  
 - **Agency Websites**: Whether you're building a travel or lifestyle blog for a client, we've got everything you need to create a polished site.  
@@ -150,9 +174,10 @@ Superb Addons is versatile and works exceptionally well for a variety of website
 - **Startups**: Launch a professional website for your startup with pre-built pages designed specifically for new businesses.  
 - **SEO Websites**: Schema markup and SEO optimization help your site rank higher on Google and other search engines.  
 - **Writers & Authors**: Publish and share your work effortlessly with dedicated blocks and patterns for authors.
+- **Podcasters & Entertainers**: Use Superb Addons to create your podcast website with automatic updatable podcasts playlists.
 
 
-## Just Like a Website or Page Builder  
+## Just Like a Website / Page Builder  
 
 Say goodbye to bulky page builders with Superb Addons. Transform your regular WordPress editor Gutenberg into a powerful, all-in-one tool that lets you create any type of website quickly and easily. From blogs to business sites, Superb Addons empowers you to build professional websites without the need for a traditional page builder.  
 
@@ -193,13 +218,15 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 
 Discover why users love Superb Addons and SuperbThemes:  
 
-- **Rated 4.8 on Trustpilot**: Check out what our customers have to say about their experience with Superb Addons and SuperbThemes. [Read reviews on Trustpilot](https://www.trustpilot.com/review/superbthemes.com?stars=5).  
+- **Rated 4.9 on Trustpilot**: Check out what our customers have to say about their experience with Superb Addons and SuperbThemes. [Read reviews on Trustpilot](https://www.trustpilot.com/review/superbthemes.com?stars=5).  
 - **Rated 4.8/5 on WordPress.org**: Explore user feedback and reviews for Superb Addons on WordPress.org. [Read reviews on WordPress.org](https://wordpress.org/support/plugin/superb-blocks/reviews/).  
 
 Join thousands of satisfied users who trust Superb Addons to enhance their WordPress websites with top-notch features and exceptional support.  
 
 
 ## Links to Get You Started  
+
+If you need help then please contact our support or look through our docs. We're always available to give a quick demo and help with the configuration / installation process if needed.
 
 - **Visit Our Documentation**: [SuperbThemes Documentation](https://superbthemes.com/documentation/)
 - **Contact Our Support Team**: [Support Page](https://superbthemes.com/contact/) 
@@ -211,16 +238,29 @@ Join thousands of satisfied users who trust Superb Addons to enhance their WordP
 
 = Can I Add Animations with Superb Addons to Any Element? =
 
-Yes, Superb Addons lets you easily add animations to text, images, buttons, and more. Customize your site with stunning effects to engage your visitors—all without coding.
+Yes, Superb Addons lets you easily add animations to text, images, buttons, and more. Customize your site with stunning effects to engage your visitors—all without coding. You can customize what trigger the animations like scrolling, click, viewport etc.
 
 = Is Superb Addons Free? =
 
-Superb Addons is a freemium product. You can download the free version here, or upgrade to the premium version on our website for $59 to unlock additional features.
+Superb Addons is a freemium product. You can download the free version here, or signup to the premium version on our website for $29 to unlock additional features.
+
+= Is Superb Addons GDPR compatible? =
+
+Yes, we've made the the plugin doesn't break any GDPR or privacy laws, so you can safely use it if you live in Europe. 
+
+= What features are you working on? =
+
+We're currently looking into adding AI, advanced visibility conditions for all elements in the page builder, countdown block, popup / modal block, a progress bar block, sliders, forms, milestone pattern, API and webhook integrations for pages like woocommerce checkout, predefined Mailchimp patterns, carousel, tabs, tables, url / visitor data triggers and much more.
 
 
 = What Themes Work with Superb Addons? =
 
-Superb Addons works seamlessly with all WordPress themes, including popular ones like Neve, Astra, Twenty Twenty-Five, Twenty Twenty-Four, Kadence, GeneratePress, OceanWP, Blocksy, and many more. Whether you're using a block-based theme or a classic theme, Superb Addons enhances your website with advanced features and customization options.
+Superb Addons works seamlessly with all WordPress themes, including popular ones like Neve, Astra, Twenty Twenty-Five, Twenty Twenty-Four, Kadence, GeneratePress, OceanWP, Blocksy, and many more. Whether you're using a block-based theme or a classic theme, Superb Addons enhances your website with advanced features and customization options. We always recommend you use one of our themes, as they are fully tested with all features and designs. They come with darkmode / lightmode option as well, which affects every design you insert with Superb Addons - which means that when you customize your theme, you also customize every module you've inserted with Superb Addons.
+
+= How are the patterns built =
+
+The patterns are built with default blocks from the WordPress FSE editor. We use modules like: container, column, grid, row, typograhy, videos ( Youtube embeds), button...(you get the idea) blocks. You can then fully customize everything in each pattern like padding, margin, height, shadows, spacing, transparency, position, gradient, columns, rows. This means that once you're done adding and adjusting the patterns, then you can simply delete the plugin without any consequences. We don't require registration, account creation, login or anything like that - it's plug and play!
+
 
 
 == Screenshots ==
@@ -231,6 +271,15 @@ Superb Addons works seamlessly with all WordPress themes, including popular ones
 5. Theme Designer
 
 == Changelog ==
+= 3.7.1 =
+* Fixed compatibility issue with some versions of WooCommerce.
+
+= 3.7.0 =
+* Fixed issue where the Theme Designer was not able to complete with themes that had missing template parts.
+* Added compatibility fix where fallback colors were being applied incorrectly when other plugins were modifying enqueue orders.
+* Improved performance of the Superb Recent Posts block.
+* Added new social links for the Social Icons Block (WP 6.9+): Bilibili, Buy Me a Coffee, GitLab, Gumroad, KakaoTalk, Kick, Ko-fi, Letterboxd, LINE, Linktree, Locals, Notion, pixiv, Rumble, Signal, Slack, Steam, Substack, Tripadvisor, WeChat & Weibo.
+
 = 3.6.2 =
 * Added new options and settings for the Navigation block:
     - Added new desktop submenu options.
@@ -342,7 +391,7 @@ Superb Addons works seamlessly with all WordPress themes, including popular ones
 * Fixed recent posts block not loading all categories correctly.
 
 = 3.1.0 =
-* Added a new Animated Heading block with 10+ animations.
+* Added a new Animated Heading block with 10+ animations like fade and flip.
 * Added new patterns.
 * Added full page content patterns.
 

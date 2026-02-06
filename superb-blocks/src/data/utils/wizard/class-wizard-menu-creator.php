@@ -29,8 +29,11 @@ class WizardMenuCreator
             $menu_post_id = self::AppendToExistingMenu($menu_content);
         }
 
-        // Update the known navigation template part with the new navigation menu id.
-        self::UpdateNavigationTemplatePart($menu_post_id, 'header');
+        // Update the known navigation template parts with the new navigation menu id.
+        $header_template_parts = get_block_templates(['area' => 'header'], 'wp_template_part');
+        foreach ($header_template_parts as $template) {
+            self::UpdateNavigationTemplatePart($menu_post_id, $template->slug);
+        }
     }
 
     private static function ShouldSkipMenu($navigation_selections)
@@ -101,7 +104,7 @@ class WizardMenuCreator
 
     private static function AppendToExistingMenu($menu_content)
     {
-        $menu_post_id = WizardCreationUtil::GetNavigationTemplatePartMenuId('header');
+        $menu_post_id = WizardCreationUtil::GetNavigationTemplatePartMenuId();
         if (!$menu_post_id) {
             return false;
         }
@@ -120,7 +123,7 @@ class WizardMenuCreator
         return get_option('superbaddons_wizard_navigation_post_id', false);
     }
 
-    private static function UpdateNavigationTemplatePart($navigation_id, $template_part_slug = 'header')
+    private static function UpdateNavigationTemplatePart($navigation_id, $template_part_slug)
     {
         $template_data = WizardCreationUtil::GetNavigationTemplateData($template_part_slug);
         if (!$template_data) {
@@ -135,7 +138,6 @@ class WizardMenuCreator
             WizardCreationUtil::UpdateTemplatePost($template_data['post_id'], $new_content);
             return;
         }
-
 
         // No post id, create a new template part post with the change.
         WizardCreationUtil::CreateNewTemplatePartPost($template_part_slug, $new_content);

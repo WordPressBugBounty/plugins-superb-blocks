@@ -124,6 +124,7 @@ class ComposerStaticInita94ee717fbe31078ea93f7c04889a4f8
         'SuperbAddons\\Gutenberg\\Controllers\\GutenbergBlockStyles' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-block-styles.php',
         'SuperbAddons\\Gutenberg\\Controllers\\GutenbergController' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-controller.php',
         'SuperbAddons\\Gutenberg\\Controllers\\GutenbergEnhancementsController' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-enhancements-controller.php',
+        'SuperbAddons\\Gutenberg\\Controllers\\GutenbergSocialIconsController' => __DIR__ . '/../..' . '/src/gutenberg/class-gutenberg-social-icons-controller.php',
         'SuperbAddons\\Library\\Controllers\\LibraryController' => __DIR__ . '/../..' . '/src/library/controllers/class-library-controller.php',
         'SuperbAddons\\Library\\Controllers\\LibraryRequestController' => __DIR__ . '/../..' . '/src/library/controllers/class-request-controller.php',
         'SuperbAddons\\SuperbAddonsPlugin' => __DIR__ . '/../..' . '/src/class-plugin.php',

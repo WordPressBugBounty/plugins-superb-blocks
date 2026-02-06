@@ -25,6 +25,9 @@ class WizardTemplateProvider
     private $hasHomeTemplate;
     private $hasIndexTemplate;
 
+    private $totalHeaderParts;
+    private $totalFooterParts;
+
     private $userIsPremium;
 
     public function __construct()
@@ -37,18 +40,23 @@ class WizardTemplateProvider
         $this->frontPageTemplates = array();
         $this->templatePages = array();
 
+        $this->totalHeaderParts = 0;
+        $this->totalFooterParts = 0;
+
         $this->hasFrontPageTemplate = false;
         $this->hasHomeTemplate = false;
         $this->hasIndexTemplate = false;
         $this->userIsPremium = KeyController::HasValidPremiumKey();
     }
 
-    private function HasModifiedTemplate($slug, $template_type)
+    private function HasModifiedTemplate($slug, $template_type, $area = false)
     {
         $args = array(
             'post_type' => $template_type,
             'posts_per_page' => 1,
             'post_name__in' => array($slug),
+            // Ensure we only get template parts for the current theme -> Tax query is used like in WP core
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
             'tax_query' => array(
                 array(
                     'taxonomy' => 'wp_theme',
@@ -61,7 +69,7 @@ class WizardTemplateProvider
             $args['tax_query'][] = array(
                 'taxonomy' => 'wp_template_part_area',
                 'field' => 'name',
-                'terms' => $slug
+                'terms' => $area ? $area : $slug
             );
             $args['tax_query']['relation'] = 'AND';
         }
@@ -71,10 +79,10 @@ class WizardTemplateProvider
         return $modifiedTemplatePost && !empty($modifiedTemplatePost) && $modifiedTemplatePost[0]->post_name === $slug;
     }
 
-    private function InitializePart($slugOrWizardItem, $type, $regularTitle, $modifiedTitle)
+    private function InitializePart($slugOrWizardItem, $type, $area, $regularTitle, $modifiedTitle, $baseTitle)
     {
         if ($slugOrWizardItem instanceof WizarditemRestorationPoint) {
-            $this->AddToAppropriateArray($slugOrWizardItem, $slugOrWizardItem->GetBaseSlug());
+            $this->AddToAppropriateArray($slugOrWizardItem, $area);
             return;
         }
 
@@ -87,31 +95,75 @@ class WizardTemplateProvider
         }
 
         $partTemplate = get_block_template(get_stylesheet() . '//' . $slug, $type);
+        if (!$partTemplate) {
+            return;
+        }
 
-        $hasModifiedPart = $this->HasModifiedTemplate($slug, $type);
+        $hasModifiedPart = $this->HasModifiedTemplate($slug, $type, $area);
         if ($partTemplate) {
             $partItem = new WizardItemTemplate($partTemplate, $regularTitle, $modifiedTitle, $hasModifiedPart);
             if ($datatype) {
                 $partItem->datatype = $datatype;
             }
-
-            $this->AddToAppropriateArray($partItem, $slug);
+            if ($area === 'header' && !has_block('core/navigation', $partTemplate->content)) {
+                $partItem->is_missing_navigation_block = true;
+            }
         }
+
         if ($hasModifiedPart) {
+            if ($area === $slug) {
+                // To avoid clutter, we don't need to add the modified part for all variants
+                $this->AddToAppropriateArray($partItem, $area);
+            }
+
+            $themePartTemplate = get_block_file_template(get_stylesheet() . '//' . $slug, $type);
+            if (!$themePartTemplate) {
+                // No theme part exists, add the modified part -> likely a custom part
+                $partItem->title = $baseTitle . __(" (Custom)", "superb-blocks");
+                $this->AddToAppropriateArray($partItem, $area);
+                return;
+            }
             // Get the original part template from the theme file
             $themePartItem = new WizardItemFile($slug, $type, $regularTitle);
             if ($datatype) {
-                $partItem->datatype = $datatype;
+                $themePartItem->datatype = $datatype;
             }
-            $this->AddToAppropriateArray($themePartItem, $slug);
+
+            if ($type === WizardItemTypes::WP_TEMPLATE_PART && $area === 'header') {
+                if (!has_block('core/navigation', $themePartTemplate->content)) {
+                    $themePartItem->is_missing_navigation_block = true;
+                }
+            }
+            $this->AddToAppropriateArray($themePartItem, $area);
+            return;
         }
+
+
+        // No modified part exists, add the block template part
+        $this->AddToAppropriateArray($partItem, $area);
     }
 
     public function InitializePatterns($required_plugin = false)
     {
-        // Check if the theme has a modified header template part post
-        $this->InitializePart('header', WizardItemTypes::WP_TEMPLATE_PART, __("Header (Theme)", "superb-blocks"), __("Header (Current)", "superb-blocks"));
-        $this->InitializePart('footer', WizardItemTypes::WP_TEMPLATE_PART, __("Footer (Theme)", "superb-blocks"), __("Footer (Current)", "superb-blocks"));
+        // Get all block template parts
+        $templates = get_block_templates([], 'wp_template_part');
+
+        $this->totalHeaderParts = 0;
+        $this->totalFooterParts = 0;
+        // Filter for header/footer patterns and collect template parts
+        foreach ($templates as $template) {
+            if (isset($template->area)) {
+                $regularTitleAffix = isset($template->source) && $template->source === 'theme' ? __(" (Theme)", "superb-blocks") : "";
+                if ($template->area === 'header') {
+                    $this->InitializePart($template->slug, WizardItemTypes::WP_TEMPLATE_PART, 'header', $template->title . $regularTitleAffix, $template->title . __(" (Current)", "superb-blocks"), $template->title);
+                    $this->totalHeaderParts++;
+                }
+                if ($template->area === 'footer') {
+                    $this->InitializePart($template->slug, WizardItemTypes::WP_TEMPLATE_PART, 'footer', $template->title . $regularTitleAffix, $template->title . __(" (Current)", "superb-blocks"), $template->title);
+                    $this->totalFooterParts++;
+                }
+            }
+        }
 
         try {
             $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_LIST_ROUTE . 'patterns');
@@ -146,6 +198,31 @@ class WizardTemplateProvider
                         $this->footerTemplates[] = $patternItem;
                     }
                 }
+            }
+
+            // 'header' slug should always be first in the header templates
+            if (!empty($this->headerTemplates) && count($this->headerTemplates) > 1) {
+                usort($this->headerTemplates, function ($a, $b) {
+                    if ($a->GetBaseSlug() === 'header') {
+                        return -1;
+                    }
+                    if ($b->GetBaseSlug() === 'header') {
+                        return 1;
+                    }
+                    return 0;
+                });
+            }
+            // 'footer' slug should always be first in the footer templates
+            if (!empty($this->footerTemplates) && count($this->footerTemplates) > 1) {
+                usort($this->footerTemplates, function ($a, $b) {
+                    if ($a->GetBaseSlug() === 'footer') {
+                        return -1;
+                    }
+                    if ($b->GetBaseSlug() === 'footer') {
+                        return 1;
+                    }
+                    return 0;
+                });
             }
         } catch (WizardException $e) {
             // Exception is automatically logged. Catch it so that the wizard can continue with the available theme templates.
@@ -254,14 +331,14 @@ class WizardTemplateProvider
 
         if ($logicType === "restoration") {
             if (!empty($this->headerTemplates)) {
-                $currentHeader = get_block_template(get_stylesheet() . '//' . 'header', WizardItemTypes::WP_TEMPLATE_PART);
+                $currentHeader = get_block_template(get_stylesheet() . '//header', WizardItemTypes::WP_TEMPLATE_PART);
                 $currentHeader->title = $currentHeader->title . __(" (Current)", "superb-blocks");
                 $currentHeader = new WizardItem($currentHeader);
                 $this->headerTemplates = array_merge(array($currentHeader), $this->headerTemplates);
             }
 
             if (!empty($this->footerTemplates)) {
-                $currentFooter = get_block_template(get_stylesheet() . '//' . 'footer', WizardItemTypes::WP_TEMPLATE_PART);
+                $currentFooter = get_block_template(get_stylesheet() . '//footer', WizardItemTypes::WP_TEMPLATE_PART);
                 $currentFooter->title = $currentFooter->title . __(" (Current)", "superb-blocks");
                 $currentFooter = new WizardItem($currentFooter);
                 $this->footerTemplates = array_merge(array($currentFooter), $this->footerTemplates);
@@ -354,19 +431,19 @@ class WizardTemplateProvider
                         $base_label = __("Index", "superb-blocks");
                         break;
                 }
-                $this->InitializePart($template, WizardItemTypes::WP_TEMPLATE, $base_label . __(" (Theme)", "superb-blocks"), $base_label . __(" (Current)", "superb-blocks"));
+                $this->InitializePart($template, WizardItemTypes::WP_TEMPLATE, $slug, $base_label . __(" (Theme)", "superb-blocks"), $base_label . __(" (Current)", "superb-blocks"), $base_label);
             } else {
                 if ($logicType === "default") {
                     $template->title = $template->title . ' (' . __('Theme', 'superb-blocks') . ')';
                 }
-                $this->AddToAppropriateArray($template, $slug);
+                $this->AddToAppropriateArray($template, $template->category);
             }
         }
     }
 
-    private function AddToAppropriateArray($item, $slug)
+    private function AddToAppropriateArray($item, $category)
     {
-        switch ($slug) {
+        switch ($category) {
             case 'header':
                 $this->headerTemplates[] = $item;
                 break;
@@ -386,7 +463,7 @@ class WizardTemplateProvider
                 $this->indexTemplates[] = $item;
                 break;
             default:
-                if (strpos($slug, 'blog') !== false) {
+                if (strpos($category, 'blog') !== false) {
                     $this->blogTemplates[] = $item;
                 }
                 $this->templatePages[] = $item;
@@ -402,6 +479,16 @@ class WizardTemplateProvider
     public function GetFooterTemplates()
     {
         return $this->footerTemplates;
+    }
+
+    public function HasMultipleHeaderParts()
+    {
+        return $this->totalHeaderParts > 1;
+    }
+
+    public function HasMultipleFooterParts()
+    {
+        return $this->totalFooterParts > 1;
     }
 
     public function GetBlogTemplates()

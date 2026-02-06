@@ -1,3 +1,6 @@
+<?php
+defined('ABSPATH') || exit();
+?>
 <div class="superb-addons-block-outer-options" aria-hidden="true">
     <div class="superb-addons-block-outer-options-inner">
         <div class="superb-addons-block-outer-options-movers-wrapper">

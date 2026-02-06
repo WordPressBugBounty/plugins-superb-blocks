@@ -21,8 +21,10 @@ use SuperbAddons\Data\Controllers\OptionController;
 
 class GutenbergController
 {
-    const MINIMUM_WORDPRESS_VERSION = '5.8';
+    const MINIMUM_WORDPRESS_VERSION = '5.9';
     const MINIMUM_PHP_VERSION = '5.6';
+
+    const VARIABLE_FALLBACKS_HANDLE = 'superb-addons-variable-fallbacks';
 
     const PATTERN_BLOCK_ARG = 'is_pattern_block';
     const BLOCKS = array(
@@ -47,7 +49,7 @@ class GutenbergController
         }
 
         add_action('block_categories_all', array($this, 'RegisterBlockCategory'), defined('PHP_INT_MAX') ? PHP_INT_MAX : 999, 2);
-        add_action('init', array($this, 'RegisterBlocks'), 0);
+        add_action('init', array($this, 'RegisterBlocksAndStyles'), 0);
         add_action('enqueue_block_editor_assets', array($this, 'EnqueueBlockEditorAssets'));
 
         add_action("enqueue_block_assets", array($this, 'EnqueueEditorIframeAssets'));
@@ -55,6 +57,7 @@ class GutenbergController
 
         add_action('enqueue_block_editor_assets', array($this, 'EnqueueVariableFallbacks'), PHP_INT_MIN);
         add_action("wp_enqueue_scripts", array($this, 'EnqueueVariableFallbacks'), PHP_INT_MIN);
+        add_action('wp_print_styles', array($this, 'ReorderVariableFallbacks'), PHP_INT_MAX);
 
         GutenbergEnhancementsController::Initialize();
         WizardController::Initialize();
@@ -116,12 +119,6 @@ class GutenbergController
 
     public function EnqueuePatternAssets()
     {
-        wp_register_style(
-            'superb-addons-patterns',
-            SUPERBADDONS_ASSETS_PATH . '/css/patterns.min.css',
-            array(),
-            SUPERBADDONS_VERSION
-        );
         wp_enqueue_style(
             'superb-addons-patterns'
         );
@@ -130,9 +127,34 @@ class GutenbergController
     public function EnqueueVariableFallbacks()
     {
         $fallbacks = ":root{--wp--preset--color--primary:#1f7cec;--wp--preset--color--primary-hover:#3993ff;--wp--preset--color--base:#fff;--wp--preset--color--featured:#0a284b;--wp--preset--color--contrast-light:#fff;--wp--preset--color--contrast-dark:#000;--wp--preset--color--mono-1:#0d3c74;--wp--preset--color--mono-2:#64748b;--wp--preset--color--mono-3:#e2e8f0;--wp--preset--color--mono-4:#f8fafc;--wp--preset--spacing--superbspacing-xxsmall:clamp(5px,1vw,10px);--wp--preset--spacing--superbspacing-xsmall:clamp(10px,2vw,20px);--wp--preset--spacing--superbspacing-small:clamp(20px,4vw,40px);--wp--preset--spacing--superbspacing-medium:clamp(30px,6vw,60px);--wp--preset--spacing--superbspacing-large:clamp(40px,8vw,80px);--wp--preset--spacing--superbspacing-xlarge:clamp(50px,10vw,100px);--wp--preset--spacing--superbspacing-xxlarge:clamp(60px,12vw,120px);--wp--preset--font-size--superbfont-tiny:clamp(10px,0.625rem + ((1vw - 3.2px) * 0.227),12px);--wp--preset--font-size--superbfont-xxsmall:clamp(12px,0.75rem + ((1vw - 3.2px) * 0.227),14px);--wp--preset--font-size--superbfont-xsmall:clamp(16px,1rem + ((1vw - 3.2px) * 1),16px);--wp--preset--font-size--superbfont-small:clamp(16px,1rem + ((1vw - 3.2px) * 0.227),18px);--wp--preset--font-size--superbfont-medium:clamp(18px,1.125rem + ((1vw - 3.2px) * 0.227),20px);--wp--preset--font-size--superbfont-large:clamp(24px,1.5rem + ((1vw - 3.2px) * 0.909),32px);--wp--preset--font-size--superbfont-xlarge:clamp(32px,2rem + ((1vw - 3.2px) * 1.818),48px);--wp--preset--font-size--superbfont-xxlarge:clamp(40px,2.5rem + ((1vw - 3.2px) * 2.727),64px)}.has-primary-color{color:var(--wp--preset--color--primary)!important}.has-primary-hover-color{color:var(--wp--preset--color--primary-hover)!important}.has-base-color{color:var(--wp--preset--color--base)!important}.has-featured-color{color:var(--wp--preset--color--featured)!important}.has-contrast-light-color{color:var(--wp--preset--color--contrast-light)!important}.has-contrast-dark-color{color:var(--wp--preset--color--contrast-dark)!important}.has-mono-1-color{color:var(--wp--preset--color--mono-1)!important}.has-mono-2-color{color:var(--wp--preset--color--mono-2)!important}.has-mono-3-color{color:var(--wp--preset--color--mono-3)!important}.has-mono-4-color{color:var(--wp--preset--color--mono-4)!important}.has-primary-background-color{background-color:var(--wp--preset--color--primary)!important}.has-primary-hover-background-color{background-color:var(--wp--preset--color--primary-hover)!important}.has-base-background-color{background-color:var(--wp--preset--color--base)!important}.has-featured-background-color{background-color:var(--wp--preset--color--featured)!important}.has-contrast-light-background-color{background-color:var(--wp--preset--color--contrast-light)!important}.has-contrast-dark-background-color{background-color:var(--wp--preset--color--contrast-dark)!important}.has-mono-1-background-color{background-color:var(--wp--preset--color--mono-1)!important}.has-mono-2-background-color{background-color:var(--wp--preset--color--mono-2)!important}.has-mono-3-background-color{background-color:var(--wp--preset--color--mono-3)!important}.has-mono-4-background-color{background-color:var(--wp--preset--color--mono-4)!important}.has-superbfont-tiny-font-size{font-size:var(--wp--preset--font-size--superbfont-tiny)!important}.has-superbfont-xxsmall-font-size{font-size:var(--wp--preset--font-size--superbfont-xxsmall)!important}.has-superbfont-xsmall-font-size{font-size:var(--wp--preset--font-size--superbfont-xsmall)!important}.has-superbfont-small-font-size{font-size:var(--wp--preset--font-size--superbfont-small)!important}.has-superbfont-medium-font-size{font-size:var(--wp--preset--font-size--superbfont-medium)!important}.has-superbfont-large-font-size{font-size:var(--wp--preset--font-size--superbfont-large)!important}.has-superbfont-xlarge-font-size{font-size:var(--wp--preset--font-size--superbfont-xlarge)!important}.has-superbfont-xxlarge-font-size{font-size:var(--wp--preset--font-size--superbfont-xxlarge)!important}";
-        wp_register_style('superb-addons-variable-fallbacks', false, array(), SUPERBADDONS_VERSION);
-        wp_enqueue_style('superb-addons-variable-fallbacks');
-        wp_add_inline_style('superb-addons-variable-fallbacks', $fallbacks);
+        wp_add_inline_style(self::VARIABLE_FALLBACKS_HANDLE, $fallbacks);
+        wp_enqueue_style(self::VARIABLE_FALLBACKS_HANDLE);
+    }
+
+    public function ReorderVariableFallbacks()
+    {
+        // Some themes/plugins may incorrectly call wp_enqueue_global_styles outside of the enqueue phase, causing our fallbacks to be enqueued in the wrong order.
+        // To fix this, we will move our fallbacks to the front of the queue
+        global $wp_styles;
+
+        if (!isset($wp_styles) || !is_object($wp_styles)) {
+            return;
+        }
+        if (!isset($wp_styles->queue) || !is_array($wp_styles->queue) || empty($wp_styles->queue)) {
+            return;
+        }
+        if (!isset($wp_styles->registered[self::VARIABLE_FALLBACKS_HANDLE])) {
+            return;
+        }
+        if (!in_array(self::VARIABLE_FALLBACKS_HANDLE, $wp_styles->queue)) {
+            return;
+        }
+        if ($wp_styles->queue[0] === self::VARIABLE_FALLBACKS_HANDLE) {
+            return;
+        }
+
+        $wp_styles->queue = array_diff($wp_styles->queue, array(self::VARIABLE_FALLBACKS_HANDLE));
+        array_unshift($wp_styles->queue, self::VARIABLE_FALLBACKS_HANDLE);
     }
 
     public function EnqueueEditorIframeAssets()
@@ -269,7 +291,7 @@ class GutenbergController
         );
     }
 
-    public function RegisterBlocks()
+    public function RegisterBlocksAndStyles()
     {
         foreach (self::BLOCKS as $block) {
             if (isset($block['args'][self::PATTERN_BLOCK_ARG])) {
@@ -278,6 +300,14 @@ class GutenbergController
             }
             register_block_type(SUPERBADDONS_PLUGIN_DIR . 'blocks/' . $block['path'], $block['args']);
         }
+
+        wp_register_style(self::VARIABLE_FALLBACKS_HANDLE, false, array(), SUPERBADDONS_VERSION);
+        wp_register_style(
+            'superb-addons-patterns',
+            SUPERBADDONS_ASSETS_PATH . '/css/patterns.min.css',
+            array(),
+            SUPERBADDONS_VERSION
+        );
     }
 
     private static function EditorEnhancements()

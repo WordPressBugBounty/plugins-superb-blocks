@@ -85,7 +85,7 @@ class PageWizardStagesPage
             $firstSelectionIndex = 1;
         }
     ?>
-        <div class="superbaddons-template-stage" data-stageid="<?php echo esc_attr($stage_id); ?>" data-type="<?php echo esc_attr($properties['type']); ?>" data-required="<?php echo esc_attr(boolval($properties['required'])); ?>" data-hastitleinput="<?php echo esc_attr($properties['has-title-input'] ?? ""); ?>" style="display:none;">
+        <div class="superbaddons-template-stage" data-stageid="<?php echo esc_attr($stage_id); ?>" data-type="<?php echo esc_attr($properties['type']); ?>" data-required="<?php echo esc_attr(boolval($properties['required'])); ?>" data-hastitleinput="<?php echo esc_attr($properties['has-title-input'] ?? ""); ?>" data-hasmultipleparts="<?php echo esc_attr(isset($properties['has-multiple-parts']) ? boolval($properties['has-multiple-parts']) : ""); ?>" style="display:none;">
             <div class="superbaddons-wizard-wrapper-small" data-stage-label="<?php echo esc_attr($this->stageUtil->GetStageLabel($stage_id)); ?>" data-title-input-suggestion="<?php echo esc_attr($properties['input-suggestion'] ?? ''); ?>">
                 <div class="superbaddons-wizard-heading">
                     <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $properties['icon']); ?>" width="60" height="60" aria-hidden="true">
@@ -133,6 +133,7 @@ class PageWizardStagesPage
                 }
             }
         }
+        $is_missing_navigation_block = isset($template->is_missing_navigation_block) && $template->is_missing_navigation_block;
 
         if (!$rendering_with_premium_wrapper && $premium && !$premium_available) {
             new PremiumOptionWrapper(function () use ($template, $is_locked, $is_selected) {
@@ -141,7 +142,7 @@ class PageWizardStagesPage
             return;
         }
     ?>
-        <div class="superbaddons-theme-page-template superbaddons-element-text-dark <?php echo $update_required ? "superbaddons-theme-page-template-update-required" : ""; ?> <?php echo $external_plugin_required ? "superbaddons-theme-page-template-external-plugin-required" : ""; ?> <?php echo $premium_available ? "superbaddons-premium-element-option" : ($premium ? "superbaddons-theme-page-template-unavailable-premium" : ""); ?> <?php echo $template->IsPattern() ? "superbaddons-theme-page-template-part" : ""; ?> <?php echo $is_locked ? 'superbaddons-theme-page-template-locked' : ''; ?> <?php echo $is_selected ? 'superbaddons-theme-page-template-selected' : ''; ?>" data-slug="<?php echo esc_attr($template->GetSlug()); ?>" data-title="<?php echo esc_attr($template->title); ?>" data-type="<?php echo esc_attr($template->datatype); ?>" data-package="<?php echo $premium ? 'premium' : 'free'; ?>">
+        <div class="superbaddons-theme-page-template superbaddons-element-text-dark <?php echo $update_required ? "superbaddons-theme-page-template-update-required" : ""; ?> <?php echo $external_plugin_required ? "superbaddons-theme-page-template-external-plugin-required" : ""; ?> <?php echo $premium_available ? "superbaddons-premium-element-option" : ($premium ? "superbaddons-theme-page-template-unavailable-premium" : ""); ?> <?php echo $template->IsPattern() ? "superbaddons-theme-page-template-part" : ""; ?> <?php echo $is_locked ? 'superbaddons-theme-page-template-locked' : ''; ?> <?php echo $is_selected ? 'superbaddons-theme-page-template-selected' : ''; ?>" data-slug="<?php echo esc_attr($template->GetSlug()); ?>" data-title="<?php echo esc_attr($template->title); ?>" data-type="<?php echo esc_attr($template->datatype); ?>" data-package="<?php echo $premium ? 'premium' : 'free'; ?>" data-navigation-issue="<?php echo $is_missing_navigation_block ? 'true' : 'false'; ?>">
             <div class="superbaddons-template-content-wrapper">
                 <?php if ($template->id) : ?>
                     <div class="superbaddons-template-preview-container">
@@ -174,22 +175,23 @@ class PageWizardStagesPage
     }
 
     /* Unique renders */
-    private function RenderNavigationUpdateStage($displayReplaceMenu, $displayAppendMenu)
+    private function RenderNavigationUpdateStage($displayReplaceMenu, $displayAppendMenu, $hasNavigationTemplatePart)
     {
     ?>
         <div class="superbaddons-checkbox-large-wrapper <?php echo $displayReplaceMenu && $displayAppendMenu ? 'superbaddons-checkbox-large-wrapper-three' : ''; ?>">
             <?php if ($displayReplaceMenu) : ?>
                 <div class="superbaddons-checkbox-large-item">
-                    <?php new InputCheckbox(WizardNavigationMenuOptions::CREATE_NEW_MENU, __('Replace Menu Items', 'superb-blocks'), __('Replace Menu Items', 'superb-blocks'), __('Updates the navigation block with menu items for the front page, blog page and the selected pages.', 'superb-blocks'), true); ?>
+                    <?php new InputCheckbox(WizardNavigationMenuOptions::CREATE_NEW_MENU, __('Replace Menu Items', 'superb-blocks'), __('Replace Menu Items', 'superb-blocks'), __('Updates the navigation block with menu items for the front page, blog page and the selected pages.', 'superb-blocks'), $hasNavigationTemplatePart); ?>
+                    <p id="superbaddons-navigation-block-warning" class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-mt1" style="font-style:italic;"><?php echo esc_html__('No navigation block was found in the selected header template part. Navigation menu cannot be updated automatically.', 'superb-blocks'); ?></p>
                 </div>
             <?php endif; ?>
             <?php if ($displayAppendMenu): ?>
                 <div class="superbaddons-checkbox-large-item">
-                    <?php new InputCheckbox(WizardNavigationMenuOptions::APPEND_EXISTING_MENU, __('Append Menu Items', 'superb-blocks'), __('Append Menu Items', 'superb-blocks'), __('The navigation block menu items will be updated to include all your selected pages. Any menu items already present in the navigation block will remain in addition to the newly created menu items.', 'superb-blocks'), $this->stageUtil->GetType() === WizardActionParameter::ADD_NEW_PAGES); ?>
+                    <?php new InputCheckbox(WizardNavigationMenuOptions::APPEND_EXISTING_MENU, __('Append Menu Items', 'superb-blocks'), __('Append Menu Items', 'superb-blocks'), __('The navigation block menu items will be updated to include all your selected pages. Any menu items already present in the navigation block will remain in addition to the newly created menu items.', 'superb-blocks'), $hasNavigationTemplatePart && $this->stageUtil->GetType() === WizardActionParameter::ADD_NEW_PAGES); ?>
                 </div>
             <?php endif; ?>
             <div class="superbaddons-checkbox-large-item">
-                <?php new InputCheckbox(WizardNavigationMenuOptions::SKIP_MENU, __('Don\'t Update Menu Items', 'superb-blocks'), __('Don\'t Update Menu Items', 'superb-blocks'), __('If you do not want the navigation menu items to be changed, select this option.', 'superb-blocks')); ?>
+                <?php new InputCheckbox(WizardNavigationMenuOptions::SKIP_MENU, __('Don\'t Update Menu Items', 'superb-blocks'), __('Don\'t Update Menu Items', 'superb-blocks'), __('If you do not want the navigation menu items to be changed, select this option.', 'superb-blocks'), !$hasNavigationTemplatePart); ?>
             </div>
         </div>
     <?php

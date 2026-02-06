@@ -45,6 +45,69 @@ class WizardController
         WizardTemplatePreviewController::InitializeTemplatePreview();
     }
 
+    private static function GetTemplatePartObject($slug, $is_file_template = false)
+    {
+        switch ($slug) {
+            case 'header':
+                return AddonsPageTemplateUtil::GetAddonsHeaderTemplatePartObject($is_file_template);
+            case 'footer':
+                return AddonsPageTemplateUtil::GetAddonsFooterTemplatePartObject($is_file_template);
+            default:
+                return null;
+        }
+    }
+
+    private static function AddTemplatePartFallback($slug, $area)
+    {
+        add_filter('get_block_templates', function ($query_result, $query, $template_type) use ($slug, $area) {
+            if ($template_type !== WizardItemTypes::WP_TEMPLATE_PART) {
+                return $query_result;
+            }
+            if (
+                !empty($query) &&
+                (isset($query['slug__in']) && !in_array($slug, $query['slug__in'])) ||
+                (isset($query['slug__not_in']) && in_array($slug, $query['slug__not_in']))
+            ) {
+                return $query_result;
+            }
+
+            // Check query area, if set, must match
+            if (isset($query['area']) && $query['area'] !== $area) {
+                return $query_result;
+            }
+
+            // Only add fallback if no template exists
+            foreach ($query_result as $template) {
+                if ($template->slug === $slug) {
+                    // Template exists, return original result
+                    return $query_result;
+                }
+            }
+
+            // No template found, add our fallback
+            $query_result[] = self::GetTemplatePartObject($slug);
+
+            return $query_result;
+        }, 99, 3);
+
+        add_filter('get_block_file_template', function ($block_template, $id, $template_type) use ($slug) {
+            if ($template_type !== WizardItemTypes::WP_TEMPLATE_PART) {
+                return $block_template;
+            }
+
+            if ($id === get_stylesheet() . '//' . $slug) {
+                if ($block_template !== null && $block_template->source !== AddonsPageTemplateUtil::PLUGIN_SLUG) {
+                    return $block_template;
+                }
+
+                // No template found, return our fallback if id matches
+                return self::GetTemplatePartObject($slug, true);
+            }
+
+            return $block_template;
+        }, 99, 3);
+    }
+
     private static function InitializeWizardPageTemplates()
     {
         add_filter('get_block_templates', function ($query_result, $query, $template_type) {
@@ -78,6 +141,9 @@ class WizardController
 
             return $block_template;
         }, 10, 3);
+
+        self::AddTemplatePartFallback('header', 'header');
+        self::AddTemplatePartFallback('footer', 'footer');
     }
 
     private static function InitializeWizardRecommenderSwitchAction()
@@ -153,6 +219,9 @@ class WizardController
     {
         $user_id = get_current_user_id();
         $transient = get_transient(WizardTemplatePreviewController::TEMPLATE_PART_PREVIEW_TRANSIENT);
+        if (!$transient || !is_array($transient)) {
+            $transient = [];
+        }
         $transient[$user_id] = $preview_data;
         return set_transient(WizardTemplatePreviewController::TEMPLATE_PART_PREVIEW_TRANSIENT, $transient, DAY_IN_SECONDS);
     }
@@ -327,10 +396,13 @@ class WizardController
             }
 
             if (!$accepted_theme) {
-                return rest_ensure_response(['success' => false, 'text' => esc_html__("Selected theme is invalid. Please contact support for assistance.", "superb-blocks")]);
+                throw new ThemeInstallerException(esc_html__("Selected theme is not recognized. Please contact support for assistance.", "superb-blocks"));
             }
 
             $installed = ThemeInstaller::Install($theme_slug);
+            if (!$installed) {
+                throw new ThemeInstallerException(esc_html__("The selected theme could not be installed. Please try again or contact support for assistance.", "superb-blocks"));
+            }
 
             return rest_ensure_response(['success' => $installed]);
         } catch (ThemeInstallerException $tex) {
@@ -349,6 +421,9 @@ class WizardController
             }
 
             $selection_data = json_decode($request['selection_data'], true);
+            if (!$selection_data) {
+                return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. The process could not start.", "superb-blocks")]);
+            }
 
             $stageUtil = new WizardStageUtil($request['wizardType']);
             if (!self::ValidateSelectionData($selection_data, $stageUtil)) {
@@ -432,13 +507,13 @@ class WizardController
     public static function HeaderFooterPreviewCallback($request)
     {
         $preview_transient = [];
-        // Do not set if the header is the default header.
-        if (isset($request['header']) && $request['header'] !== 'header') {
-            $preview_transient['header'] = $request['header'];
+
+        if (isset($request['header'])) {
+            $preview_transient['header'] = sanitize_text_field($request['header']);
         }
-        // Do not set if the footer is the default footer.
-        if (isset($request['footer']) && $request['footer'] !== 'footer') {
-            $preview_transient['footer'] = $request['footer'];
+
+        if (isset($request['footer'])) {
+            $preview_transient['footer'] = sanitize_text_field($request['footer']);
         }
 
         self::SetWizardPartPreviewTransient($preview_transient);

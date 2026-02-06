@@ -17,10 +17,12 @@ class WizardCreationUtil
                 'post_type' => $type,
                 'post_name' => $slug,
                 'posts_per_page' => -1,
+                // Ensure we only get template parts for the current theme -> Tax query is used like in WP core
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                 'tax_query' => array(
                     array(
                         'taxonomy' => 'wp_theme',
-                        'field' => 'slug',
+                        'field' => 'name',
                         'terms' => get_stylesheet()
                     )
                 )
@@ -57,24 +59,45 @@ class WizardCreationUtil
         return ['post_id' => $navigation_template_part->wp_id, 'title' => $navigation_template_part->title, 'content' => $template_content];
     }
 
-    public static function GetNavigationTemplatePartMenuId($template_part_slug = 'header')
+    public static function HasNavigationTemplatePart()
     {
-        $template_data = self::GetNavigationTemplateData($template_part_slug);
-        if (!$template_data) {
+        $header_template_parts = get_block_templates(['area' => 'header'], 'wp_template_part');
+        if (empty($header_template_parts)) {
+            return false;
+        }
+        foreach ($header_template_parts as $template_part) {
+            $template_data = self::GetNavigationTemplateData($template_part->slug);
+            if ($template_data) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function GetNavigationTemplatePartMenuId()
+    {
+        $header_template_parts = get_block_templates(['area' => 'header'], 'wp_template_part');
+        if (empty($header_template_parts)) {
             return false;
         }
 
-        $parsed_blocks = parse_blocks($template_data['content']);
-        $flattened = _flatten_blocks($parsed_blocks);
-        foreach ($flattened as &$block) {
-            // Keep pointer reference to the navigation block.
-            if ('core/navigation' !== $block['blockName'])
+        foreach ($header_template_parts as $template_part) {
+            $template_data = self::GetNavigationTemplateData($template_part->slug);
+            if (!$template_data) {
                 continue;
-            // Return the navigation menu id.
-            if (!isset($block['attrs']['ref'])) {
-                return false;
             }
-            return $block['attrs']['ref'];
+
+            $parsed_blocks = parse_blocks($template_data['content']);
+            $flattened = _flatten_blocks($parsed_blocks);
+            foreach ($flattened as &$block) {
+                // Keep pointer reference to the navigation block.
+                if ('core/navigation' !== $block['blockName'])
+                    continue;
+                // Return the navigation menu id.
+                if (isset($block['attrs']['ref'])) {
+                    return absint($block['attrs']['ref']);
+                }
+            }
         }
 
         return false;
@@ -169,6 +192,9 @@ class WizardCreationUtil
     public static function CreateNewTemplatePartPost($slug, $content)
     {
         $block_template = get_block_template(get_stylesheet() . "//" . $slug, WizardItemTypes::WP_TEMPLATE_PART);
+        if (!$block_template || !$block_template instanceof WP_Block_Template) {
+            return false;
+        }
         return wp_insert_post(
             array(
                 'post_title' => $block_template->title,
@@ -181,7 +207,7 @@ class WizardCreationUtil
                 'ping_status' => 'closed',
                 'tax_input' => array(
                     'wp_theme' => array(get_stylesheet()),
-                    'wp_template_part_area' => array($slug)
+                    'wp_template_part_area' => array($block_template->area),
                 )
             )
         );

@@ -46,17 +46,17 @@ class WizardTemplatePreviewController
             show_admin_bar(false);
             switch ($template_type) {
                 case WizardItemTypes::WP_TEMPLATE:
-                case WizardItemTypes::WP_TEMPLATE_PART:
                     self::SetPlaceholderFilters($template_id, $template_type);
                     self::PreviewBlockTemplate($template_id, $template_type, $template_custom);
                     exit();
-                    break;
                 case WizardItemTypes::PATTERN:
                 case WizardItemTypes::PAGE:
                     self::SetPlaceholderFilters($template_id, $template_type);
                     self::PreviewSuperbTemplate($template_id, $template_type, $template_custom);
                     exit();
-                    break;
+                case WizardItemTypes::WP_TEMPLATE_PART:
+                    self::PreviewBlockTemplate($template_id, $template_type, $template_custom);
+                    exit();
                 default:
                     // Static preview
                     break;
@@ -256,22 +256,46 @@ class WizardTemplatePreviewController
 
     private static function FilterHeaderFooterPreviewParts()
     {
-        add_filter('render_block', function ($block_content, $block) {
-            if (isset($block['blockName']) && $block['blockName'] === 'core/template-part') {
-                if (isset($block['attrs']['slug']) && $block['attrs']['slug'] === 'header') {
-                    $header_content = self::GetTemplatePartPreview('header');
-                    if ($header_content) {
-                        return $header_content;
-                    }
-                }
-                if (isset($block['attrs']['slug']) && $block['attrs']['slug'] === 'footer') {
-                    $footer_content = self::GetTemplatePartPreview('footer');
-                    if ($footer_content) {
-                        return $footer_content;
-                    }
-                }
+        // track which areas are currently being processed to prevent infinite loops when a template part contains nested template parts
+        $processing_areas = [];
+
+        add_filter('render_block', function ($block_content, $block) use (&$processing_areas) {
+            if ($block['blockName'] !== 'core/template-part') {
+                return $block_content;
             }
-            return $block_content;
+
+            $attrs = $block['attrs'];
+            $template_id = ($attrs['theme'] ?? get_stylesheet()) . '//' . $attrs['slug'];
+            $template = get_block_template($template_id, 'wp_template_part');
+
+            if (!$template || ($template->area !== 'header' && $template->area !== 'footer')) {
+                return $block_content;
+            }
+
+            // Prevent infinite loop for nested template parts: if we're already processing this area, return original content
+            if (isset($processing_areas[$template->area])) {
+                return $block_content;
+            }
+
+            $template_part_preview = WizardController::GetPartPreviewTransient();
+            if (!$template_part_preview || !isset($template_part_preview[$template->area])) {
+                return $block_content;
+            }
+
+            // Mark this area as being processed
+            $processing_areas[$template->area] = true;
+
+            // Get the preview content
+            $preview_content = WizardTemplatePreviewController::GetTemplatePartPreview($template->area);
+
+            // Unmark this area as being processed
+            unset($processing_areas[$template->area]);
+
+            if (!$preview_content) {
+                return $block_content;
+            }
+
+            return $preview_content;
         }, 10, 2);
     }
 
@@ -282,12 +306,14 @@ class WizardTemplatePreviewController
             return false;
         }
 
+        // Check if it's a file template preview
         if (strpos($template_part_preview[$slug], WizardItemIdAffix::FILE_TEMPLATE) !== false) {
             $template_id = get_stylesheet() . '//' . str_replace(WizardItemIdAffix::FILE_TEMPLATE, '', $template_part_preview[$slug]);
             $template = get_block_file_template($template_id, WizardItemTypes::WP_TEMPLATE_PART);
             return self::GetTheTemplateHTML($template->content);
         }
 
+        // Check if it's a restoration point preview
         if (strpos($template_part_preview[$slug], WizardItemIdAffix::RESTORATION_POINT) !== false) {
             $restoration_id = str_replace(WizardItemIdAffix::RESTORATION_POINT, '', $template_part_preview[$slug]);
             $restoration_point = WizardRestorationPointController::GetTemplateRestorationPoint($restoration_id);
@@ -296,9 +322,25 @@ class WizardTemplatePreviewController
             return self::GetTheTemplateHTML($restoration_point['content']);
         }
 
+        // Avoid further handling of theme slug templates
+        if (strpos($slug, get_stylesheet()) !== false) {
+            return false;
+        }
 
-        if ($template_part_preview[$slug] === $slug || strpos($slug, get_stylesheet()) !== false) return false;
+        // Try to get as file template first
+        $template_id = get_stylesheet() . '//' . $template_part_preview[$slug];
+        $template = get_block_file_template($template_id, WizardItemTypes::WP_TEMPLATE_PART);
+        if ($template && !empty($template->content)) {
+            return self::GetTheTemplateHTML($template->content);
+        }
 
+        // Try regular template next
+        $template = get_block_template($template_id, WizardItemTypes::WP_TEMPLATE_PART);
+        if ($template && !empty($template->content)) {
+            return self::GetTheTemplateHTML($template->content);
+        }
+
+        // If not a file template, check patterns cache
         $cache = CacheController::GetCache(GutenbergCache::PATTERNS, CacheTypes::GUTENBERG);
         if (!$cache || !isset($cache->items)) return false;
 
@@ -318,18 +360,22 @@ class WizardTemplatePreviewController
     private static function GetTheTemplateHTML($content)
     {
         global $_wp_current_template_content;
+        // Variable is not defined by plugin, but is a global WP variable.
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
         $_wp_current_template_content = $content;
         return get_the_block_template_html();
     }
 
     private static function RenderTemplateCanvas($content)
     {
+
 ?>
         <!DOCTYPE html>
         <html <?php language_attributes(); ?>>
 
         <head>
             <meta charset="<?php bloginfo('charset'); ?>" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
             <?php wp_head(); ?>
         </head>
 

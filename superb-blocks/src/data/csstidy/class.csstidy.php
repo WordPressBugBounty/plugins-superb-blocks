@@ -269,9 +269,9 @@ class csstidy
 	 */
 	public function __construct()
 	{
-		$data = array();
+		$superb_blocks_csstidy_data = array();
 		include(__DIR__ . DIRECTORY_SEPARATOR . 'data.inc.php');
-		$this->data = $data;
+		$this->data = $superb_blocks_csstidy_data;
 
 		$this->settings['remove_bslash'] = true;
 		$this->settings['compress_colors'] = true;
@@ -600,7 +600,7 @@ class csstidy
 			}
 
 			switch ($this->status) {
-					/* Case in at-block */
+				/* Case in at-block */
 				case 'at':
 					if ($this->is_token($string, $i)) {
 						if ($string[$i] === '/' && @$string[$i + 1] === '*') {
@@ -628,7 +628,7 @@ class csstidy
 					}
 					break;
 
-					/* Case in-selector */
+				/* Case in-selector */
 				case 'is':
 					if ($this->is_token($string, $i)) {
 						if ($string[$i] === '/' && @$string[$i + 1] === '*' && trim($this->selector) == '') {
@@ -710,7 +710,7 @@ class csstidy
 					}
 					break;
 
-					/* Case in-property */
+				/* Case in-property */
 				case 'ip':
 					if ($this->is_token($string, $i)) {
 						if (($string[$i] === ':' || $string[$i] === '=') && $this->property != '') {
@@ -752,7 +752,7 @@ class csstidy
 					}
 					break;
 
-					/* Case in-value */
+				/* Case in-value */
 				case 'iv':
 					$pn = (($string[$i] === "\n" || $string[$i] === "\r") && $this->property_is_next($string, $i + 1) || $i == strlen($string) - 1);
 					if ($this->is_token($string, $i) || $pn) {
@@ -872,7 +872,7 @@ class csstidy
 					}
 					break;
 
-					/* Case in string */
+				/* Case in string */
 				case 'instr':
 					$_str_char = $this->str_char[count($this->str_char) - 1];
 					$_cur_string = $this->cur_string[count($this->cur_string) - 1];
@@ -945,7 +945,7 @@ class csstidy
 					}
 					break;
 
-					/* Case in-comment */
+				/* Case in-comment */
 				case 'ic':
 					if ($string[$i] === '*' && $string[$i + 1] === '/') {
 						$this->status = array_pop($this->from);

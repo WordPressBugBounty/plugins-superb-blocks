@@ -123,6 +123,7 @@ return array(
     'SuperbAddons\\Gutenberg\\Controllers\\GutenbergBlockStyles' => $baseDir . '/src/gutenberg/class-gutenberg-block-styles.php',
     'SuperbAddons\\Gutenberg\\Controllers\\GutenbergController' => $baseDir . '/src/gutenberg/class-gutenberg-controller.php',
     'SuperbAddons\\Gutenberg\\Controllers\\GutenbergEnhancementsController' => $baseDir . '/src/gutenberg/class-gutenberg-enhancements-controller.php',
+    'SuperbAddons\\Gutenberg\\Controllers\\GutenbergSocialIconsController' => $baseDir . '/src/gutenberg/class-gutenberg-social-icons-controller.php',
     'SuperbAddons\\Library\\Controllers\\LibraryController' => $baseDir . '/src/library/controllers/class-library-controller.php',
     'SuperbAddons\\Library\\Controllers\\LibraryRequestController' => $baseDir . '/src/library/controllers/class-request-controller.php',
     'SuperbAddons\\SuperbAddonsPlugin' => $baseDir . '/src/class-plugin.php',
