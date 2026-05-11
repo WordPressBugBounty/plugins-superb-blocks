@@ -16,7 +16,7 @@ class CssBlocksExportSingleSlot extends PremiumSlot
 ?>
             <button class="superbaddons-element-button superbaddons-element-m0">
                 <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/download-simple-duotone.svg'); ?>" />
-                <?php echo esc_html__("Export CSS Block", "superb-blocks"); ?>
+                <?php echo esc_html__("Export", "superb-blocks"); ?>
             </button>
 <?php
             },

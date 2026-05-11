@@ -1,12 +1,12 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
-  "apiVersion": 2,
+  "apiVersion": 3,
   "name": "superb-addons/ratings",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "title": "Superb Ratings",
   "category": "superb-addons-blocks",
   "icon": "star-filled",
-  "description": "Superbly designed ratings block for your WordPress site.",
+  "description": "Display star ratings with partial fills and labeled rating bars — perfect for reviews and comparisons.",
   "keywords": [
     "rating",
     "ratings",
@@ -18,7 +18,30 @@
   ],
   "supports": {
     "html": false,
-    "align": ["left", "right"]
+    "align": ["wide", "full", "left", "right"],
+    "color": {
+      "background": true,
+      "gradients": true,
+      "text": true,
+      "link": false
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "shadow": true,
+    "border": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    },
+    "__experimentalBorder": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    }
   },
   "textdomain": "superb-blocks",
   "editorScript": "file:./index.js",

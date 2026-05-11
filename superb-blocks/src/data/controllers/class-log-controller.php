@@ -36,9 +36,9 @@ class LogController
             $current_trace = 1;
             $should_break_next = false;
             foreach ($trace as $trace_item) {
-                $trace_class = $trace_item['class'] ?? 'Unknown Class';
+                $trace_class = isset($trace_item['class']) ? $trace_item['class'] : 'Unknown Class';
                 // Remove ABSPATH from trace to anonymize and prevent including server path
-                $trace_item_string = sprintf("%s (%s): %s -> %s", str_replace(rtrim(ABSPATH, '/\\'), '', $trace_item['file'] ?? 'Unknown File'), $trace_item['line'] ?? '??', $trace_class, $trace_item['function'] ?? 'Unknown Function');
+                $trace_item_string = sprintf("%s (%s): %s -> %s", str_replace(rtrim(ABSPATH, '/\\'), '', isset($trace_item['file']) ? $trace_item['file'] : 'Unknown File'), isset($trace_item['line']) ? $trace_item['line'] : '??', $trace_class, isset($trace_item['function']) ? $trace_item['function'] : 'Unknown Function');
 
                 array_push($exception_stack, $trace_item_string);
                 if ($should_break_next) {
@@ -60,6 +60,19 @@ class LogController
             LogController::AddLog($message, $exception_stack);
         } catch (Exception $ex) {
             // do nothing if error log somehow fails
+        }
+    }
+
+    public static function LogInfo($title, $details = '')
+    {
+        try {
+            $settings = OptionController::GetSettings();
+            if (!$settings[SettingsOptionKey::LOGS_ENABLED]) {
+                return;
+            }
+            self::AddLog($title, $details);
+        } catch (Exception $ex) {
+            // do nothing if log fails
         }
     }
 

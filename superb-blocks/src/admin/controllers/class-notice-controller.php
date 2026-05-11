@@ -119,7 +119,7 @@ class AdminNoticeController
         <script>
             window.addEventListener("load", function() {
                 setTimeout(function() {
-                    var notice_ids = <?php echo wp_json_encode(array_column(self::$notices, 'unique_id')); ?>;
+                    var notice_ids = <?php echo wp_json_encode(array_column(self::$notices, 'unique_id'), JSON_HEX_TAG); ?>;
                     var nonce = "<?php echo esc_attr(wp_create_nonce('spbtic_dismiss_notice')); ?>";
                     var ajaxurl = "<?php echo esc_url(admin_url('admin-ajax.php')); ?>";
 

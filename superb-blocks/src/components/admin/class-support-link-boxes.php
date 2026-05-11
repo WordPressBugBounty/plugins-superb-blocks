@@ -17,7 +17,7 @@ class SupportLinkBoxes
             array(
                 "icon" => "purple-help.svg",
                 "title" => __("Customer support", "superb-blocks"),
-                "description" => __("We prioritize top-notch support to our customers. If you have any questions or need assistance with our plugin, don't hesitate to reach out. ", "superb-blocks"),
+                "description" => __("We prioritize top-notch support for our customers. If you have any questions or need assistance with our plugin, don't hesitate to reach out. ", "superb-blocks"),
                 "cta" => __("Contact support", "superb-blocks"),
                 "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/")),
             )

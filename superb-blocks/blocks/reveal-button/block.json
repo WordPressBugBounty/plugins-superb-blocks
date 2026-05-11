@@ -1,13 +1,13 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
-  "apiVersion": 2,
+  "apiVersion": 3,
   "parent": ["superb-addons/reveal-buttons"],
   "name": "superb-addons/reveal-button",
   "version": "0.1.0",
   "title": "Superb Reveal Button",
   "category": "superb-addons-blocks",
   "icon": "button",
-  "description": "Superbly designed reveal button for coupons and more.",
+  "description": "A single reveal button within a Superb Reveal Buttons block.",
   "keywords": [
     "reveal",
     "button",

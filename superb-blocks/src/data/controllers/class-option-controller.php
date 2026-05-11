@@ -199,6 +199,23 @@ class OptionController
         return update_option(Option::COMPATIBILITY_SETTINGS, $compatibility_settings);
     }
 
+    /* Disabled Blocks */
+    public static function GetDisabledBlocks()
+    {
+        return get_option(Option::DISABLED_BLOCKS, array());
+    }
+
+    public static function SaveDisabledBlocks($disabled_blocks)
+    {
+        return update_option(Option::DISABLED_BLOCKS, $disabled_blocks);
+    }
+
+    public static function IsBlockDisabled($block_name)
+    {
+        $disabled = self::GetDisabledBlocks();
+        return in_array($block_name, $disabled, true);
+    }
+
     /* */
 }
 
@@ -208,6 +225,8 @@ class Option
     const KEY_DOMAIN = self::PREFIX . 'keydomain';
     const SETTINGS = self::PREFIX . 'settings';
     const COMPATIBILITY_SETTINGS = self::PREFIX . 'compatibilitysettings';
+    const DISABLED_BLOCKS = self::PREFIX . 'disabledblocks';
+    const GLOBAL_ENHANCEMENTS = self::PREFIX . 'global_enhancements';
 }
 
 class KeyDomainOptionKey

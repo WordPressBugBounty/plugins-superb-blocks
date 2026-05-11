@@ -28,6 +28,7 @@ class AllowedTemplateHTMLUtil
             'disabled' => true,
             'required' => true,
             'multiple' => true,
+            'data-action' => true,
         );
         $allowed_html['option'] = array(
             'class' => true,
@@ -49,6 +50,7 @@ class AllowedTemplateHTMLUtil
             'required' => true,
             'placeholder' => true,
             'maxlength' => true,
+            'autocomplete' => true,
             'data-action' => true,
         );
         $allowed_html['svg'] = array(

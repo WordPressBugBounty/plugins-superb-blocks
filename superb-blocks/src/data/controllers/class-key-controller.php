@@ -6,6 +6,7 @@ defined('ABSPATH') || exit();
 
 use Exception;
 use SuperbAddons\Data\Controllers\OptionController;
+use SuperbAddons\Admin\Controllers\LicenseResolveController;
 use SuperbAddons\Data\Utils\KeyException;
 use SuperbAddons\Data\Utils\KeyType;
 use SuperbAddons\Data\Utils\OptionException;
@@ -30,7 +31,7 @@ class KeyController
                 if ($response_code === 404) {
                     throw new KeyException(esc_html__("License key could not be validated. Please check that the license key was entered correctly.", "superb-blocks"), true, $response_code);
                 } else {
-                    throw new KeyException(esc_html__("Unable to validate license key. Please contact support for assistance.", "superb-blocks"), false, $response_code);
+                    throw new KeyException(esc_html__("Unable to validate license key. Please contact support for assistance.", "superb-blocks"), false, absint($response_code));
                 }
             }
 
@@ -54,6 +55,7 @@ class KeyController
             try {
                 $option_controller->UpdateKey($key, $data->verification->stamp);
                 self::UpdateKeyType($data->level, $data->active, $data->expired, $data->exceeded);
+                LicenseResolveController::ClearCooldown();
                 return array("type" => $data->level, "active" => $data->active, "expired" => $data->expired, "verified" => $data->verification->verified, "exceeded" => $data->exceeded);
             } catch (OptionException $o_ex) {
                 self::RemoveKey($key, $data->verification->stamp);
@@ -76,11 +78,12 @@ class KeyController
             $response = DomainShiftController::RemoteGet(self::ENDPOINT_BASE . 'keys/remove?key=' . $key . '&dm=' . urlencode(home_url()) . '&stamp=' . absint($stamp));
             $response_code = wp_remote_retrieve_response_code($response);
             if (!is_array($response) || is_wp_error($response) || $response_code !== 200) {
-                throw new Exception(esc_html__("License key removal record not received.", "superb-blocks"), $response_code);
+                throw new Exception(esc_html__("License key removal record not received.", "superb-blocks"), absint($response_code));
             }
         } catch (Exception $ex) {
             LogController::HandleException($ex);
         }
+        LicenseResolveController::ClearCooldown();
         return $option_controller->RemoveKey();
     }
 

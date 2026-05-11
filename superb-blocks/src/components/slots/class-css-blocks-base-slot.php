@@ -20,7 +20,7 @@ class CssBlocksBaseSlot extends PremiumSlot
             </button>
 <?php
             },
-            array("superbaddons-element-ml1"),
+            array("superbaddons-element-m0"),
             AdminLinkSource::CSS_EXPORT
         );
     }

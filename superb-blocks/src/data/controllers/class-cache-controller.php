@@ -7,6 +7,7 @@ use SuperbAddons\Data\Utils\CacheException;
 use SuperbAddons\Data\Utils\CacheTypes;
 use SuperbAddons\Data\Utils\CacheOptions;
 use SuperbAddons\Data\Utils\ElementorCache;
+use SuperbAddons\Data\Utils\ChunkLoading;
 use SuperbAddons\Data\Utils\GutenbergCache;
 
 defined('ABSPATH') || exit();
@@ -69,12 +70,38 @@ class CacheController
 
         $option_controller = new OptionController();
         $cache = $option_controller->GetCache($option_string);
-        if (!$cache || !isset($cache['last_update']) || !isset($cache['data']) || time() - $cache['last_update'] > 86400) {
+        if (!$cache || !isset($cache['last_update']) || !isset($cache['data']) || time() - $cache['last_update'] > 7 * 86400) {
             // Cache expired
             return false;
         }
 
         return $cache['data'];
+    }
+
+    /**
+     * Read cache data directly (with 24h TTL check) without the service-version outdated check.
+     * Used for partial cache reads where we don't want to trigger a service version refresh.
+     */
+    public static function GetDataCacheDirect($cache_option)
+    {
+        return self::GetDataCache($cache_option);
+    }
+
+    /**
+     * Read the raw cache entry (including last_update timestamp).
+     * Returns the full array with 'last_update' and 'data' keys, or false.
+     */
+    public static function GetDataCacheRaw($cache_option)
+    {
+        $option_string = self::GetCacheOptionString($cache_option);
+
+        $option_controller = new OptionController();
+        $cache = $option_controller->GetCache($option_string);
+        if (!$cache || !isset($cache['last_update']) || !isset($cache['data'])) {
+            return false;
+        }
+
+        return $cache;
     }
 
     public static function SetCache($cache_option, $data)
@@ -95,9 +122,15 @@ class CacheController
 
     public static function ClearCacheAll()
     {
+        // Clear the loading lock transient so a stuck lock is always cleared on cache reset
+        delete_transient(ChunkLoading::LOADING_TRANSIENT);
+
         $option_controller = new OptionController();
         return $option_controller->ClearCache(self::GetCacheOptionString(CacheOptions::SERVICE_VERSION))
             && $option_controller->ClearCache(self::GetCacheOptionString(ElementorCache::SECTIONS))
+            && $option_controller->ClearCache(self::GetCacheOptionString(GutenbergCache::LIBRARY))
+            && $option_controller->ClearCache(self::GetCacheOptionString(GutenbergCache::LIBRARY_PARTIAL))
+            // Legacy v1 keys - clean up leftover data from users updating from older versions
             && $option_controller->ClearCache(self::GetCacheOptionString(GutenbergCache::PATTERNS))
             && $option_controller->ClearCache(self::GetCacheOptionString(GutenbergCache::PAGES));
     }
@@ -109,6 +142,11 @@ class CacheController
                 return Option::PREFIX . CacheOptions::SERVICE_VERSION;
             case ElementorCache::SECTIONS:
                 return Option::PREFIX . ElementorCache::SECTIONS;
+            case GutenbergCache::LIBRARY:
+                return Option::PREFIX . GutenbergCache::LIBRARY;
+            case GutenbergCache::LIBRARY_PARTIAL:
+                return Option::PREFIX . GutenbergCache::LIBRARY_PARTIAL;
+                // Legacy v1 keys - kept for cleanup on update
             case GutenbergCache::PATTERNS:
                 return Option::PREFIX . GutenbergCache::PATTERNS;
             case GutenbergCache::PAGES:

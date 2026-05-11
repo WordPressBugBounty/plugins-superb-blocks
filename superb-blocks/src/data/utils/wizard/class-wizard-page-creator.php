@@ -183,7 +183,7 @@ class WizardPageCreator
 
             $template_slug = $selection['slug'];
             $template_content = '<!-- wp:paragraph -->
-            <p>' . esc_html__("This is a theme template page created by Superb Addons. You can edit this page's content and its template. If the blocks you want to edit can't be found in the page content, please edit the selected template.", "superb-blocks") . '</p>
+            <p>' . esc_html__("This is a theme template page created by Superb Addons. You can edit this page's content and its template. If the blocks you want to edit aren't in the page content, they're part of the template: open the page settings sidebar, click the template name under \"Template\", and choose \"Edit template\".", "superb-blocks") . '</p>
             <!-- /wp:paragraph -->';
         } else if ($is_file_template) {
             $template_slug = $selection['slug'];
@@ -206,13 +206,12 @@ class WizardPageCreator
 
     private static function GetAddonsTemplateDataAndSlug($selection)
     {
-        $data = LibraryRequestController::GetInsertData(
-            [
+        $data = LibraryRequestController::GetInsertDataV2(
+            array(
                 'id' => $selection['slug'],
                 'package' => $selection['package'],
-            ],
-            LibraryRequestController::GUTENBERG_ENDPOINT_BASE,
-            LibraryRequestController::GUTENBERG_ROUTE_TYPE_PAGES
+            ),
+            LibraryRequestController::GUTENBERG_TYPE_PAGE
         );
         if (!$data || !isset($data['content']) || isset($data['access_failed'])) {
             return [false, false];
@@ -315,7 +314,7 @@ class WizardPageCreator
     private static function InsertPage($selection, $template_content, $template_slug)
     {
         $post_data = array(
-            'post_title' => esc_html($selection['customTitle'] ?? $selection['title']),
+            'post_title' => esc_html(isset($selection['customTitle']) ? $selection['customTitle'] : $selection['title']),
             'post_content' => $template_content,
             'post_status' => 'publish',
             'post_type' => 'page'
@@ -338,7 +337,7 @@ class WizardPageCreator
         $url = $id === 0 ? get_home_url() : get_permalink($id);
         return [
             'id' => absint($id),
-            'title' => esc_attr($selection['customTitle'] ?? $selection['title']),
+            'title' => esc_attr(isset($selection['customTitle']) ? $selection['customTitle'] : $selection['title']),
             'url' => esc_url($url)
         ];
     }

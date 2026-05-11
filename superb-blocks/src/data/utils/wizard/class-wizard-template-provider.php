@@ -49,6 +49,38 @@ class WizardTemplateProvider
         $this->userIsPremium = KeyController::HasValidPremiumKey();
     }
 
+    private static function NormalizeCategoryName($name)
+    {
+        return strtolower(preg_replace('/[^a-zA-Z0-9]/', '', (string) $name));
+    }
+
+    private static function BuildCategoryMap($categories)
+    {
+        $map = array();
+        if (!is_array($categories) && !is_object($categories)) {
+            return $map;
+        }
+        foreach ($categories as $cat) {
+            if (isset($cat->id) && isset($cat->name)) {
+                $map[$cat->id] = self::NormalizeCategoryName($cat->name);
+            }
+        }
+        return $map;
+    }
+
+    private static function ResolveCategoryKey($item, $category_map)
+    {
+        if (!isset($item->category)) {
+            return '';
+        }
+        $cat_id = is_object($item->category) ? (isset($item->category->id) ? $item->category->id : '') : $item->category;
+        if (isset($category_map[$cat_id])) {
+            return $category_map[$cat_id];
+        }
+        // Fallback: the value itself may already be a slug/name rather than an opaque id
+        return self::NormalizeCategoryName($cat_id);
+    }
+
     private function HasModifiedTemplate($slug, $template_type, $area = false)
     {
         $args = array(
@@ -152,51 +184,55 @@ class WizardTemplateProvider
         $this->totalFooterParts = 0;
         // Filter for header/footer patterns and collect template parts
         foreach ($templates as $template) {
-            if (isset($template->area)) {
-                $regularTitleAffix = isset($template->source) && $template->source === 'theme' ? __(" (Theme)", "superb-blocks") : "";
-                if ($template->area === 'header') {
-                    $this->InitializePart($template->slug, WizardItemTypes::WP_TEMPLATE_PART, 'header', $template->title . $regularTitleAffix, $template->title . __(" (Current)", "superb-blocks"), $template->title);
-                    $this->totalHeaderParts++;
-                }
-                if ($template->area === 'footer') {
-                    $this->InitializePart($template->slug, WizardItemTypes::WP_TEMPLATE_PART, 'footer', $template->title . $regularTitleAffix, $template->title . __(" (Current)", "superb-blocks"), $template->title);
-                    $this->totalFooterParts++;
-                }
+            if (!isset($template->area)) continue;
+            // Skip parts registered by plugins (e.g. WooCommerce's checkout header) so they don't count toward theme part totals
+            if (!isset($template->theme) || $template->theme !== get_stylesheet()) continue;
+
+            $regularTitleAffix = isset($template->source) && $template->source === 'theme' ? __(" (Theme)", "superb-blocks") : "";
+            if ($template->area === 'header') {
+                $this->InitializePart($template->slug, WizardItemTypes::WP_TEMPLATE_PART, 'header', $template->title . $regularTitleAffix, $template->title . __(" (Current)", "superb-blocks"), $template->title);
+                $this->totalHeaderParts++;
+            }
+            if ($template->area === 'footer') {
+                $this->InitializePart($template->slug, WizardItemTypes::WP_TEMPLATE_PART, 'footer', $template->title . $regularTitleAffix, $template->title . __(" (Current)", "superb-blocks"), $template->title);
+                $this->totalFooterParts++;
             }
         }
 
         try {
-            $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_LIST_ROUTE . 'patterns');
-            $patterns_response = rest_do_request($request);
-            if (!$patterns_response || is_wp_error($patterns_response) || $patterns_response->is_error() || !isset($patterns_response->data) || !isset($patterns_response->data->items)) {
+            $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_V2_LIST_ROUTE);
+            $library_response = rest_do_request($request);
+            if (!$library_response || is_wp_error($library_response) || $library_response->is_error() || !isset($library_response->data) || !isset($library_response->data->patterns) || !isset($library_response->data->patterns->items)) {
                 throw new WizardException(__("An error occurred while fetching available patterns.", "superb-blocks"));
             }
+
+            $patterns_items = $library_response->data->patterns->items;
 
             // Order free to the top of list array if the user is not premium
             if (!$this->userIsPremium) {
                 $freePatterns = array();
                 $premiumPatterns = array();
-                foreach ($patterns_response->data->items as $pattern) {
+                foreach ($patterns_items as $pattern) {
                     if (isset($pattern->package) && $pattern->package === 'premium') {
                         $premiumPatterns[] = $pattern;
                     } else {
                         $freePatterns[] = $pattern;
                     }
                 }
-                $patterns_response->data->items = array_merge($freePatterns, $premiumPatterns);
+                $patterns_items = array_merge($freePatterns, $premiumPatterns);
             }
+            $category_map = self::BuildCategoryMap(isset($library_response->data->patterns->categories) ? $library_response->data->patterns->categories : null);
             // Get header and footer templates from patterns
-            foreach ($patterns_response->data->items as $pattern) {
+            foreach ($patterns_items as $pattern) {
                 if ($required_plugin && !isset($pattern->required_plugins) || $required_plugin && !in_array($required_plugin, $pattern->required_plugins)) {
                     continue;
                 }
                 $patternItem = new WizardItemPattern($pattern);
-                foreach ($pattern->categories as $category) {
-                    if ($category->id === WizardDataCategory::NAVIGATION) {
-                        $this->headerTemplates[] = $patternItem;
-                    } else if ($category->id === WizardDataCategory::FOOTER) {
-                        $this->footerTemplates[] = $patternItem;
-                    }
+                $cat_key = self::ResolveCategoryKey($pattern, $category_map);
+                if ($cat_key === WizardDataCategory::NAVIGATION) {
+                    $this->headerTemplates[] = $patternItem;
+                } else if ($cat_key === WizardDataCategory::FOOTER) {
+                    $this->footerTemplates[] = $patternItem;
                 }
             }
 
@@ -241,40 +277,42 @@ class WizardTemplateProvider
 
         // Add addons service templates
         try {
-            $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_LIST_ROUTE . 'pages');
-            $pages_response = rest_do_request($request);
-            if (!$pages_response || is_wp_error($pages_response) || $pages_response->is_error() || !isset($pages_response->data) || !isset($pages_response->data->items)) {
+            $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_V2_LIST_ROUTE);
+            $library_response = rest_do_request($request);
+            if (!$library_response || is_wp_error($library_response) || $library_response->is_error() || !isset($library_response->data) || !isset($library_response->data->pages) || !isset($library_response->data->pages->items)) {
                 throw new WizardException(__("An error occurred while fetching available pages.", "superb-blocks"));
             }
+
+            $pages_items = $library_response->data->pages->items;
 
             // Order free to the top of list array if the user is not premium
             if (!$this->userIsPremium) {
                 $freePages = array();
                 $premiumPages = array();
-                foreach ($pages_response->data->items as $page) {
+                foreach ($pages_items as $page) {
                     if (isset($page->package) && $page->package === 'premium') {
                         $premiumPages[] = $page;
                     } else {
                         $freePages[] = $page;
                     }
                 }
-                $pages_response->data->items = array_merge($freePages, $premiumPages);
+                $pages_items = array_merge($freePages, $premiumPages);
             }
 
-            foreach ($pages_response->data->items as $page) {
+            $page_category_map = self::BuildCategoryMap(isset($library_response->data->pages->categories) ? $library_response->data->pages->categories : null);
+            foreach ($pages_items as $page) {
                 $pageItem = new WizardItemPage($page);
                 $pageItem->use_custom_page_template_preview = 1;
                 $this->templatePages[] = $pageItem;
 
                 // Add landing page templates to the front page templates
-                foreach ($page->categories as $category) {
-                    if ($category->id === WizardDataCategory::LANDING_PAGE) {
-                        $landingPageItem = new WizardItemPage($page);
-                        $this->frontPageTemplates[] = $landingPageItem;
-                    }
-                    if ($category->id === WizardDataCategory::BLOG) {
-                        $this->blogTemplates[] = $pageItem;
-                    }
+                $cat_key = self::ResolveCategoryKey($page, $page_category_map);
+                if ($cat_key === WizardDataCategory::LANDING_PAGE) {
+                    $landingPageItem = new WizardItemPage($page);
+                    $this->frontPageTemplates[] = $landingPageItem;
+                }
+                if ($cat_key === WizardDataCategory::BLOG) {
+                    $this->blogTemplates[] = $pageItem;
                 }
             }
         } catch (WizardException $e) {

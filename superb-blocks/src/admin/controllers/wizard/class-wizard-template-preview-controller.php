@@ -207,22 +207,24 @@ class WizardTemplatePreviewController
 
     private static function PreviewSuperbTemplate($template_id, $template_type = WizardItemTypes::PAGE, $template_custom = false)
     {
-        //// Get the preview URL from the cache by page id.
+        // The cache has already been set, otherwise the preview will not work and we shouldn't be here.
+        $cache = self::GetLibraryCache();
+        if (!$cache) return;
+
         switch ($template_type) {
             case WizardItemTypes::PAGE:
-                $cache_type = GutenbergCache::PAGES;
+                $items = isset($cache->pages->items) ? $cache->pages->items : null;
                 break;
             case WizardItemTypes::PATTERN:
-                $cache_type = GutenbergCache::PATTERNS;
+                $items = isset($cache->patterns->items) ? $cache->patterns->items : null;
                 break;
             default:
                 return;
         }
-        // The cache has already been set, otherwise the preview will not work and we shouldn't be here.
-        $cache = CacheController::GetCache($cache_type, CacheTypes::GUTENBERG);
-        if (!$cache || !isset($cache->items)) return;
+        if (!$items) return;
+
         $preview_url = false;
-        foreach ($cache->items as $template) {
+        foreach ($items as $template) {
             if ($template->id === $template_id) {
                 $preview_url = $template->preview;
                 break;
@@ -265,7 +267,7 @@ class WizardTemplatePreviewController
             }
 
             $attrs = $block['attrs'];
-            $template_id = ($attrs['theme'] ?? get_stylesheet()) . '//' . $attrs['slug'];
+            $template_id = (isset($attrs['theme']) ? $attrs['theme'] : get_stylesheet()) . '//' . $attrs['slug'];
             $template = get_block_template($template_id, 'wp_template_part');
 
             if (!$template || ($template->area !== 'header' && $template->area !== 'footer')) {
@@ -341,11 +343,11 @@ class WizardTemplatePreviewController
         }
 
         // If not a file template, check patterns cache
-        $cache = CacheController::GetCache(GutenbergCache::PATTERNS, CacheTypes::GUTENBERG);
-        if (!$cache || !isset($cache->items)) return false;
+        $cache = self::GetLibraryCache();
+        if (!$cache || !isset($cache->patterns->items)) return false;
 
         $preview_url = false;
-        foreach ($cache->items as $template) {
+        foreach ($cache->patterns->items as $template) {
             if ($template->id === $template_part_preview[$slug]) {
                 $preview_url = $template->preview;
                 break;
@@ -355,6 +357,14 @@ class WizardTemplatePreviewController
         if (!$preview_url) return false;
 
         return '<img src="' . esc_url($preview_url) . '" class="superbaddons-preview-image" width="100%" height="auto" style="user-select:none;">';
+    }
+
+    private static function GetLibraryCache()
+    {
+        $cache = CacheController::GetCache(GutenbergCache::LIBRARY, CacheTypes::GUTENBERG);
+        if ($cache) return $cache;
+        // Fall back to partial cache while chunks are still loading
+        return CacheController::GetDataCacheDirect(GutenbergCache::LIBRARY_PARTIAL);
     }
 
     private static function GetTheTemplateHTML($content)

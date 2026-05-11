@@ -59,10 +59,12 @@ class WizardItemIdAffix
 
 class WizardDataCategory
 {
-    const NAVIGATION = '5jwnf0qnzth4y3p';
-    const FOOTER = '0lsr16aihp96ado';
-    const LANDING_PAGE = '2lc1j8j7l7v1dkj';
-    const BLOG = 'orngta8z79g7j37';
+    // Normalized form of the library API's category `name` field
+    // (lowercased, non-alphanumerics stripped — see WizardTemplateProvider::NormalizeCategoryName)
+    const NAVIGATION = 'navigation';
+    const FOOTER = 'footer';
+    const LANDING_PAGE = 'landingpage';
+    const BLOG = 'blog';
 }
 
 class WizardActionParameter

@@ -27,7 +27,11 @@ class PageWizardIncompatiblePage
         <div class="superbaddons-template-stage" data-stageid="theme-stage" data-type="single-selection">
             <div class="superbaddons-wizard-wrapper-small">
                 <div class="superbaddons-admindashboard-content-box-large">
-                    <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><?php echo esc_html(sprintf(/* translators: %s: a theme name */__("Unfortunately, this feature is currently exclusive to block themes. The theme you're using, \"%s\", is not a block theme or does not support block theme templates.", "superb-blocks"), $this->theme_name)); ?></p>
+                    <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><?php echo esc_html(sprintf(/* translators: %s: a theme name */__("Unfortunately, this feature is currently exclusive to block themes. The theme you're using, \"%s\", is not a block theme or does not support block theme templates.", "superb-blocks"), $this->theme_name)); ?>
+                        <button type="button" class="superbaddons-element-colorlink superbaddons-element-text-xs superbaddons-element-ml1" id="superbaddons-restart-block-theme-tour" style="background:none;border:none;cursor:pointer;padding:0;">
+                            <?php esc_html_e("What is a block theme?", "superb-blocks"); ?>
+                        </button>
+                    </p>
                     <br>
                     <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><strong><?php echo esc_html__("Choose a Block theme to use the theme designer:", "superb-blocks"); ?> </strong></p>
                 </div>

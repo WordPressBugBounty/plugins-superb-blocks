@@ -32,7 +32,7 @@ class AdminLinkUtil
 class AdminLinkSource
 {
     const DEFAULT = 'superb-addons';
-    const NOTICE = 'notice';
+    const NOTICE_LOCK = 'notice-lock';
     const WP_PLUGIN_PAGE = 'plugin-page';
     const NAVIGATION = 'navigation';
     const SETTINGS = 'settings';
@@ -42,10 +42,11 @@ class AdminLinkSource
     const CSS = 'css';
     const CSS_TARGET = 'css-target';
     const CSS_EXPORT = 'css-export';
+    const FORMS = 'forms';
     const SUPPORT = 'support';
 
     const ALLOWED_SOURCE = array(
-        self::NOTICE,
+        self::NOTICE_LOCK,
         self::WP_PLUGIN_PAGE,
         self::NAVIGATION,
         self::SETTINGS,
@@ -55,6 +56,7 @@ class AdminLinkSource
         self::CSS,
         self::CSS_TARGET,
         self::CSS_EXPORT,
+        self::FORMS,
         self::SUPPORT
     );
 }

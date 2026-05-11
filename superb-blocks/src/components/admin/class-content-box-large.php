@@ -18,15 +18,15 @@ class ContentBoxLarge
 
     public function __construct($options)
     {
-        $this->title = $options['title'] ?? false;
-        $this->description = $options['description'] ?? false;
-        $this->link = $options['link'] ?? false;
-        $this->cta = $options['cta'] ?? false;
-        $this->image = $options['image'] ?? false;
-        $this->icon = $options['icon'] ?? false;
-        $this->class = $options['class'] ?? false;
+        $this->title = isset($options['title']) ? $options['title'] : false;
+        $this->description = isset($options['description']) ? $options['description'] : false;
+        $this->link = isset($options['link']) ? $options['link'] : false;
+        $this->cta = isset($options['cta']) ? $options['cta'] : false;
+        $this->image = isset($options['image']) ? $options['image'] : false;
+        $this->icon = isset($options['icon']) ? $options['icon'] : false;
+        $this->class = isset($options['class']) ? $options['class'] : false;
 
-        $this->connected_bottom = $options['connected_bottom'] ?? false;
+        $this->connected_bottom = isset($options['connected_bottom']) ? $options['connected_bottom'] : false;
 
         $this->Render();
     }

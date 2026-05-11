@@ -11,8 +11,6 @@ use SuperbAddons\Data\Utils\CacheOptions;
 use SuperbAddons\Data\Utils\ElementorCache;
 use SuperbAddons\Data\Utils\KeyException;
 use SuperbAddons\Data\Utils\KeyType;
-use SuperbAddons\Elementor\Controllers\ElementorController;
-use SuperbAddons\Gutenberg\Controllers\GutenbergController;
 use SuperbAddons\Tours\Controllers\TourController;
 
 defined('ABSPATH') || exit();
@@ -71,6 +69,14 @@ class TroubleshootingController
                 case 'cleanup-elementor-tour-page':
                     $removed = TourController::CleanUpTourPage($request['tour-nonce']);
                     return rest_ensure_response(['success' => $removed]);
+                case 'mark-tour-complete':
+                    $tour = isset($request['tour']) ? sanitize_text_field($request['tour']) : '';
+                    $allowed = array(TourController::TOUR_DASHBOARD_WELCOME_META, TourController::TOUR_BLOCK_THEME_META);
+                    if (!in_array($tour, $allowed, true)) {
+                        return new \WP_Error('bad_request_plugin', 'Invalid tour', array('status' => 400));
+                    }
+                    TourController::MarkTourCompleted($tour);
+                    return rest_ensure_response(array('success' => true));
                 default:
                     return new \WP_Error('bad_request_plugin', 'Bad Plugin Request', array('status' => 400));
             }
@@ -86,10 +92,10 @@ class TroubleshootingController
             return new \WP_Error('bad_request_plugin', 'Bad Plugin Request', array('status' => 400));
         }
         switch ($request['action']) {
-            case 'wordpressversion':
-                return $this->WordPressVersionCallback();
-            case 'elementorversion':
-                return $this->ElementorVersionCallback();
+            case 'restcheck':
+                return $this->RestCheckCallback();
+            case 'restfix':
+                return $this->RestFixCallback();
             case 'connection':
                 return $this->ConnectionCheckCallback();
             case 'domainshift':
@@ -107,24 +113,62 @@ class TroubleshootingController
         }
     }
 
-    private function WordPressVersionCallback()
+    private function RestCheckCallback()
     {
         try {
-            $is_compatible = GutenbergController::is_compatible();
+            // If we reached this endpoint, the REST API is at least partially working.
+            // Check if rewrite rules are properly configured.
+            $permalink_structure = get_option('permalink_structure');
+            if (empty($permalink_structure)) {
+                // Plain permalinks — REST API uses ?rest_route= which always works.
+                return rest_ensure_response(array('success' => true));
+            }
 
-            return rest_ensure_response(['success' => $is_compatible]);
+            $rules = get_option('rewrite_rules');
+            if (empty($rules) || !is_array($rules)) {
+                return rest_ensure_response(array(
+                    'success' => false,
+                    'requiresConsent' => true,
+                    'text' => esc_html__('WordPress rewrite rules are not configured', 'superb-blocks'),
+                ));
+            }
+
+            $rest_prefix = rest_get_url_prefix();
+            foreach ($rules as $pattern => $query) {
+                if (strpos($pattern, $rest_prefix) !== false) {
+                    return rest_ensure_response(array('success' => true));
+                }
+            }
+
+            return rest_ensure_response(array(
+                'success' => false,
+                'requiresConsent' => true,
+                'text' => esc_html__('REST API rewrite rules are missing', 'superb-blocks'),
+            ));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
             return new \WP_Error('internal_error_plugin', 'Internal Plugin Error', array('status' => 500));
         }
     }
 
-    private function ElementorVersionCallback()
+    private function RestFixCallback()
     {
         try {
-            $is_compatible = ElementorController::is_compatible();
+            flush_rewrite_rules();
 
-            return rest_ensure_response(['success' => $is_compatible]);
+            // Verify the fix worked
+            $rules = get_option('rewrite_rules');
+            if (!empty($rules) && is_array($rules)) {
+                $rest_prefix = rest_get_url_prefix();
+                foreach ($rules as $pattern => $query) {
+                    if (strpos($pattern, $rest_prefix) !== false) {
+                        RewriteCheckController::ClearIssue();
+                        return rest_ensure_response(array('success' => true));
+                    }
+                }
+            }
+
+            return rest_ensure_response(array('success' => false));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
             return new \WP_Error('internal_error_plugin', 'Internal Plugin Error', array('status' => 500));

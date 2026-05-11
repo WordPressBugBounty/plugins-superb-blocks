@@ -153,13 +153,12 @@ class WizardPartCreator
 
     private static function GetSelectedAddonsTemplateContent($template_id, $package)
     {
-        $data = LibraryRequestController::GetInsertData(
-            [
+        $data = LibraryRequestController::GetInsertDataV2(
+            array(
                 'id' => $template_id,
                 'package' => $package,
-            ],
-            LibraryRequestController::GUTENBERG_ENDPOINT_BASE,
-            LibraryRequestController::GUTENBERG_ROUTE_TYPE_PATTERNS
+            ),
+            LibraryRequestController::GUTENBERG_TYPE_PATTERN
         );
 
         if (!$data || !isset($data['content']) || isset($data['access_failed'])) {

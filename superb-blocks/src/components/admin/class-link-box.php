@@ -18,15 +18,15 @@ class LinkBox
 
     public function __construct($options)
     {
-        $this->id = $options['id'] ?? false;
-        $this->title = $options['title'] ?? false;
-        $this->description = $options['description'] ?? false;
-        $this->link = $options['link'] ?? false;
-        $this->cta = $options['cta'] ?? false;
-        $this->icon = $options['icon'] ?? false;
-        $this->pro = $options['pro'] ?? false;
-        $this->classes = $options['classes'] ?? false;
-        $this->same_window = $options['same_window'] ?? false;
+        $this->id = isset($options['id']) ? $options['id'] : false;
+        $this->title = isset($options['title']) ? $options['title'] : false;
+        $this->description = isset($options['description']) ? $options['description'] : false;
+        $this->link = isset($options['link']) ? $options['link'] : false;
+        $this->cta = isset($options['cta']) ? $options['cta'] : false;
+        $this->icon = isset($options['icon']) ? $options['icon'] : false;
+        $this->pro = isset($options['pro']) ? $options['pro'] : false;
+        $this->classes = isset($options['classes']) ? $options['classes'] : false;
+        $this->same_window = isset($options['same_window']) ? $options['same_window'] : false;
 
         $this->Render();
     }

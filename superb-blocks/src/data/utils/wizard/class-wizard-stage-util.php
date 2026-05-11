@@ -191,8 +191,6 @@ class WizardStageUtil
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => false,
-                'icon' => 'wizard-menu-layout.svg',
-                'lockable' => false,
                 'has-multiple-parts' => $this->templateProvider->HasMultipleHeaderParts(),
                 'label' => __("Menu Layout", "superb-blocks"),
             ],
@@ -202,9 +200,7 @@ class WizardStageUtil
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => false,
-                'icon' => 'wizard-footer-layout.svg',
                 'has-multiple-parts' => $this->templateProvider->HasMultipleFooterParts(),
-                'lockable' => false,
             ],
             WizardStageTypes::FRONT_PAGE_STAGE => [
                 'enabled' => !empty($this->templateProvider->GetFrontPageTemplates()),
@@ -212,9 +208,7 @@ class WizardStageUtil
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => $this->GetType() !== WizardActionParameter::RESTORE,
-                'icon' => 'wizard-front-page-design.svg',
                 'input-suggestion' => __('Home', "superb-blocks"),
-                'lockable' => false,
             ],
             WizardStageTypes::BLOG_PAGE_STAGE => [
                 'enabled' => !empty($this->templateProvider->GetBlogTemplates()),
@@ -222,9 +216,7 @@ class WizardStageUtil
                 'type' => 'single-selection',
                 'required' => true,
                 'has-title-input' => $this->GetType() !== WizardActionParameter::RESTORE,
-                'icon' => 'wizard-blog-setup.svg',
                 'input-suggestion' => __('Blog', "superb-blocks"),
-                'lockable' => true,
             ],
             WizardStageTypes::TEMPLATE_PAGE_STAGE => [
                 'enabled' => !empty($this->templateProvider->GetTemplatePages()),
@@ -232,8 +224,6 @@ class WizardStageUtil
                 'type' => 'multi-selection',
                 'required' => $this->GetType() === WizardActionParameter::ADD_NEW_PAGES,
                 'has-title-input' => $this->GetType() !== WizardActionParameter::RESTORE,
-                'icon' => 'wizard-additional-pages.svg',
-                'lockable' => false,
             ],
             WizardStageTypes::NAVIGATION_MENU_STAGE => [
                 'enabled' => $displayReplaceMenu || $displayAppendMenu,
@@ -241,7 +231,6 @@ class WizardStageUtil
                 'type' => 'radio-checkbox',
                 'required' => true,
                 'has-title-input' => false,
-                'icon' => 'wizard-menu-layout.svg',
                 'unique_render' => true,
                 'args' => [$displayReplaceMenu, $displayAppendMenu, $hasNavigationTemplatePart]
             ],
@@ -251,7 +240,6 @@ class WizardStageUtil
                 'type' => 'completion',
                 'required' => false,
                 'has-title-input' => false,
-                'icon' => 'superbthemes-wizard-checklist.svg',
                 'unique_render' => true
             ]
         ];
@@ -299,19 +287,22 @@ class WizardStageUtil
     {
         $descriptions = [
             WizardStageTypes::HEADER_STAGE => [
-                'default' => __("Select the menu layout you want to use as your header template. Colors will match your theme style after the setup is complete.", "superb-blocks"),
+                'default' => __("Select the menu layout you want to use as your header template.", "superb-blocks"),
                 WizardActionParameter::RESTORE => __("Restore the header template to a previous state, or keep the current template.", "superb-blocks"),
             ],
             WizardStageTypes::FOOTER_STAGE => [
-                'default' => __("Select the footer layout you want to use as your footer template. Colors will match your theme style after the setup is complete.", "superb-blocks"),
+                'default' => __("Select the footer layout you want to use as your footer template.", "superb-blocks"),
                 WizardActionParameter::RESTORE => __("Restore the footer template to a previous state, or keep the current template.", "superb-blocks"),
             ],
             WizardStageTypes::FRONT_PAGE_STAGE => [
-                'default' => __("Select the page template you want to use as your front page. The front page template has been automatically chosen, if available.", "superb-blocks"),
+                'default' => __("Select the page template you want to use as your front page.", "superb-blocks"),
                 WizardActionParameter::RESTORE => __("Restore the front page template to a previous state, or keep the current template.", "superb-blocks"),
             ],
             WizardStageTypes::BLOG_PAGE_STAGE => [
-                'default' => __("Select the blog template you want to use as your blog page. The blog page template has been automatically chosen, if available. If you've selected a blog template as your front page, a separate blog page cannot be selected.", "superb-blocks"),
+                'default' => array(
+                    __("Select the blog template you want to use as your blog page.", "superb-blocks"),
+                    __("If your front page uses a blog template, you can’t select a separate blog page.", "superb-blocks"),
+                ),
                 WizardActionParameter::RESTORE => __("Restore the home or index template to a previous state, or keep the current template.", "superb-blocks"),
             ],
             WizardStageTypes::TEMPLATE_PAGE_STAGE => [
@@ -324,16 +315,19 @@ class WizardStageUtil
             WizardStageTypes::COMPLETION_STAGE => [
                 'default' => __("Here’s a summary of your selections. If everything looks good, simply complete the Theme Designer to finalize your choices.", "superb-blocks"),
                 WizardActionParameter::RESTORE => __("Here’s a summary of your selections. If everything looks good, simply complete the restoration to finalize your choices.", "superb-blocks"),
-                WizardActionParameter::THEME_DESIGNER => __("Here’s a summary of your selections, where you can also update the page titles. If everything looks good, simply complete the Theme Designer to finalize your choices.", "superb-blocks"),
-                WizardActionParameter::ADD_NEW_PAGES => __("Here’s a summary of your selected pages, where you can also update the page titles. If everything looks good, simply complete the Theme Designer to finalize your choices.", "superb-blocks"),
+                WizardActionParameter::THEME_DESIGNER => array(__("Here’s a summary of your selections, where you can also update the page titles.", "superb-blocks"), __("If everything looks good, simply complete the Theme Designer to finalize your choices.", "superb-blocks")),
+                WizardActionParameter::ADD_NEW_PAGES => array(__("Here’s a summary of your selected pages, where you can also update the page titles.", "superb-blocks"), __("If everything looks good, simply complete the Theme Designer to finalize your choices.", "superb-blocks")),
             ]
         ];
 
-        if (!isset($descriptions[$stageType][$this->GetType()])) {
-            return $descriptions[$stageType]['default'];
-        }
+        $description = isset($descriptions[$stageType][$this->GetType()])
+            ? $descriptions[$stageType][$this->GetType()]
+            : (isset($descriptions[$stageType]['default']) ? $descriptions[$stageType]['default'] : '');
 
-        return $descriptions[$stageType][$this->GetType()];
+        if (is_array($description)) {
+            return $description;
+        }
+        return $description !== '' ? array($description) : array();
     }
 
     public function GetStageLabel($stageType)

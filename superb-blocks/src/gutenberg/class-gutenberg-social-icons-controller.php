@@ -2,6 +2,8 @@
 
 namespace SuperbAddons\Gutenberg\Controllers;
 
+use SuperbAddons\Data\Utils\ScriptTranslations;
+
 defined('ABSPATH') || exit();
 
 /**
@@ -31,7 +33,9 @@ class GutenbergSocialIconsController
         // Server-side filter to add custom icons for frontend rendering
         add_filter('block_core_social_link_get_services', [__CLASS__, 'AddCustomSocialServices'], 10, 1);
 
-        add_action('wp_enqueue_scripts', [__CLASS__, 'EnqueueFrontendStyles'], PHP_INT_MAX);
+        // enqueue_block_assets fires on the frontend AND inside the editor iframe,
+        // which is required for the inline CSS to reach the editor canvas.
+        add_action('enqueue_block_assets', [__CLASS__, 'EnqueueBlockStyles']);
 
         add_action('enqueue_block_editor_assets', [__CLASS__, 'EnqueueEditorAssets']);
     }
@@ -188,8 +192,7 @@ class GutenbergSocialIconsController
             SUPERBADDONS_VERSION,
             true
         );
-
-        self::EnqueueSocialIconStyles();
+        ScriptTranslations::Set('superb-addons-social-icons');
     }
 
 
@@ -237,10 +240,14 @@ class GutenbergSocialIconsController
         wp_enqueue_style(self::SOCIAL_LINKS_STYLE_HANDLE);
     }
 
-    public static function EnqueueFrontendStyles()
+    public static function EnqueueBlockStyles()
     {
-        if (has_block('core/social-links')) {
-            self::EnqueueSocialIconStyles();
+        // Frontend: only enqueue when the block is actually rendered on the page.
+        // Editor: enqueue_block_assets fires inside the iframe (is_admin() === true), so always enqueue there.
+        if (!is_admin() && !has_block('core/social-links')) {
+            return;
         }
+
+        self::EnqueueSocialIconStyles();
     }
 }

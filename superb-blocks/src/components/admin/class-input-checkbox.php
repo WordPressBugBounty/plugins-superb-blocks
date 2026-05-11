@@ -35,9 +35,12 @@ class InputCheckbox
                 <?php if ($this->Icon) : ?>
                     <img class="superbaddons-admindashboard-checkbox-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . $this->Icon); ?>" />
                 <?php endif; ?>
+                <?php if ($this->Description) : ?>
+                    <button type="button" class="superbaddons-help-toggle" aria-label="<?php echo esc_attr__('Toggle help text', 'superb-blocks'); ?>">i</button>
+                <?php endif; ?>
             </label>
             <?php if ($this->Description) : ?>
-                <p class="superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html($this->Description); ?></p>
+                <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-help-text"><?php echo esc_html($this->Description); ?></p>
             <?php endif; ?>
         </div>
 <?php

@@ -1,12 +1,12 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
-  "apiVersion": 2,
+  "apiVersion": 3,
   "name": "superb-addons/reveal-buttons",
   "version": "0.1.0",
   "title": "Superb Reveal Buttons",
   "category": "superb-addons-blocks",
   "icon": "buttons",
-  "description": "Superbly designed reveal buttons for coupons and more.",
+  "description": "Add click-to-reveal buttons for coupon codes and hidden content with a teaser preview and customizable styling.",
   "keywords": [
     "reveal",
     "buttons",

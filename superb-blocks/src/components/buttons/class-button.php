@@ -13,6 +13,7 @@ class Button
     private $class;
     private $target;
     private $id;
+    private $data;
 
     public function __construct($type = ButtonType::Primary, $icon = ButtonIcon::ExternalLink, $options = array())
     {
@@ -22,6 +23,7 @@ class Button
         $this->id = isset($options['id']) ? $options['id'] : '';
         $this->class = isset($options['class']) ? $options['class'] : '';
         $this->target = isset($options['target']) ? $options['target'] : '';
+        $this->data = isset($options['data']) && is_array($options['data']) ? $options['data'] : array();
         $this->type = $type;
         $this->icon = $icon;
 
@@ -31,7 +33,7 @@ class Button
     private function Render()
     {
 ?>
-        <a id="<?php echo esc_attr($this->id); ?>" <?php echo !empty($this->url) ? 'href="' . esc_url($this->url) . '"' : ''; ?> <?php echo !empty($this->target) ? 'target="' . esc_attr($this->target) . '"' : ''; ?> class="superb-addons-template-library-button superb-addons-template-library-button-<?php echo esc_attr($this->type); ?> <?php echo esc_attr($this->class); ?>">
+        <a id="<?php echo esc_attr($this->id); ?>" <?php echo !empty($this->url) ? 'href="' . esc_url($this->url) . '"' : ''; ?> <?php echo !empty($this->target) ? 'target="' . esc_attr($this->target) . '"' : ''; ?><?php foreach ($this->data as $key => $value) : ?> data-<?php echo esc_attr($key); ?>="<?php echo esc_attr($value); ?>"<?php endforeach; ?> class="superb-addons-template-library-button superb-addons-template-library-button-<?php echo esc_attr($this->type); ?> <?php echo esc_attr($this->class); ?>">
             <?php if (!empty($this->text)) {
                 echo esc_html($this->text);
             }

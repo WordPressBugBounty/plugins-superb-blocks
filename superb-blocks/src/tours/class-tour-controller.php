@@ -18,6 +18,9 @@ class TourController
 
     const TOUR_ELEMENTOR_PAGE_ID_OPTION = 'superbaddons_elementor_tour_id';
 
+    const TOUR_DASHBOARD_WELCOME_META = 'superbaddons_tour_dashboard_complete';
+    const TOUR_BLOCK_THEME_META = 'superbaddons_tour_block_theme_complete';
+
     const TOUR_NONCE_ACTION = 'superbaddons-tour';
     const TOUR_NONCE_PARAM = 'superbaddons-tour-nonce';
 
@@ -149,6 +152,16 @@ class TourController
         $nonce = wp_create_nonce('superbaddons-tour-' . $tour_page_id);
         $edit_link = get_edit_post_link($tour_page_id);
         return add_query_arg(array(self::TOUR_ELEMENTOR => $nonce, "action" => "elementor"), $edit_link);
+    }
+
+    public static function IsTourCompleted($meta_key)
+    {
+        return (bool) get_user_meta(get_current_user_id(), $meta_key, true);
+    }
+
+    public static function MarkTourCompleted($meta_key)
+    {
+        update_user_meta(get_current_user_id(), $meta_key, true);
     }
 
     public static function CleanUpTourPage($nonce)

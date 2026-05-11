@@ -1,12 +1,12 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
-  "apiVersion": 2,
+  "apiVersion": 3,
   "name": "superb-addons/author-box",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "title": "Superb About the Author",
   "category": "superb-addons-blocks",
   "icon": "id",
-  "description": "Superbly designed about the author block for your WordPress site.",
+  "description": "Showcase post authors with their avatar, bio, and social media links in a customizable author box.",
   "keywords": [
     "author",
     "author box",
@@ -15,9 +15,33 @@
     "about the author",
     "biography"
   ],
+  "usesContext": ["postId", "postType"],
   "supports": {
     "html": false,
-    "align": ["left", "right"]
+    "align": ["wide", "full", "left", "right"],
+    "color": {
+      "background": true,
+      "gradients": true,
+      "text": false,
+      "link": false
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "shadow": true,
+    "border": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    },
+    "__experimentalBorder": {
+      "color": true,
+      "radius": true,
+      "style": true,
+      "width": true
+    }
   },
   "textdomain": "superb-blocks",
   "editorScript": "file:./index.js",

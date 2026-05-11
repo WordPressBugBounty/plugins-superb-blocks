@@ -24,18 +24,25 @@ class WizardItem
     public $external_plugin_required;
     public $required_plugin_names;
     public $is_missing_navigation_block;
+    public $categories = array();
+    public $tags = array();
+    public $industries = array();
+    public $description = '';
+    public $style = null;
+    public $package;
 
     public function __construct($template)
     {
         $this->id = isset($template->id) ? $template->id : false;
         $this->slug = isset($template->slug) ? $template->slug : $this->id;
-        $this->category = isset($template->category) ? $template->category : $this->slug;
+        $this->category = isset($template->category) && is_string($template->category) ? $template->category : $this->slug;
         $this->type = isset($template->type) ? $template->type : false;
         $this->datatype = isset($template->datatype) ? $template->datatype : $this->type;
         if ($this->slug === 'front-page') {
             $this->datatype = 'front-page';
         }
-        $this->title = isset($template->title) ? $template->title : false;
+        // v2 API items use 'name', WP templates use 'title'
+        $this->title = isset($template->title) ? $template->title : (isset($template->name) ? $template->name : false);
         $this->permalink = isset($template->permalink) ? $template->permalink : get_home_url();
         $this->no_reload = isset($template->no_reload) ? $template->no_reload : false;
         $this->is_premium = isset($template->is_premium) ? $template->is_premium : false;
@@ -46,6 +53,16 @@ class WizardItem
         $this->is_restoration_point = false;
         $this->is_missing_navigation_block = isset($template->is_missing_navigation_block) ? $template->is_missing_navigation_block : false;
         $this->use_custom_page_template_preview = isset($template->use_custom_page_template_preview) ? $template->use_custom_page_template_preview : 0;
+        if (isset($template->categories) && is_array($template->categories)) {
+            $this->categories = $template->categories;
+        } else {
+            $this->categories = array();
+        }
+        $this->tags = isset($template->tags) && is_array($template->tags) ? $template->tags : array();
+        $this->industries = isset($template->industries) && is_array($template->industries) ? $template->industries : array();
+        $this->description = isset($template->description) && is_string($template->description) ? $template->description : '';
+        $this->style = isset($template->style) ? $template->style : null;
+        $this->package = isset($template->package) ? $template->package : ($this->is_premium ? 'premium' : 'free');
     }
 
     public function GetId()

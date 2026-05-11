@@ -5,6 +5,7 @@ namespace SuperbAddons\Elementor\Controllers;
 defined('ABSPATH') || exit();
 
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Library\Controllers\FavoritesController;
 use SuperbAddons\Library\Controllers\LibraryController;
 use SuperbAddons\Library\Controllers\LibraryRequestController;
 use SuperbAddons\Elementor\Utils\ElementorSourceExtension;
@@ -31,10 +32,15 @@ class ElementorController
         add_action('elementor/preview/enqueue_styles', array($this, 'elementor_preview_enqueue_styles'));
     }
 
+    public static function is_installed_and_activated()
+    {
+        return did_action('elementor/loaded');
+    }
+
     public static function is_compatible()
     {
         // Check if Elementor installed and activated
-        if (!did_action('elementor/loaded')) {
+        if (!self::is_installed_and_activated()) {
             return false;
         }
 
@@ -80,6 +86,7 @@ class ElementorController
                 "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks")
             ),
             "menu_items" => self::GetElementorLibraryMenuItems(),
+            "favorites" => FavoritesController::GetFavorites(get_current_user_id()),
             "rest" => array(
                 "base" => \get_rest_url(),
                 "namespace" => RestController::NAMESPACE,
@@ -108,8 +115,8 @@ class ElementorController
             SUPERBADDONS_VERSION
         );
         wp_enqueue_style(
-            'superbaddons-js-snackbar',
-            SUPERBADDONS_ASSETS_PATH . '/lib/js-snackbar.min.css',
+            'superbaddons-toast',
+            SUPERBADDONS_ASSETS_PATH . '/css/toast.min.css',
             array(),
             SUPERBADDONS_VERSION
         );

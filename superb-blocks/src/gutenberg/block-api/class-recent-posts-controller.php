@@ -55,6 +55,36 @@ class RecentPostsController
         }
     }
 
+    /**
+     * Legacy defaults for blocks saved before the native-color migration.
+     * Dynamic blocks cannot use WordPress' deprecated/migrate pipeline
+     * (no save function = validation never fails), so we fall back here
+     * when a block has no WPC slug and no explicit raw value.
+     */
+    private static $color_legacy_defaults = array(
+        'colorTitle'        => '#444444',
+        'colorExcerpt'      => '#7C7C7C',
+        'colorMeta'         => '#7C7C7C',
+        'colorCommentCount' => '#7C7C7C',
+    );
+
+    /**
+     * Resolve a color value: prefer WPC slug as CSS custom property,
+     * then explicit raw value, then legacy default for backwards compat.
+     */
+    private static function resolveColor($attributes, $attrName)
+    {
+        $wpc = isset($attributes[$attrName . 'WPC']) ? $attributes[$attrName . 'WPC'] : '';
+        $raw = isset($attributes[$attrName]) ? $attributes[$attrName] : '';
+        if (!empty($wpc)) {
+            return 'var(--wp--preset--color--' . esc_attr($wpc) . ')';
+        }
+        if (!empty($raw)) {
+            return esc_attr($raw);
+        }
+        return isset(self::$color_legacy_defaults[$attrName]) ? esc_attr(self::$color_legacy_defaults[$attrName]) : '';
+    }
+
     private static function Render($attributes, $recent_posts)
     {
         ob_start();
@@ -89,8 +119,13 @@ class RecentPostsController
                                 <?php endif; ?>
                                 <div class="superbaddons-recentposts-item-right">
                                     <?php if ($attributes['displayDate'] || $attributes['displayAuthor']) : ?>
-                                        <!-- Meta -->
-                                        <span style="font-size:<?php echo esc_attr($attributes['fontSizeMeta']) ?>px; color:<?php echo esc_attr($attributes['colorMeta']) ?>;">
+                                        <?php
+                                        // Meta
+                                        $colorMeta = self::resolveColor($attributes, 'colorMeta');
+                                        $metaStyle = 'font-size:' . esc_attr($attributes['fontSizeMeta']) . 'px;';
+                                        if ($colorMeta) $metaStyle .= ' color:' . $colorMeta . ';';
+                                        ?>
+                                        <span style="<?php echo esc_attr($metaStyle); ?>">
                                             <?php if ($attributes['displayDate']) : ?>
                                                 <time class="superbaddons-recentposts-item-date">
                                                     <?php echo esc_html(get_the_date(get_option('date_format', 'F j, Y'), $post['ID'])); ?>
@@ -104,18 +139,28 @@ class RecentPostsController
                                         </span>
                                     <?php endif; ?>
 
-                                    <!-- Title -->
-                                    <span style="font-size:<?php echo esc_attr($attributes['fontSizeTitle']) ?>px; color:<?php echo esc_attr($attributes['colorTitle']) ?>;"><?php echo esc_html($the_post_title); ?></span>
+                                    <?php
+                                    // Title
+                                    $colorTitle = self::resolveColor($attributes, 'colorTitle');
+                                    $titleStyle = 'font-size:' . esc_attr($attributes['fontSizeTitle']) . 'px;';
+                                    if ($colorTitle) $titleStyle .= ' color:' . $colorTitle . ';';
+                                    ?>
+                                    <span style="<?php echo esc_attr($titleStyle); ?>"><?php echo esc_html($the_post_title); ?></span>
 
                                     <?php if ($attributes['displayExcerpt']) : ?>
-                                        <!-- Excerpt -->
-                                        <span style="font-size:<?php echo esc_attr($attributes['fontSizeExcerpt']) ?>px; color:<?php echo esc_attr($attributes['colorExcerpt']) ?>;">
+                                        <?php
+                                        // Excerpt
+                                        $colorExcerpt = self::resolveColor($attributes, 'colorExcerpt');
+                                        $excerptStyle = 'font-size:' . esc_attr($attributes['fontSizeExcerpt']) . 'px;';
+                                        if ($colorExcerpt) $excerptStyle .= ' color:' . $colorExcerpt . ';';
+                                        ?>
+                                        <span style="<?php echo esc_attr($excerptStyle); ?>">
                                             <?php echo esc_html(
                                                 wp_trim_words(
                                                     excerpt_remove_blocks(strip_shortcodes($post['post_content'])),
                                                     $attributes['excerptLength'],
                                                     // Can't apply this filter using wp_trim_excerpt() as we want to apply the users custom excerpt length without affecting general excerpts.
-                                                    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound 
+                                                    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
                                                     apply_filters('excerpt_more', ' ' . '[&hellip;]')
                                                 )
                                             ); ?>
@@ -123,8 +168,13 @@ class RecentPostsController
                                     <?php endif; ?>
 
                                     <?php if ($attributes['displayCommentCount']) : ?>
-                                        <!-- Comment Count -->
-                                        <span style="font-size:<?php echo esc_attr($attributes['fontSizeCommentCount']); ?>px; color:<?php echo esc_attr($attributes['colorCommentCount']); ?>;">
+                                        <?php
+                                        // Comment Count
+                                        $colorCommentCount = self::resolveColor($attributes, 'colorCommentCount');
+                                        $commentStyle = 'font-size:' . esc_attr($attributes['fontSizeCommentCount']) . 'px;';
+                                        if ($colorCommentCount) $commentStyle .= ' color:' . $colorCommentCount . ';';
+                                        ?>
+                                        <span style="<?php echo esc_attr($commentStyle); ?>">
                                             <?php echo esc_html(get_comment_count($post['ID'])['approved'] . " " . __("comment(s)", "superb-blocks")); ?>
                                         </span>
                                     <?php endif; ?>

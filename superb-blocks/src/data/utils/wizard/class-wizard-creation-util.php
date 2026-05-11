@@ -117,7 +117,7 @@ class WizardCreationUtil
                 continue;
 
             // Update the navigation menu id.
-            $block['attrs'] = $block['attrs'] ?? [];
+            $block['attrs'] = isset($block['attrs']) ? $block['attrs'] : array();
             $block['attrs']['ref'] = absint($ref_id);
 
             if (!isset($block['innerBlocks']) || !is_array($block['innerBlocks'])) {
@@ -155,8 +155,8 @@ class WizardCreationUtil
             }
 
             // Update the query inherit bool.
-            $block['attrs'] = $block['attrs'] ?? [];
-            $block['attrs']['query'] = $block['attrs']['query'] ?? [];
+            $block['attrs'] = isset($block['attrs']) ? $block['attrs'] : array();
+            $block['attrs']['query'] = isset($block['attrs']['query']) ? $block['attrs']['query'] : array();
             $block['attrs']['query']['inherit'] = true;
         }
 

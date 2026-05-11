@@ -3,6 +3,7 @@
 namespace SuperbAddons\Components\Admin;
 
 use SuperbAddons\Admin\Controllers\DashboardController;
+use SuperbAddons\Admin\Controllers\RewriteCheckController;
 use SuperbAddons\Admin\Utils\AdminLinkSource;
 use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Data\Controllers\KeyController;
@@ -16,9 +17,9 @@ class Navigation
     private $issue_detected = false;
     private $has_premium = false;
     private $hide_navigation_items = false;
-    private $subtitle = false;
+    private $theme_designer = false;
 
-    public function __construct($hide_navigation_items = false, $subtitle = false)
+    public function __construct($hide_navigation_items = false, $theme_designer = false)
     {
         $HasRegisteredKey = KeyController::HasRegisteredKey();
         if ($HasRegisteredKey) {
@@ -29,7 +30,11 @@ class Navigation
             }
         }
 
-        $this->subtitle = $subtitle;
+        if (!$this->issue_detected && RewriteCheckController::HasDetectedIssue()) {
+            $this->issue_detected = true;
+        }
+
+        $this->theme_designer = $theme_designer;
 
         if ($hide_navigation_items) {
             $this->hide_navigation_items = true;
@@ -44,9 +49,10 @@ class Navigation
         $pages = array_merge(array(DashboardController::MENU_SLUG => __("Dashboard", "superb-blocks")), apply_filters('superbaddons/admin/navigation/pages', array()));
         $this->pages = array_merge($pages, array(
             DashboardController::PAGE_WIZARD => __("Theme Designer", "superb-blocks"),
+            DashboardController::FORMS => __("Forms", "superb-blocks"),
             DashboardController::ADDITIONAL_CSS => __("Custom CSS", "superb-blocks"),
             DashboardController::SETTINGS => __("Settings", "superb-blocks"),
-            DashboardController::SUPPORT => __("Support", "superb-blocks"),
+            DashboardController::SUPPORT => __("Get Help", "superb-blocks"),
         ));
         $this->Render();
     }
@@ -60,8 +66,11 @@ class Navigation
                     <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/icon-superb.svg'); ?>" />
                     <span class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark">Superb Addons</span>
                 </a>
-                <?php if ($this->subtitle) : ?>
-                    <span class="superbthemes-module-purple-badge"><?php echo esc_html($this->subtitle); ?></span>
+                <?php if ($this->theme_designer) : ?>
+                    <div class="sba-wizard-topbar-info">
+                        <span class="sba-wizard-topbar-flow"><?php echo esc_html__('Theme Designer', 'superb-blocks'); ?></span>
+                        <span class="sba-wizard-topbar-step"></span>
+                    </div>
                 <?php endif; ?>
                 <div class="superbaddons-admindashboard-navigation-shortcuts">
                     <?php if (!$this->has_premium) : ?>
@@ -82,7 +91,7 @@ class Navigation
                     <?php foreach ($this->pages as $pagekey => $pagetitle) : ?>
                         <a href="<?php echo esc_url(admin_url('admin.php?page=' . $pagekey)); ?>" class="superbaddons-admindashboard-navigation-bottomlevel-item <?php echo $pagekey == $this->active_page ? 'superbaddons-admindashboard-active' : ''; ?>">
                             <?php echo esc_html($pagetitle); ?>
-                            <?php if ($pagekey == DashboardController::SETTINGS && $this->issue_detected) : ?>
+                            <?php if ($pagekey == DashboardController::SUPPORT && $this->issue_detected) : ?>
                                 <img class="superbaddons-admindashboard-navigation-bottomlevel-item-issue-img" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/color-warning-octagon.svg'); ?>" alt="<?php echo esc_attr__("Issue Detected", "superb-blocks"); ?>" />
                             <?php endif; ?>
                         </a>

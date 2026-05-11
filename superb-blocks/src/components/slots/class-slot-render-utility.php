@@ -43,7 +43,23 @@ class SlotRenderUtility
             'data-noreload' => true,
             'data-status' => true,
             'data-id' => true,
-        )
+        ),
+        'svg' => array(
+            'xmlns' => true,
+            'width' => true,
+            'height' => true,
+            'viewbox' => true,
+            'fill' => true,
+            'class' => array(),
+            'aria-hidden' => true,
+            'focusable' => true,
+        ),
+        'path' => array(
+            'd' => true,
+            'fill' => true,
+            'fill-rule' => true,
+            'clip-rule' => true,
+        ),
     );
 
     public static function Render($contentCallback)
