@@ -3,10 +3,10 @@
 namespace SuperbAddons;
 
 /*
-Plugin Name: Superb Addons: Blocks, Patterns & Theme Designer for the Block Editor & FSE
+Plugin Name: Superb Addons: Blocks, Patterns, Pre-built Pages, Sliders, Popups, Free Forms, Animations & More
 Plugin URI: https://superbthemes.com/
 Description: Enhance your website building experience with our user-friendly tools and features. Create stunning designs effortlessly using our blocks, patterns, and theme designer for the Block Editor & FSE.
-Version: 4.0.0
+Version: 4.0.1
 Author: SuperbThemes
 Author URI: https://superbthemes.com/
 License: GPL-3.0+
@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 }
 // Constants
 if (!defined('SUPERBADDONS_VERSION')) {
-    define('SUPERBADDONS_VERSION', '4.0.0');
+    define('SUPERBADDONS_VERSION', '4.0.1');
 }
 
 if (!defined('SUPERBADDONS_LIBRARY_VERSION')) {

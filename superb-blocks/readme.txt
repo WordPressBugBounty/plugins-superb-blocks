@@ -4,7 +4,7 @@ Tags: block, blocks, gutenberg, gutenberg blocks, editor
 Requires at least: 4.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.0
+Stable tag: 4.0.1
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -330,6 +330,9 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 5. Theme Designer
 
 == Changelog ==
+= 4.0.1 =
+* Optimized search performance of the design library and theme designer.
+
 = 4.0.0 =
 Major plugin update with tons of new exciting features.
 
