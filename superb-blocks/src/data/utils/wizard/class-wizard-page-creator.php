@@ -238,7 +238,9 @@ class WizardPageCreator
             wp_update_post(
                 array(
                     'ID' => $current_template_post_id,
-                    'post_content' => $template_content
+                    // wp_update_post calls wp_unslash internally; slash so real
+                    // backslashes in imported block markup survive intact.
+                    'post_content' => wp_slash($template_content)
                 )
             );
         } else {
@@ -247,7 +249,9 @@ class WizardPageCreator
                     'post_title' => $template_object->title,
                     'post_excerpt' => $template_object->description,
                     'post_name' => $template_post_slug,
-                    'post_content' => $template_content,
+                    // wp_insert_post calls wp_unslash internally; slash so real
+                    // backslashes in imported block markup survive intact.
+                    'post_content' => wp_slash($template_content),
                     'post_status' => 'publish',
                     'post_type' => WizardItemTypes::WP_TEMPLATE,
                     'comment_status' => 'closed',
@@ -315,7 +319,9 @@ class WizardPageCreator
     {
         $post_data = array(
             'post_title' => esc_html(isset($selection['customTitle']) ? $selection['customTitle'] : $selection['title']),
-            'post_content' => $template_content,
+            // wp_insert_post calls wp_unslash internally; slash so real
+            // backslashes in imported block markup survive intact.
+            'post_content' => wp_slash($template_content),
             'post_status' => 'publish',
             'post_type' => 'page'
         );

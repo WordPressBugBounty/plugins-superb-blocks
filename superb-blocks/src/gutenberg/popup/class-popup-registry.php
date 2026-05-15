@@ -69,34 +69,36 @@ class PopupRegistry
     private static function CollectPopupBlocks($block, &$found_popup_ids, $post_id, $post_type, &$registry, &$changed)
     {
         if (isset($block['blockName']) && $block['blockName'] === self::BLOCK_NAME && !empty($block['attrs']['popupId'])) {
-            $popup_id = sanitize_key($block['attrs']['popupId']);
-            $popup_name = isset($block['attrs']['popupName']) ? sanitize_text_field($block['attrs']['popupName']) : '';
-            $found_popup_ids[] = $popup_id;
+            $popup_id = self::SanitizePopupId($block['attrs']['popupId']);
+            if ($popup_id !== '') {
+                $popup_name = isset($block['attrs']['popupName']) ? sanitize_text_field($block['attrs']['popupName']) : '';
+                $found_popup_ids[] = $popup_id;
 
-            $template_slug = '';
-            if ($post_type === 'wp_template' || $post_type === 'wp_template_part') {
-                $post_obj = get_post($post_id);
-                if ($post_obj) {
-                    $template_slug = $post_obj->post_name;
+                $template_slug = '';
+                if ($post_type === 'wp_template' || $post_type === 'wp_template_part') {
+                    $post_obj = get_post($post_id);
+                    if ($post_obj) {
+                        $template_slug = $post_obj->post_name;
+                    }
                 }
-            }
 
-            $entry = isset($registry[$popup_id]) ? $registry[$popup_id] : null;
-            if (
-                !$entry
-                || $entry['name'] !== $popup_name
-                || $entry['source_post_id'] !== $post_id
-                || $entry['source_post_type'] !== $post_type
-                || $entry['template_slug'] !== $template_slug
-            ) {
-                $registry[$popup_id] = array(
-                    'name' => $popup_name,
-                    'source_post_id' => $post_id,
-                    'source_post_type' => $post_type,
-                    'template_slug' => $template_slug,
-                    'updated' => time(),
-                );
-                $changed = true;
+                $entry = isset($registry[$popup_id]) ? $registry[$popup_id] : null;
+                if (
+                    !$entry
+                    || $entry['name'] !== $popup_name
+                    || $entry['source_post_id'] !== $post_id
+                    || $entry['source_post_type'] !== $post_type
+                    || $entry['template_slug'] !== $template_slug
+                ) {
+                    $registry[$popup_id] = array(
+                        'name' => $popup_name,
+                        'source_post_id' => $post_id,
+                        'source_post_type' => $post_type,
+                        'template_slug' => $template_slug,
+                        'updated' => time(),
+                    );
+                    $changed = true;
+                }
             }
         }
 
@@ -106,6 +108,14 @@ class PopupRegistry
                 self::CollectPopupBlocks($inner, $found_popup_ids, $post_id, $post_type, $registry, $changed);
             }
         }
+    }
+
+    private static function SanitizePopupId($value)
+    {
+        if (!is_string($value)) {
+            return '';
+        }
+        return preg_replace('/[^A-Za-z0-9_-]/', '', $value);
     }
 
     /**

@@ -4,7 +4,7 @@ Tags: block, blocks, gutenberg, gutenberg blocks, editor
 Requires at least: 4.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.1
+Stable tag: 4.0.2
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -23,7 +23,7 @@ The last WordPress plugin you’ll ever need. Unlock free forms, powerful Gutenb
 - 50+ pre-built full pages
 - 20+ headers & footers
 - Theme Designer
-- 30+ animations (scroll, hover, typing, counting,  click, etc.)
+- 70+ animations (scroll, hover, typing, counting,  click, etc.)
 - Responsive controls & display conditions (mobile, tablet, desktop)
 - Advanced custom CSS (lightweight & optimized)
 - Extended Navigation block (menus, mobile options, styles)
@@ -155,7 +155,7 @@ Control which WordPress blocks appear above or behind other elements with easy s
 
 ## Animate Blocks, Sections or Elements easily with Superb Animations
 
-Looking to beautify your website with stunning animations for images, text, headlines, or other elements? Superb Addons makes it simple! With over 30+ animation options, you can bring your content to life and engage your visitors. We have animations for flipping, fading, sliding, counting, text typing, and much more. Choose animation triggers like scroll, click, hover, and more through our toggle menus.
+Looking to beautify your website with stunning animations for images, text, headlines, or other elements? Superb Addons makes it simple! With over 70+ animation options, you can bring your content to life and engage your visitors. We have animations for flipping, fading, sliding, counting, text typing, and much more. Choose animation triggers like scroll, click, hover, and more through our toggle menus.
 
 ## Sticky Blocks 
 
@@ -330,6 +330,11 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 5. Theme Designer
 
 == Changelog ==
+= 4.0.2 =
+* Fixed an issue that could cause the table of contents block to require re-insertion, in some instances, when updating from 3.x.
+* Fixed the table of contents block ignoring manually-set heading anchors on the frontend.
+* Fixed an issue that could require a manual block validation click when importing pre-built pages or patterns that include forms or popups.
+
 = 4.0.1 =
 * Optimized search performance of the design library and theme designer.
 
@@ -509,6 +514,3 @@ Major plugin update with tons of new exciting features.
 * Fixed pressing escape key to close the library modal in the dashboard.
 * Fixed the addons button not always correctly appearing in the site editor.
 * Minor bugfixes 
-
-= 3.0.0 =
-* Major plugin update with tons of new exciting features, patterns, sections and blocks.

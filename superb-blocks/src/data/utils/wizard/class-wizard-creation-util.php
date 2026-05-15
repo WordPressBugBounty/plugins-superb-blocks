@@ -200,7 +200,9 @@ class WizardCreationUtil
                 'post_title' => $block_template->title,
                 'post_excerpt' => $block_template->description,
                 'post_name' => $slug,
-                'post_content' => $content,
+                // wp_insert_post calls wp_unslash internally; slash so real
+                // backslashes in imported block markup survive intact.
+                'post_content' => wp_slash($content),
                 'post_status' => 'publish',
                 'post_type' => WizardItemTypes::WP_TEMPLATE_PART,
                 'comment_status' => 'closed',
@@ -218,7 +220,9 @@ class WizardCreationUtil
         return wp_update_post(
             array(
                 'ID' => $post_id,
-                'post_content' => $content
+                // wp_update_post calls wp_unslash internally; slash so real
+                // backslashes in imported block markup survive intact.
+                'post_content' => wp_slash($content)
             )
         );
     }

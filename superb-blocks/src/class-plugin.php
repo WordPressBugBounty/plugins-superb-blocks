@@ -52,7 +52,9 @@ class SuperbAddonsPlugin
     {
         try {
             add_option('superbaddons_pre_activation', time(), "", false);
-            set_transient('superbaddons_activation_redirect', true, 30);
+            if (!get_transient('superbaddons_disable_activation_redirect')) {
+                set_transient('superbaddons_activation_redirect', true, 30);
+            }
             WizardController::MaybeSetWizardRecommenderTransient();
             RewriteCheckController::ScheduleCheck();
         } catch (Exception $e) {

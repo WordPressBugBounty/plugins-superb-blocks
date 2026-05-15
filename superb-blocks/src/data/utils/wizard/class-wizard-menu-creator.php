@@ -93,7 +93,9 @@ class WizardMenuCreator
         return wp_insert_post(
             array(
                 'post_title' => esc_html__("Navigation - Superb Addons - Theme Designer", "superb-blocks"),
-                'post_content' => $menu_content,
+                // wp_insert_post calls wp_unslash internally; slash so real
+                // backslashes in block markup survive intact.
+                'post_content' => wp_slash($menu_content),
                 'post_status' => 'publish',
                 'post_type' => WizardItemTypes::WP_NAVIGATION,
                 'comment_status' => 'closed',

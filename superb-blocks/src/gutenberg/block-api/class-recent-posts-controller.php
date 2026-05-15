@@ -51,7 +51,7 @@ class RecentPostsController
             return self::Render($attributes, $recent_posts);
         } catch (Exception $ex) {
             LogController::HandleException($ex);
-            return;
+            return '';
         }
     }
 

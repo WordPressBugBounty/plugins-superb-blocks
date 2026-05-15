@@ -116,7 +116,8 @@ class GutenbergBlockIdRegenerator
         // Namespace => array(id => true) of all IDs already used (live registries + current batch).
         $taken = self::LoadLiveTaken();
 
-        // Pass 1: regenerate owner IDs, populate id_map.
+        // Pass 1: regenerate owner IDs, populate id_map, and rewrite the IDs
+        // baked into each owner's own saved markup.
         self::WalkBlocks($parsed_blocks, function (&$block) use (&$id_map, &$taken) {
             if (empty($block['blockName']) || !isset(self::$owners[$block['blockName']])) {
                 return;
@@ -129,6 +130,9 @@ class GutenbergBlockIdRegenerator
                 $block['attrs'] = array();
             }
 
+            // old ID => new ID substitutions to apply to this block's markup.
+            $markup_swaps = array();
+
             $old_id = isset($block['attrs'][$attr_name]) ? (string) $block['attrs'][$attr_name] : '';
 
             $new_id = self::GenerateUniqueId($config['prefix'], $namespace, $taken);
@@ -139,17 +143,32 @@ class GutenbergBlockIdRegenerator
                     $id_map[$namespace] = array();
                 }
                 $id_map[$namespace][$old_id] = $new_id;
+                if ($old_id !== $new_id) {
+                    $markup_swaps[$old_id] = $new_id;
+                }
             }
 
             // Regenerate "extras" (e.g. form honeypotKey). These are not cross-referenced,
             // so we do not track them in the id_map.
             if (!empty($config['extras']) && is_array($config['extras'])) {
                 foreach ($config['extras'] as $extra_attr => $extra_prefix) {
+                    $old_extra = isset($block['attrs'][$extra_attr]) ? (string) $block['attrs'][$extra_attr] : '';
                     // Use a synthetic "extras" namespace for collision tracking so the
                     // same-call taken-set catches intra-batch dupes. This is cheap.
-                    $block['attrs'][$extra_attr] = self::GenerateUniqueId($extra_prefix, '__extras__', $taken);
+                    $new_extra = self::GenerateUniqueId($extra_prefix, '__extras__', $taken);
+                    $block['attrs'][$extra_attr] = $new_extra;
+                    if ($old_extra !== '' && $old_extra !== $new_extra) {
+                        $markup_swaps[$old_extra] = $new_extra;
+                    }
                 }
             }
+
+            // The owner's IDs are also baked into its saved HTML (data-popup-id,
+            // data-form-id, the honeypot field's id/name/for attributes, ...).
+            // serialize_blocks re-emits innerContent verbatim, so unless those
+            // occurrences are rewritten too the editor's block validator sees a
+            // mismatch between the parsed attributes and the stored markup.
+            self::RewriteBlockMarkup($block, $markup_swaps);
         });
 
         // Pass 2: rewrite references using the id_map.
@@ -212,6 +231,38 @@ class GutenbergBlockIdRegenerator
             }
         }
         unset($block);
+    }
+
+    /**
+     * Replace every occurrence of an old ID with its new ID inside a single
+     * block's own saved markup. Only the block's own innerContent string
+     * chunks are touched; child blocks occupy null placeholders there and are
+     * rewritten when the walk reaches them, so their markup is left alone.
+     *
+     * @param array $block Block node, by reference.
+     * @param array $swaps Map of old string => new string.
+     */
+    private static function RewriteBlockMarkup(&$block, $swaps)
+    {
+        if (empty($swaps)) {
+            return;
+        }
+
+        $search  = array_keys($swaps);
+        $replace = array_values($swaps);
+
+        if (isset($block['innerHTML']) && is_string($block['innerHTML'])) {
+            $block['innerHTML'] = str_replace($search, $replace, $block['innerHTML']);
+        }
+
+        if (isset($block['innerContent']) && is_array($block['innerContent'])) {
+            foreach ($block['innerContent'] as &$chunk) {
+                if (is_string($chunk)) {
+                    $chunk = str_replace($search, $replace, $chunk);
+                }
+            }
+            unset($chunk);
+        }
     }
 
     /**

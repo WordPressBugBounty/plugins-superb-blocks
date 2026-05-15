@@ -36,13 +36,13 @@ class AuthorBoxController
 
             $user_id = self::resolveUserId($source, $attributes, $block);
 
-            // Resolve display values
+            // Resolve display values. (string) cast on an object without __toString
             if ($source === 'custom') {
-                $name = isset($attributes['authorName']) ? (string) $attributes['authorName'] : '';
-                $bio  = isset($attributes['authorBio'])  ? (string) $attributes['authorBio']  : '';
+                $name = isset($attributes['authorName']) && is_scalar($attributes['authorName']) ? (string) $attributes['authorName'] : '';
+                $bio  = isset($attributes['authorBio'])  && is_scalar($attributes['authorBio'])  ? (string) $attributes['authorBio']  : '';
             } elseif ($user_id > 0) {
-                $name = get_the_author_meta('display_name', $user_id);
-                $bio  = get_the_author_meta('description', $user_id);
+                $name = (string) get_the_author_meta('display_name', $user_id);
+                $bio  = (string) get_the_author_meta('description', $user_id);
             } else {
                 $name = '';
                 $bio  = '';
@@ -58,12 +58,12 @@ class AuthorBoxController
                 $website_url = get_the_author_meta('user_url', $user_id);
             }
 
-            $alignment = isset($attributes['toolbarAlignment']) ? $attributes['toolbarAlignment'] : 'left';
+            $alignment = isset($attributes['toolbarAlignment']) && is_string($attributes['toolbarAlignment']) ? $attributes['toolbarAlignment'] : 'left';
             if (!in_array($alignment, array('left', 'center', 'right'), true)) {
                 $alignment = 'left';
             }
 
-            $name_tag = isset($attributes['nameTagName']) ? $attributes['nameTagName'] : 'p';
+            $name_tag = isset($attributes['nameTagName']) && is_string($attributes['nameTagName']) ? $attributes['nameTagName'] : 'p';
             if (!in_array($name_tag, self::$allowed_name_tags, true)) {
                 $name_tag = 'p';
             }
@@ -94,70 +94,69 @@ class AuthorBoxController
 
             ob_start();
 ?>
-<div <?php
-// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() returns pre-escaped HTML attribute markup per WP core API.
-echo $wrapper_attributes;
-?>>
-    <?php if ($avatar_enabled) : ?>
-        <div class="superbaddons-authorbox-left">
-            <?php if ($avatar_url !== '') : ?>
-                <img
-                    class="superbaddons-authorbox-avatar"
-                    src="<?php echo esc_url($avatar_url); ?>"
-                    alt="<?php echo esc_attr($name); ?>"
-                    width="<?php echo esc_attr($size); ?>"
-                    height="<?php echo esc_attr($size); ?>"
-                    style="border-radius:<?php echo esc_attr($border_radius / 2); ?>%;width:<?php echo esc_attr($size); ?>px;"
-                />
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
-
-    <div class="superbaddons-authorbox-right">
-        <?php if ($display_name && $name !== '') : ?>
-            <?php
-            $name_class = 'superbaddons-authorbox-authorname';
-            if ($archive_url !== '') {
-                $name_class .= ' superbaddons-authorbox-authorname-linked';
-            }
-            $name_style = 'font-size:' . $font_name . 'px;line-height:' . ($font_name + 8) . 'px;';
-            ?>
-            <<?php echo esc_html($name_tag); ?> class="<?php echo esc_attr($name_class); ?>" style="<?php echo esc_attr($name_style); ?>">
-                <?php if ($archive_url !== '') : ?>
-                    <a href="<?php echo esc_url($archive_url); ?>"><?php echo esc_html($name); ?></a>
-                <?php else : ?>
-                    <?php echo esc_html($name); ?>
+            <div <?php
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- get_block_wrapper_attributes() returns pre-escaped HTML attribute markup per WP core API.
+                    echo $wrapper_attributes;
+                    ?>>
+                <?php if ($avatar_enabled) : ?>
+                    <div class="superbaddons-authorbox-left">
+                        <?php if ($avatar_url !== '') : ?>
+                            <img
+                                class="superbaddons-authorbox-avatar"
+                                src="<?php echo esc_url($avatar_url); ?>"
+                                alt="<?php echo esc_attr($name); ?>"
+                                width="<?php echo esc_attr($size); ?>"
+                                height="<?php echo esc_attr($size); ?>"
+                                style="border-radius:<?php echo esc_attr($border_radius / 2); ?>%;width:<?php echo esc_attr($size); ?>px;" />
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
-            </<?php echo esc_html($name_tag); ?>>
-        <?php endif; ?>
 
-        <?php if ($display_bio && $bio !== '') : ?>
-            <p class="superbaddons-authorbox-authorbio" style="font-size:<?php echo esc_attr($font_bio); ?>px;line-height:<?php echo esc_attr($font_bio + 5); ?>px;">
-                <?php echo esc_html($bio); ?>
-            </p>
-        <?php endif; ?>
+                <div class="superbaddons-authorbox-right">
+                    <?php if ($display_name && $name !== '') : ?>
+                        <?php
+                        $name_class = 'superbaddons-authorbox-authorname';
+                        if ($archive_url !== '') {
+                            $name_class .= ' superbaddons-authorbox-authorname-linked';
+                        }
+                        $name_style = 'font-size:' . $font_name . 'px;line-height:' . ($font_name + 8) . 'px;';
+                        ?>
+                        <<?php echo esc_html($name_tag); ?> class="<?php echo esc_attr($name_class); ?>" style="<?php echo esc_attr($name_style); ?>">
+                            <?php if ($archive_url !== '') : ?>
+                                <a href="<?php echo esc_url($archive_url); ?>"><?php echo esc_html($name); ?></a>
+                            <?php else : ?>
+                                <?php echo esc_html($name); ?>
+                            <?php endif; ?>
+                        </<?php echo esc_html($name_tag); ?>>
+                    <?php endif; ?>
 
-        <?php if ($socials_html !== '') : ?>
-            <div class="superbaddons-authorbox-social-wrapper">
-                <?php
-                // SAFE OUTPUT: $socials_html contains only HTML produced by trusted WordPress core code, never raw user input.
-                // It is the concatenation of:
-                //   1. The output of WordPress core's render_block() for the inner core/social-links block
-                //      (passed in as $content by core, or built via render_block() in renderLegacySocials()).
-                //      User-supplied attributes (service name, URL) are sanitized by core's own block render
-                //      callbacks before being inserted into the markup. We do not concatenate any user input here.
-                //   2. An optional website link built in renderSocials() using esc_url() on the href and
-                //      esc_html() on the visible text.
-                // Escaping with wp_kses_post() is NOT safe here: core/social-links emits inline <svg> icons,
-                // and wp_kses_post()'s allowlist strips <svg> entirely, which would render empty social links.
-                // This matches the pattern WordPress core itself uses to output rendered inner block content.
-                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                echo $socials_html;
-                ?>
+                    <?php if ($display_bio && $bio !== '') : ?>
+                        <p class="superbaddons-authorbox-authorbio" style="font-size:<?php echo esc_attr($font_bio); ?>px;line-height:<?php echo esc_attr($font_bio + 5); ?>px;">
+                            <?php echo esc_html($bio); ?>
+                        </p>
+                    <?php endif; ?>
+
+                    <?php if ($socials_html !== '') : ?>
+                        <div class="superbaddons-authorbox-social-wrapper">
+                            <?php
+                            // SAFE OUTPUT: $socials_html contains only HTML produced by trusted WordPress core code, never raw user input.
+                            // It is the concatenation of:
+                            //   1. The output of WordPress core's render_block() for the inner core/social-links block
+                            //      (passed in as $content by core, or built via render_block() in renderLegacySocials()).
+                            //      User-supplied attributes (service name, URL) are sanitized by core's own block render
+                            //      callbacks before being inserted into the markup. We do not concatenate any user input here.
+                            //   2. An optional website link built in renderSocials() using esc_url() on the href and
+                            //      esc_html() on the visible text.
+                            // Escaping with wp_kses_post() is NOT safe here: core/social-links emits inline <svg> icons,
+                            // and wp_kses_post()'s allowlist strips <svg> entirely, which would render empty social links.
+                            // This matches the pattern WordPress core itself uses to output rendered inner block content.
+                            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                            echo $socials_html;
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
-        <?php endif; ?>
-    </div>
-</div>
 <?php
             return ob_get_clean();
         } catch (Exception $ex) {
@@ -170,7 +169,9 @@ echo $wrapper_attributes;
     {
         if ($source === 'currentPost') {
             $post_id = 0;
-            if ($block !== null && isset($block->context) && isset($block->context['postId'])) {
+            // $block is normally a WP_Block instance, but defensive checks guard
+            // against plugins that invoke our render_callback with unexpected shapes.
+            if (is_object($block) && isset($block->context) && is_array($block->context) && isset($block->context['postId'])) {
                 $post_id = intval($block->context['postId']);
             }
             if ($post_id <= 0) {
@@ -195,10 +196,11 @@ echo $wrapper_attributes;
                     return $url;
                 }
             }
-            if (!empty($attributes['customAuthorImage'])) {
+            // is_string guards against esc_url_raw being handed an array/object
+            if (!empty($attributes['customAuthorImage']) && is_string($attributes['customAuthorImage'])) {
                 return esc_url_raw($attributes['customAuthorImage']);
             }
-            if (!empty($attributes['authorImage'])) {
+            if (!empty($attributes['authorImage']) && is_string($attributes['authorImage'])) {
                 return esc_url_raw($attributes['authorImage']);
             }
             return '';
@@ -214,7 +216,10 @@ echo $wrapper_attributes;
     {
         $parts = array();
 
-        $name_wpc = isset($attributes['colorAuthorNameWPC']) ? $attributes['colorAuthorNameWPC'] : '';
+        // is_string guards every WPC slug before sanitize_html_class/concat;
+        // Raw color values are routed through isValidColor() which already
+        // validates the input is a string.
+        $name_wpc = isset($attributes['colorAuthorNameWPC']) && is_string($attributes['colorAuthorNameWPC']) ? $attributes['colorAuthorNameWPC'] : '';
         $name_raw = isset($attributes['colorAuthorName']) ? $attributes['colorAuthorName'] : '';
         if (!empty($name_wpc)) {
             $parts[] = '--superb-authorbox-name-color:var(--wp--preset--color--' . sanitize_html_class($name_wpc) . ')';
@@ -222,7 +227,7 @@ echo $wrapper_attributes;
             $parts[] = '--superb-authorbox-name-color:' . $name_raw;
         }
 
-        $bio_wpc = isset($attributes['colorAuthorBioWPC']) ? $attributes['colorAuthorBioWPC'] : '';
+        $bio_wpc = isset($attributes['colorAuthorBioWPC']) && is_string($attributes['colorAuthorBioWPC']) ? $attributes['colorAuthorBioWPC'] : '';
         $bio_raw = isset($attributes['colorAuthorBio']) ? $attributes['colorAuthorBio'] : '';
         if (!empty($bio_wpc)) {
             $parts[] = '--superb-authorbox-bio-color:var(--wp--preset--color--' . sanitize_html_class($bio_wpc) . ')';
@@ -257,7 +262,7 @@ echo $wrapper_attributes;
      */
     private static function renderSocials($content, $block, $attributes, $website_url)
     {
-        $has_inner_blocks = $block !== null && !empty($block->inner_blocks);
+        $has_inner_blocks = $block !== null && is_object($block) && !empty($block->inner_blocks);
         $socials = $has_inner_blocks && is_string($content) ? $content : '';
 
         if (trim($socials) === '') {
@@ -279,7 +284,8 @@ echo $wrapper_attributes;
     {
         $children = array();
         foreach (self::$legacy_socials as $attr_key => $service) {
-            $url = isset($attributes[$attr_key]) ? trim((string) $attributes[$attr_key]) : '';
+            // Legacy URLs were saved as strings; reject anything else outright
+            $url = isset($attributes[$attr_key]) && is_string($attributes[$attr_key]) ? trim($attributes[$attr_key]) : '';
             if ($url === '') {
                 continue;
             }

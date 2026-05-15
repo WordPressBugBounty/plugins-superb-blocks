@@ -148,6 +148,32 @@ class PageWizardStagesPage
             $firstSelectionIndex = 1;
         }
 
+        // For users without premium, surface free templates first so they can
+        // get started without scrolling past locked premium items. A leading
+        // "ignore" placeholder (the skip option) is kept in first position. The
+        // sort is stabilized by original index because usort is not stable on
+        // PHP < 8, so relative order within the free and premium groups holds.
+        if (!$this->userIsPremium && $total > 1) {
+            $decorated = array();
+            foreach ($properties['templates'] as $i => $tpl) {
+                $is_ignore  = isset($tpl->datatype) && $tpl->datatype === "ignore";
+                $is_premium = isset($tpl->is_premium) && $tpl->is_premium;
+                $rank = $is_ignore ? 0 : ($is_premium ? 2 : 1);
+                $decorated[] = array('rank' => $rank, 'index' => $i, 'template' => $tpl);
+            }
+            usort($decorated, function ($a, $b) {
+                if ($a['rank'] !== $b['rank']) {
+                    return $a['rank'] - $b['rank'];
+                }
+                return $a['index'] - $b['index'];
+            });
+            $sorted_templates = array();
+            foreach ($decorated as $entry) {
+                $sorted_templates[] = $entry['template'];
+            }
+            $properties['templates'] = $sorted_templates;
+        }
+
         $is_unique_render = isset($properties['unique_render']) && $properties['unique_render'];
         $is_restore = $this->stageUtil->GetType() === WizardActionParameter::RESTORE;
         // Library chrome (sidebar, search, filter bar, heart buttons, tag pills) applies only to
