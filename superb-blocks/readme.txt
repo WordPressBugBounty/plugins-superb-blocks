@@ -1,10 +1,10 @@
 === Superb Addons: Blocks, Patterns, Pre-built Pages, Sliders, Popups, Free Forms, Animations & More ===
 Contributors: SuPlugins, superbaddons
-Tags: block, blocks, gutenberg, gutenberg blocks, editor
+Tags: block, blocks, forms, popups, animations
 Requires at least: 4.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.2
+Stable tag: 4.0.3
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -330,6 +330,9 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 5. Theme Designer
 
 == Changelog ==
+= 4.0.3 =
+* Fixed an issue that could cause four of the reveal animations to not work correctly.
+
 = 4.0.2 =
 * Fixed an issue that could cause the table of contents block to require re-insertion, in some instances, when updating from 3.x.
 * Fixed the table of contents block ignoring manually-set heading anchors on the frontend.
