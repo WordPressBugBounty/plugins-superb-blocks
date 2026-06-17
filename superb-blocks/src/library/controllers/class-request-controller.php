@@ -17,6 +17,7 @@ use SuperbAddons\Data\Utils\CacheException;
 use SuperbAddons\Data\Utils\CacheTypes;
 use SuperbAddons\Data\Utils\ElementorCache;
 use SuperbAddons\Data\Utils\ChunkLoading;
+use SuperbAddons\Data\Utils\Engagement;
 use SuperbAddons\Data\Utils\GutenbergCache;
 use SuperbAddons\Data\Utils\RequestException;
 use SuperbAddons\Elementor\Controllers\ElementorController;
@@ -201,6 +202,7 @@ class LibraryRequestController
             }
 
             $data = GutenbergController::GutenbergDataImportAction($data);
+            Engagement::MarkUsed(Engagement::FEATURE_PATTERN);
             return rest_ensure_response(array("content" => $data['content'], "name" => esc_html(isset($data['title']) ? $data['title'] : '')));
         } catch (RequestException $rex) {
             return new \WP_Error('internal_error_request', 'Internal Request Error: ' . esc_html($rex->getMessage()), array('status' => $rex->getCode()));
@@ -331,7 +333,7 @@ class LibraryRequestController
             return $data;
         }
 
-        // Store pagination metadata and loaded pages tracking on the data object
+        // Store pagination metadata and loaded pages on the data object
         $data->_pagination = $pagination;
         $loaded_pages = new \stdClass();
         $loaded_pages->patterns = array(1);

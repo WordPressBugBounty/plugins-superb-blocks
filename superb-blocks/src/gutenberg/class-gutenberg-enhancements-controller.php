@@ -9,6 +9,7 @@ use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\Option;
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\Engagement;
 
 use WP_Block_Type_Registry;
 use WP_Error;
@@ -680,6 +681,8 @@ class GutenbergEnhancementsController
                 default:
                     return new \WP_Error('invalid_request', 'Invalid Request', array('status' => 400));
             }
+
+            Engagement::MarkUsed(Engagement::FEATURE_ENHANCEMENT);
 
             return rest_ensure_response(array('success' => true));
         } catch (Exception $ex) {

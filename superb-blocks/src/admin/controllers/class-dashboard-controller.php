@@ -21,6 +21,7 @@ use SuperbAddons\Components\Admin\Navigation;
 use SuperbAddons\Data\Controllers\CacheController;
 use SuperbAddons\Data\Controllers\CSSController;
 use SuperbAddons\Data\Controllers\KeyController;
+use SuperbAddons\Data\Controllers\LinkController;
 use SuperbAddons\Data\Utils\CacheTypes;
 use SuperbAddons\Data\Utils\GutenbergCache;
 use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
@@ -49,6 +50,9 @@ class DashboardController
     const STYLEBOOK_REDIRECT_SLUG = 'superbaddons-stylebook';
 
     const PREMIUM_CLASS = 'superbaddons-get-premium';
+
+    const NOTICE_ID_UPSELL = 'addons_delayed';
+    const NOTICE_ID_REVIEW = 'review_request';
 
     private $hooks;
 
@@ -311,9 +315,15 @@ class DashboardController
             $options = array("notices" => array());
             if (!KeyController::HasValidPremiumKey()) {
                 $options["notices"][] = array(
-                    'unique_id' => 'addons_delayed',
-                    'content' => "addons-notice.php",
-                    'delay' => '+6 days'
+                    'unique_id' => self::NOTICE_ID_UPSELL,
+                    'content' => LinkController::GetNoticeContentFile(),
+                    'delay' => '+2 days'
+                );
+            }
+            if (ReviewController::ShouldShowReviewNotice()) {
+                $options["notices"][] = array(
+                    'unique_id' => self::NOTICE_ID_REVIEW,
+                    'content' => 'review-notice.php'
                 );
             }
             if (WizardController::GetWizardRecommenderTransient()) {
@@ -408,12 +418,7 @@ class DashboardController
         );
     }
 
-    // Vanilla upsell modal bundle. Delegates clicks on any element with
-    // data-superb-upsell-source to open the modal before the underlying
-    // anchor navigates (PremiumButton / PremiumOptionWrapper both emit
-    // that attribute). wp-url and wp-escape-html are required because
-    // premium-link-source.js destructures wp.url and wp.escapeHtml at
-    // module load.
+    // Vanilla modal bundle.
     private function enqueueUpsellModal()
     {
         wp_enqueue_script(
@@ -424,6 +429,9 @@ class DashboardController
             true
         );
         ScriptTranslations::Set('superb-addons-upsell-modal-admin');
+        // Link variant for admin pages: read at module load by
+        // premium-link-source.js and by the vanilla modal / click delegation.
+        LinkController::Localize('superb-addons-upsell-modal-admin');
     }
 
     private function enqueueFeedback()

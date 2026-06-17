@@ -12,6 +12,7 @@ class AdminNoticeController
 {
     const PREFIX = 'spbaddons_notice_';
     const PREFIX_DELAY = 'spbaddons_notice_delay_';
+    const LAST_DISMISS_META = 'spbaddons_notice_last_dismiss';
 
     const ALLOWED_HTML = [
         'div'     => [
@@ -79,6 +80,11 @@ class AdminNoticeController
 
     public static function AdminNotices()
     {
+        // Cooldown: suppress notices for a day after the user dismissed any of
+        // our notices, so dismissing one never instantly surfaces another.
+        $last_dismiss = get_user_meta(get_current_user_id(), self::LAST_DISMISS_META, true);
+        $in_cooldown = $last_dismiss && (time() - intval($last_dismiss)) < DAY_IN_SECONDS;
+
         foreach (self::$notices as $notice) {
             $notice_path = trailingslashit(SUPERBADDONS_PLUGIN_DIR) . 'src/admin/notices/' . $notice['content'];
             if (!file_exists($notice_path)) {
@@ -87,6 +93,11 @@ class AdminNoticeController
 
             // Check if the notice has been dismissed.
             if (get_user_meta(get_current_user_id(), self::PREFIX . $notice['unique_id'], true)) {
+                continue;
+            }
+
+            // Respect the post-dismissal cooldown.
+            if ($in_cooldown) {
                 continue;
             }
 
@@ -119,34 +130,50 @@ class AdminNoticeController
         <script>
             window.addEventListener("load", function() {
                 setTimeout(function() {
-                    var notice_ids = <?php echo wp_json_encode(array_column(self::$notices, 'unique_id'), JSON_HEX_TAG); ?>;
-                    var nonce = "<?php echo esc_attr(wp_create_nonce('spbtic_dismiss_notice')); ?>";
-                    var ajaxurl = "<?php echo esc_url(admin_url('admin-ajax.php')); ?>";
+                    const notice_ids = <?php echo wp_json_encode(array_column(self::$notices, 'unique_id'), JSON_HEX_TAG); ?>;
+                    const nonce = "<?php echo esc_attr(wp_create_nonce('spbtic_dismiss_notice')); ?>";
+                    const ajaxurl = "<?php echo esc_url(admin_url('admin-ajax.php')); ?>";
+
+                    function dismissNotice(noticeId) {
+                        const httpRequest = new XMLHttpRequest();
+
+                        // Build the data to send in our request.
+                        // Data has to be formatted as a string here.
+                        let postData = "id=" + noticeId;
+                        postData += "&action=spbtic_dismiss_notice";
+                        postData += "&nonce=" + nonce;
+
+                        httpRequest.open("POST", ajaxurl);
+                        httpRequest.setRequestHeader(
+                            "Content-Type",
+                            "application/x-www-form-urlencoded"
+                        );
+                        httpRequest.send(postData);
+                    }
 
                     notice_ids.forEach(function(notice) {
-                        var dismissBtn = document.querySelector(
-                            "." + notice + " .notice-dismiss"
-                        );
+                        const wrapper = document.querySelector("." + notice);
+                        if (!wrapper) return;
 
-                        if (!dismissBtn) return;
+                        // Standard WordPress dismiss (X) button.
+                        const dismissBtn = wrapper.querySelector(".notice-dismiss");
+                        if (dismissBtn) {
+                            dismissBtn.addEventListener("click", function() {
+                                dismissNotice(notice);
+                            });
+                        }
 
-                        // Add an event listener to the dismiss button.
-                        dismissBtn.addEventListener("click", function(event) {
-                            var httpRequest = new XMLHttpRequest(),
-                                postData = "";
-
-                            // Build the data to send in our request.
-                            // Data has to be formatted as a string here.
-                            postData += "id=" + notice;
-                            postData += "&action=spbtic_dismiss_notice";
-                            postData += "&nonce=" + nonce;
-
-                            httpRequest.open("POST", ajaxurl);
-                            httpRequest.setRequestHeader(
-                                "Content-Type",
-                                "application/x-www-form-urlencoded"
-                            );
-                            httpRequest.send(postData);
+                        // Extra in-notice dismiss links (e.g. the review notice choices).
+                        const dismissLinks = wrapper.querySelectorAll(".superbaddons-notice-dismiss");
+                        dismissLinks.forEach(function(link) {
+                            link.addEventListener("click", function(event) {
+                                const href = link.getAttribute("href");
+                                if (!href || href === "#") {
+                                    event.preventDefault();
+                                }
+                                dismissNotice(notice);
+                                wrapper.style.display = "none";
+                            });
                         });
                     });
                 }, 0);
@@ -173,6 +200,9 @@ class AdminNoticeController
         // Security check: Make sure nonce is OK. check_ajax_referer exits if it fails.
         check_ajax_referer('spbtic_dismiss_notice', 'nonce', true);
 
+        // Record the dismissal time so our other notices respect the cooldown.
+        update_user_meta(get_current_user_id(), self::LAST_DISMISS_META, time());
+
         // Dismiss the notice.
         self::DismissNotice($notice_id);
     }
@@ -196,6 +226,7 @@ class AdminNoticeController
                 delete_metadata('user', 0, self::PREFIX_DELAY . $notice['unique_id'], false, true);
             }
         }
+        delete_metadata('user', 0, self::LAST_DISMISS_META, false, true);
         WizardController::RemoveWizardRecommenderTransient();
         WizardController::RemoveWizardWooCommerceTransient();
     }

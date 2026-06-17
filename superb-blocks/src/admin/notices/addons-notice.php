@@ -13,6 +13,6 @@ defined('ABSPATH') || exit;
         <?php echo esc_html__("Subscribers also keep the discount on every renewal.", "superb-blocks"); ?>
     </p>
     <p>
-        <a style='margin-bottom:15px;' class='button button-large button-primary' target='_blank' href='<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NOTICE_LOCK, array("anchor" => 'pricingplans'))); ?>'><?php echo esc_html__("Upgrade and save", "superb-blocks"); ?></a>
+        <a style='margin-bottom:15px;' class='button button-large button-primary' target='_blank' href='<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NOTICE_LOCK, array("experiment" => "notice"))); ?>'><?php echo esc_html__("Upgrade and save", "superb-blocks"); ?></a>
     </p>
 </div>

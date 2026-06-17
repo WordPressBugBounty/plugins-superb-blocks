@@ -104,7 +104,8 @@ class AuthorBoxController
                             <img
                                 class="superbaddons-authorbox-avatar"
                                 src="<?php echo esc_url($avatar_url); ?>"
-                                alt="<?php echo esc_attr($name); ?>"
+                                <?php // $name may carry RichText markup for custom authors; strip tags so the alt text reads cleanly. ?>
+                                alt="<?php echo esc_attr(wp_strip_all_tags($name)); ?>"
                                 width="<?php echo esc_attr($size); ?>"
                                 height="<?php echo esc_attr($size); ?>"
                                 style="border-radius:<?php echo esc_attr($border_radius / 2); ?>%;width:<?php echo esc_attr($size); ?>px;" />
@@ -123,16 +124,26 @@ class AuthorBoxController
                         ?>
                         <<?php echo esc_html($name_tag); ?> class="<?php echo esc_attr($name_class); ?>" style="<?php echo esc_attr($name_style); ?>">
                             <?php if ($archive_url !== '') : ?>
+                                <?php // Linked branch only runs for dynamic sources, where $name is the plain display_name. esc_html() keeps it as text and avoids emitting an anchor inside this anchor. ?>
                                 <a href="<?php echo esc_url($archive_url); ?>"><?php echo esc_html($name); ?></a>
                             <?php else : ?>
-                                <?php echo esc_html($name); ?>
+                                <?php
+                                // Custom authors enter the name through a RichText field, which stores inline markup
+                                // (bold, italic, links, etc.). wp_kses_post() sanitizes it while preserving that
+                                // formatting; esc_html() would double-escape the tags so they render as literal text.
+                                echo wp_kses_post($name);
+                                ?>
                             <?php endif; ?>
                         </<?php echo esc_html($name_tag); ?>>
                     <?php endif; ?>
 
                     <?php if ($display_bio && $bio !== '') : ?>
                         <p class="superbaddons-authorbox-authorbio" style="font-size:<?php echo esc_attr($font_bio); ?>px;line-height:<?php echo esc_attr($font_bio + 5); ?>px;">
-                            <?php echo esc_html($bio); ?>
+                            <?php
+                            // The bio is a RichText field for custom authors (inline formatting, links, line breaks).
+                            // wp_kses_post() preserves that markup safely; esc_html() would escape it into literal tags.
+                            echo wp_kses_post($bio);
+                            ?>
                         </p>
                     <?php endif; ?>
 

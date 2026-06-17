@@ -2,6 +2,8 @@
 
 namespace SuperbAddons\Admin\Utils;
 
+use SuperbAddons\Data\Controllers\LinkController;
+
 class AdminLinkUtil
 {
     public static function GetLinkID()
@@ -21,6 +23,8 @@ class AdminLinkUtil
         if (!empty($id)) {
             $args['ref'] = substr(sanitize_text_field($id), 0, 25);
         }
+        $experiment = is_array($options) && isset($options['experiment']) ? $options['experiment'] : 'upsell';
+        $args = array_merge($args, LinkController::GetLinkExpArgs($experiment));
         $url = is_array($options) && isset($options['url']) ? $options['url'] : 'https://superbthemes.com/superb-addons/';
         if (is_array($options) && isset($options['anchor'])) {
             $url .= '#' . $options['anchor'];
@@ -32,6 +36,7 @@ class AdminLinkUtil
 class AdminLinkSource
 {
     const DEFAULT = 'superb-addons';
+    const NOTICE = 'notice';
     const NOTICE_LOCK = 'notice-lock';
     const WP_PLUGIN_PAGE = 'plugin-page';
     const NAVIGATION = 'navigation';
@@ -46,6 +51,7 @@ class AdminLinkSource
     const SUPPORT = 'support';
 
     const ALLOWED_SOURCE = array(
+        self::NOTICE,
         self::NOTICE_LOCK,
         self::WP_PLUGIN_PAGE,
         self::NAVIGATION,

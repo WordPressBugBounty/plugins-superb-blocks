@@ -3,6 +3,8 @@
 namespace SuperbAddons\CSSTidy;
 // Added namespace and moved defines to class consts
 
+defined('ABSPATH') || exit();
+
 class csstidyConstants
 {
 	const AT_START = 1;

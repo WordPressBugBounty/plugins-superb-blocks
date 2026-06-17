@@ -6,6 +6,7 @@ defined('ABSPATH') || exit();
 
 use Exception;
 use SuperbAddons\Config\Capabilities;
+use SuperbAddons\Data\Utils\Engagement;
 use WP_Error;
 use stdClass;
 
@@ -174,6 +175,8 @@ class CSSController
         $new_block = $this->SanitizeBlock($saved_block, $request['block']);
         $blocks[$block_id] = $new_block;
         self::UpdateBlocks($blocks);
+
+        Engagement::MarkUsed(Engagement::FEATURE_CSS);
 
         return rest_ensure_response(['success' => true, 'id' => $block_id]);
     }

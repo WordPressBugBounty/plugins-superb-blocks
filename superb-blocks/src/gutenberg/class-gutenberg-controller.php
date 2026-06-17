@@ -12,6 +12,7 @@ use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Commerce\CommerceController;
 use SuperbAddons\Data\Controllers\CompatibilitySettingsOptionKey;
 use SuperbAddons\Data\Controllers\KeyController;
+use SuperbAddons\Data\Controllers\LinkController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
 use SuperbAddons\Data\Utils\ScriptTranslations;
@@ -338,11 +339,6 @@ class GutenbergController
             true
         );
         ScriptTranslations::Set('superb-addons-upsell-modal');
-        // Vanilla upsell modal + its CSS: intercepts clicks on PHP-rendered
-        // `data-superb-upsell-source` elements (emitted by PremiumButton /
-        // PremiumOptionWrapper inside the editor's design library templates).
-        // The React editor modal above handles block-triggered upsells via
-        // the Redux store; the two coexist, each handling its own triggers.
         wp_enqueue_script(
             'superb-addons-upsell-modal-admin',
             SUPERBADDONS_ASSETS_PATH . '/js/admin/upsell-modal.js',
@@ -379,6 +375,8 @@ class GutenbergController
                 "roles" => GutenbergConditionsController::GetConditionsRoles(),
             ),
         ));
+
+        LinkController::Localize('superb-addons-gutenberg-library');
         wp_enqueue_style(
             'superb-addons-elements',
             SUPERBADDONS_ASSETS_PATH . '/css/framework.min.css',

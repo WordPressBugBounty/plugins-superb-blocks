@@ -81,6 +81,7 @@ class PluginResetController
             'superbaddons_wizard_navigation_post_id',
             'superbaddons_elementor_tour_id',
             'superbaddons_pre_activation',
+            'superbaddons_engagement',
             'superbaddons_css_block_target_valid_labels',
             // Form settings
             FormSettings::OPTION_HCAPTCHA_SITE_KEY,

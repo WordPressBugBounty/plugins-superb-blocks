@@ -7,6 +7,7 @@ defined('ABSPATH') || exit();
 use Exception;
 use SuperbAddons\Elementor\Controllers\ElementorController;
 use SuperbAddons\Admin\Controllers\DashboardController;
+use SuperbAddons\Admin\Controllers\ReviewController;
 use SuperbAddons\Admin\Controllers\Wizard\WizardController;
 use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Data\Controllers\CSSController;
@@ -38,6 +39,7 @@ class SuperbAddonsPlugin
         RewriteCheckController::Initialize();
         LicenseResolveController::Initialize();
         new DashboardController();
+        new ReviewController();
         new GutenbergController();
         new ElementorController();
         new LibraryRequestController();
@@ -52,9 +54,6 @@ class SuperbAddonsPlugin
     {
         try {
             add_option('superbaddons_pre_activation', time(), "", false);
-            if (!get_transient('superbaddons_disable_activation_redirect')) {
-                set_transient('superbaddons_activation_redirect', true, 30);
-            }
             WizardController::MaybeSetWizardRecommenderTransient();
             RewriteCheckController::ScheduleCheck();
         } catch (Exception $e) {

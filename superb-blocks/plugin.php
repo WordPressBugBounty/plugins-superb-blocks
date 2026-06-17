@@ -6,14 +6,14 @@ namespace SuperbAddons;
 Plugin Name: Superb Addons: Blocks, Patterns, Pre-built Pages, Sliders, Popups, Free Forms, Animations & More
 Plugin URI: https://superbthemes.com/
 Description: Enhance your website building experience with our user-friendly tools and features. Create stunning designs effortlessly using our blocks, patterns, and theme designer for the Block Editor & FSE.
-Version: 4.0.3
+Version: 4.0.4
 Author: SuperbThemes
 Author URI: https://superbthemes.com/
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 Text Domain: superb-blocks
-* Elementor tested up to: 4.0.8
-* Elementor Pro tested up to: 4.0.8
+* Elementor tested up to: 4.1.3
+* Elementor Pro tested up to: 4.1.3
 */
 
 defined('ABSPATH') || exit;
@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 }
 // Constants
 if (!defined('SUPERBADDONS_VERSION')) {
-    define('SUPERBADDONS_VERSION', '4.0.3');
+    define('SUPERBADDONS_VERSION', '4.0.4');
 }
 
 if (!defined('SUPERBADDONS_LIBRARY_VERSION')) {

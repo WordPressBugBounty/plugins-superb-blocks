@@ -2,7 +2,7 @@
 
 namespace SuperbAddons\CSSTidy;
 // Added namespace and moved defines to class consts
-
+defined('ABSPATH') || exit();
 /**
  * CSSTidy - CSS Parser and Optimiser
  *

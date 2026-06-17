@@ -4,6 +4,8 @@ namespace SuperbAddons\Gutenberg\Popup;
 
 defined('ABSPATH') || exit();
 
+use SuperbAddons\Data\Utils\Engagement;
+
 class PopupRegistry
 {
     const OPTION_KEY = 'spb_popup_registry';
@@ -48,6 +50,10 @@ class PopupRegistry
 
         foreach ($parsed_blocks as $block) {
             self::CollectPopupBlocks($block, $found_popup_ids, $post_id, $post->post_type, $registry, $changed);
+        }
+
+        if (!empty($found_popup_ids)) {
+            Engagement::MarkUsed(Engagement::FEATURE_POPUP);
         }
 
         // Cleanup: remove popups that were previously on this post but are no longer

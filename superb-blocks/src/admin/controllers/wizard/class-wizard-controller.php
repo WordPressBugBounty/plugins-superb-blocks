@@ -7,6 +7,7 @@ use SuperbAddons\Admin\Controllers\DashboardController;
 use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\Engagement;
 use SuperbAddons\Data\Utils\ThemeInstaller;
 use SuperbAddons\Data\Utils\ThemeInstallerException;
 use SuperbAddons\Data\Utils\Wizard\AddonsPageTemplateUtil;
@@ -321,6 +322,7 @@ class WizardController
 
     public static function CompleteWizard()
     {
+        Engagement::MarkUsed(Engagement::FEATURE_DESIGNER);
         $current_theme = get_stylesheet();
         $completed_themes = get_option('superbaddons_wizard_completed_themes', []);
         if (!in_array($current_theme, $completed_themes)) {

@@ -166,13 +166,13 @@ class DashboardPage
                         <?php endif; ?>
                         <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/theme-designer-icon.svg'); ?>" aria-hidden="true" width="48" height="48" />
                         <h5 class="superbaddons-element-text-xs superbaddons-element-text-dark superbaddons-element-text-800"><?php echo esc_html__("Theme Designer", "superb-blocks"); ?></h5>
-                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("Design your entire site in minutes. Pick styles for header, footer, and pages, and the wizard builds it all.", "superb-blocks"); ?></p>
+                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("Design your entire site in minutes. Pick styles for header, footer, and pages, and more.", "superb-blocks"); ?></p>
                         <a class="superbaddons-element-button" href="<?php echo esc_url($this->theme_designer_url); ?>"><?php echo esc_html__("Launch Theme Designer", "superb-blocks"); ?></a>
                     </div>
                     <div class="superbaddons-dashboard-quick-action-card">
                         <img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/template-page-icon.svg'); ?>" aria-hidden="true" width="48" height="48" />
                         <h5 class="superbaddons-element-text-xs superbaddons-element-text-dark superbaddons-element-text-800"><?php echo esc_html__("Page Templates", "superb-blocks"); ?></h5>
-                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("Launch a new page in seconds from a library of professional designs.", "superb-blocks"); ?></p>
+                        <p class="superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("Launch pages in seconds with 100+ ready-made pages, patterns, and sections.", "superb-blocks"); ?></p>
                         <a class="superbaddons-element-button" href="<?php echo esc_url($this->add_new_pages_url); ?>"><?php echo esc_html__("Add New Template Page", "superb-blocks"); ?></a>
                     </div>
                     <div class="superbaddons-dashboard-quick-action-card" id="superbaddons-dashboard-forms-card">
@@ -188,9 +188,9 @@ class DashboardPage
                     <div class="superbaddons-dashboard-section-header">
                         <h4 class="superbaddons-element-text-sm superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><?php echo esc_html__("Gutenberg Blocks", "superb-blocks"); ?></h4>
                         <span class="superbaddons-dashboard-count-badge"><?php
-                        /* translators: 1: number of active blocks, 2: total number of blocks */
-                        echo esc_html(sprintf(__('%1$d/%2$d Active', 'superb-blocks'), $this->ActiveBlockCount, $this->TotalBlockCount));
-                        ?></span>
+                                                                            /* translators: 1: number of active blocks, 2: total number of blocks */
+                                                                            echo esc_html(sprintf(__('%1$d/%2$d Active', 'superb-blocks'), $this->ActiveBlockCount, $this->TotalBlockCount));
+                                                                            ?></span>
                     </div>
                     <div class="superbaddons-dashboard-block-grid">
                         <?php
@@ -219,9 +219,8 @@ class DashboardPage
                             <div class="superbaddons-dashboard-block-card <?php echo $is_disabled ? 'superbaddons-dashboard-block-card--disabled' : ''; ?>">
                                 <?php if (!empty($block['premium']) || $is_disabled || !empty($block['requires'])) : ?>
                                     <div class="superbaddons-dashboard-card-badges">
-                                        <?php if (!empty($block['premium'])) : ?>
-                                            <span class="superbaddons-dashboard-premium-badge"><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/color-crown.svg'); ?>" aria-hidden="true" /><?php echo esc_html__("Premium", "superb-blocks"); ?></span>
-                                        <?php elseif ($is_disabled) : ?>
+
+                                        <?php if ($is_disabled) : ?>
                                             <span class="superbaddons-dashboard-disabled-badge"><?php echo esc_html__("Disabled", "superb-blocks"); ?></span>
                                         <?php endif; ?>
                                         <?php if (!empty($block['requires'])) $this->RenderIntegrationBadge($block['requires']); ?>
@@ -229,7 +228,6 @@ class DashboardPage
                                 <?php endif; ?>
                                 <img class="superbaddons-dashboard-block-card-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $block['icon']); ?>" aria-hidden="true" />
                                 <strong class="superbaddons-element-text-xxs superbaddons-element-text-dark"><?php echo esc_html($block['name']); ?></strong>
-                                <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php echo esc_html($block['desc']); ?></p>
                             </div>
                         <?php endforeach; ?>
                         <?php $this->RenderSuggestCard(
@@ -245,9 +243,9 @@ class DashboardPage
                     <div class="superbaddons-dashboard-section-header">
                         <h4 class="superbaddons-element-text-sm superbaddons-element-text-dark superbaddons-element-text-800 superbaddons-element-m0"><?php echo esc_html__("Editor Enhancements", "superb-blocks"); ?></h4>
                         <span class="superbaddons-dashboard-count-badge"><?php
-                        /* translators: 1: number of enabled editor enhancements, 2: total number of editor enhancements */
-                        echo esc_html(sprintf(__('%1$d/%2$d Active', 'superb-blocks'), $this->EditorEnabledCount, $this->EditorTotalCount));
-                        ?></span>
+                                                                            /* translators: 1: number of enabled editor enhancements, 2: total number of editor enhancements */
+                                                                            echo esc_html(sprintf(__('%1$d/%2$d Active', 'superb-blocks'), $this->EditorEnabledCount, $this->EditorTotalCount));
+                                                                            ?></span>
                     </div>
                     <div class="superbaddons-dashboard-enhancement-grid">
                         <?php
@@ -278,7 +276,6 @@ class DashboardPage
                                     <?php endif; ?>
                                 </div>
                                 <strong class="superbaddons-element-text-xxs superbaddons-element-text-dark"><?php echo esc_html($enh['name']); ?></strong>
-                                <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php echo esc_html($enh['desc']); ?></p>
                             </div>
                         <?php endforeach; ?>
                         <?php $this->RenderSuggestCard(
@@ -308,7 +305,7 @@ class DashboardPage
                                 <img class="superbaddons-dashboard-block-card-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/dashboard-custom-css.svg'); ?>" aria-hidden="true" />
                                 <strong class="superbaddons-element-text-xxs superbaddons-element-text-dark"><?php echo esc_html__("Custom CSS", "superb-blocks"); ?></strong>
                             </div>
-                            <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php echo esc_html__("Target specific pages or templates with CSS blocks, auto-combined and loaded only where needed.", "superb-blocks"); ?></p>
+                            <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php echo esc_html__("Add custom CSS easily. It's auto-combined and loaded only where needed.", "superb-blocks"); ?></p>
                             <a href="<?php echo esc_url($this->custom_css_url); ?>" class="superbaddons-element-button superbaddons-element-button-sm"><?php echo esc_html__("Manage CSS", "superb-blocks"); ?></a>
                         </div>
                         <div class="superbaddons-dashboard-feature-card">
@@ -352,10 +349,11 @@ class DashboardPage
                 </div>
             </div>
             <div class="superbaddons-admindashboard-sidebarlayout-right">
+                <?php new PremiumBox(AdminLinkSource::DEFAULT); ?>
                 <?php new NewsletterForm(__("Stay updated with new features and freebies.", "superb-blocks"), true); ?>
                 <?php new ReviewBox(); ?>
                 <?php new SupportBox(); ?>
-                <?php new PremiumBox(AdminLinkSource::DEFAULT); ?>
+
             </div>
         </div>
         <?php

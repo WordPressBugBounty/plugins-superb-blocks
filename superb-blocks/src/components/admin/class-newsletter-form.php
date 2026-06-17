@@ -47,12 +47,6 @@ class NewsletterForm
             </div>
             <div id="superbaddons-newsletter-error" style="display:none;"></div>
         </div>
-        <div class="superbthemes-module-testimonials">
-            <?php if ($show_testominal_text) : ?>
-                <h3><?php echo esc_html__("Trusted by users worldwide", "superb-blocks"); ?></h3>
-            <?php endif; ?>
-            <img aria-hidden="true" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/testimonials.svg"); ?>" width="287" height="37" alt="Testimonials">
-        </div>
 <?php
     }
 }

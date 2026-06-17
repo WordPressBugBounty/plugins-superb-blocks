@@ -67,9 +67,23 @@ class Navigation
                     <span class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark">Superb Addons</span>
                 </a>
                 <?php if ($this->theme_designer) : ?>
-                    <div class="sba-wizard-topbar-info">
-                        <span class="sba-wizard-topbar-flow"><?php echo esc_html__('Theme Designer', 'superb-blocks'); ?></span>
-                        <span class="sba-wizard-topbar-step"></span>
+                    <div class="sba-wizard-topbar-info-wrapper">
+                        <div class="sba-wizard-topbar-info">
+                            <span class="sba-wizard-topbar-flow"><?php echo esc_html__('Theme Designer', 'superb-blocks'); ?></span>
+                            <span class="sba-wizard-topbar-step"></span>
+                        </div>
+                        <span class="tooltip-right"
+                            tabindex="0"
+                            data-tooltip="Colors will match your theme style after the setup is complete.">
+
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                width="25"
+                                height="25"
+                                fill="currentColor"
+                                viewBox="0 0 256 256">
+                                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
+                            </svg>
+                        </span>
                     </div>
                 <?php endif; ?>
                 <div class="superbaddons-admindashboard-navigation-shortcuts">

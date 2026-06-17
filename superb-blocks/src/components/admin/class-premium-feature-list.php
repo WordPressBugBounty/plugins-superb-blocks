@@ -11,15 +11,23 @@ class PremiumFeatureList
     public function __construct()
     {
         $this->Features = array(
-            __("100+ WordPress Patterns", "superb-blocks"),
+            __("Forms", "superb-blocks"),
+            __("70+ Animations", "superb-blocks"),
+            __("Popups", "superb-blocks"),
+            __("Sliders", "superb-blocks"),
+            __("Progress Bar", "superb-blocks"),
+            __("Countdowns", "superb-blocks"),
+            __("Theme Designer", "superb-blocks"),
+            __("Design Library", "superb-blocks"),
             __("50+ WordPress Themes", "superb-blocks"),
-            __("50+ Unique Pages", "superb-blocks"),
-            __("7+ WordPress Blocks", "superb-blocks"),
-            __("40+ Animations", "superb-blocks"),
+            __("16+ WordPress Blocks", "superb-blocks"),
+            __("Visibility Conditions", "superb-blocks"),
             __("1-Click Designs", "superb-blocks"),
             __("300+ Elementor Sections", "superb-blocks"),
             __("WordPress Editor Enhancements", "superb-blocks"),
             __("Advanced Custom CSS", "superb-blocks"),
+            __("Sticky Blocks", "superb-blocks"),
+            __("Dynamic Content", "superb-blocks"),
             __("Ever-expanding Library", "superb-blocks")
         );
         $this->Render();

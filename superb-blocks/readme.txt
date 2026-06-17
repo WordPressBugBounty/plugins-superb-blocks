@@ -1,10 +1,10 @@
 === Superb Addons: Blocks, Patterns, Pre-built Pages, Sliders, Popups, Free Forms, Animations & More ===
 Contributors: SuPlugins, superbaddons
-Tags: block, blocks, forms, popups, animations
-Requires at least: 4.9
+Tags: blocks, gutenberg blocks, forms, popups, animations
+Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.3
+Stable tag: 4.0.4
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -36,11 +36,11 @@ The last WordPress plugin you’ll ever need. Unlock free forms, powerful Gutenb
 
 
 
-## Free Forms Builder for Gutenberg & WordPress
+## Free Forms & WordPress Form Builder: Contact Forms, Newsletter Signup Forms & More
 
 Superb Addons includes a powerful free form builder that lets you create contact forms, newsletter signup forms, feedback forms, support forms, RSVP forms, booking request forms, quote request forms, and multi-step forms.
 
-Build forms using a wide range of field types including email fields, textareas, number fields, calculated fields, sliders, dropdowns, radio buttons, checkboxes, rating fields, file uploads, date pickers, time pickers, color pickers, signature fields, phone fields, URL fields, and more. Customize placeholders, default values, validation rules, regex patterns, field widths, success messages, error messages, and submission behavior.
+[Create forms for free](https://superbthemes.com/features/forms/) using a wide range of field types including email fields, textareas, number fields, calculated fields, sliders, dropdowns, radio buttons, checkboxes, rating fields, file uploads, date pickers, time pickers, color pickers, signature fields, phone fields, URL fields, and more. Customize placeholders, default values, validation rules, regex patterns, field widths, success messages, error messages, and submission behavior.
 
 Superb Forms also includes integrations for Mailchimp, Brevo, Google Sheets, Slack, and webhooks, making it easy to connect your forms to newsletters, automations, CRMs, and workflows. Protect your forms with built-in anti-spam tools like Honeypot, hCaptcha, reCAPTCHA v2/v3, and Cloudflare Turnstile.
 
@@ -50,36 +50,48 @@ For websites with privacy and GDPR requirements, Superb Addons also includes opt
 
 
 
-## Every Free WordPress Block You'll Ever Need  
+## Every WordPress Block You'll Ever Need  
 
 Superb Addons offers a wide range of powerful and easy-to-use WordPress Gutenberg Blocks. If you feel a specific block is missing, let us know. We’re always creating new features based on user feedback. You don't need a license or account to get started, just activate the plugin and start.
 
-## Popup Block  
+## Free Popup Block: Exit Intent Popups, Discount Popups, Newsletter Popups & More
 
-Create beautiful pop ups and modal windows directly inside Gutenberg without needing a separate pop up plugin. Build newsletter signup popups, special offers, welcome messages, contact form popups, announcements, notifications, and content disclaimers with an easy visual workflow inside the WordPress editor.
+[Create pop ups](https://superbthemes.com/features/popups/) and modal windows directly inside Gutenberg without needing a separate pop up plugin. Build newsletter signup popups, special offers, welcome messages, contact form popups, announcements, notifications, and content disclaimers with an easy visual workflow inside the WordPress editor.
 
-Choose when your popup should appear with triggers like page load, scrolling, exit intent, delays, or custom trigger buttons. You can also control popup frequency, overlays, close buttons, outside click behavior, escape key closing, and auto-close timers to create a smoother experience for your visitors. Perfect for landing pages, WooCommerce stores, blogs, marketing campaigns, and lead generation websites. Creating popups haven't ever been easier.
+Choose when your popup should appear with triggers like page load, scrolling, exit intent, delays, or custom trigger buttons. You can also control popup frequency, overlays, close buttons, outside click behavior, escape key closing, and auto-close timers to create a smoother experience for your visitors. Perfect for landing pages, WooCommerce stores, blogs, marketing campaigns, and lead generation websites. Creating popups have never been easier.
 
-## Slider & Carousel Block  
+## Slider & Carousel Block: Create Image Sliders, Content Carousels & More  
 
-Create beautiful sliders and carousels. Whether you're building a testimonial slider, image gallery, logo carousel, featured content section, or a modern hero slider, Superb Addons makes it easy. Customize autoplay, adaptive height, navigation arrows, dots, infinite looping, and responsive behavior with a simple visual interface. You can also choose between transition effects like slide, fade, flip, zoom, and card styles to create smooth, modern-looking layouts for blogs, landing pages, WooCommerce stores, and business websites.
+Create beautiful [sliders and carousels](https://superbthemes.com/features/sliders/). Whether you're building a testimonial slider, image gallery, logo carousel, featured content section, or a modern hero slider, Superb Addons makes it easy. Customize autoplay, adaptive height, navigation arrows, dots, infinite looping, and responsive behavior with a simple visual interface. You can also choose between transition effects like slide, fade, flip, zoom, and card styles to create smooth, modern-looking layouts for blogs, landing pages, WooCommerce stores, and business websites.
 
 
-## Countdown Block  
+## Countdown Block: Create Countdown Timers, Evergreen Countdowns & More
 
-Create countdown timers for product launches, limited offers, events, sales campaigns, landing pages, and more directly inside the WordPress editor. Superb Addons lets you build both fixed countdowns for specific dates and evergreen countdowns that start individually for each visitor.
+Create [countdown timers](https://superbthemes.com/features/blocks/) for product launches, limited offers, events, sales campaigns, landing pages, and more directly inside the WordPress editor. Superb Addons lets you build both fixed countdowns for specific dates and evergreen countdowns that start individually for each visitor.
 
-## Free Progress Bar Block  
+## Free Progress Bar Block: Create Progress Bars, Skill Bars, Milestones & Goal Trackers  
 
-Create beautiful progress bars for goals, milestones, fundraising campaigns, statistics, skills, downloads, sales progress, and more. Customize the current value, goal value, labels, prefixes, suffixes, and milestone indicators with an easy visual interface.
+Create beautiful [progress bars](https://superbthemes.com/features/blocks/) for goals, milestones, fundraising campaigns, statistics, skills, downloads, sales progress, and more. Customize the current value, goal value, labels, prefixes, suffixes, and milestone indicators with an easy visual interface.
 
-## Free Rating Block  
 
-Add customizable star and rating bars to your site. Rate anything from 1 to 10 in a beautiful way, making it ideal for review websites.  
+## Free Google Maps Block: Embed Google Maps Without an API Key
+
+Embed an [interactive Google Map](https://superbthemes.com/features/blocks/) to display your office, restaurant, café, or any location. A great feature for businesses and local services.  
+
+
+## Free Rating Block: Star Ratings & Review Scores  
+
+Add customizable star and rating bars to your site with the [rating block](https://superbthemes.com/features/blocks/). Rate anything from 1 to 10 in a beautiful way, making it ideal for review websites.  
+
+
+## Free Coupon Reveal Buttons  
+
+Add a customizable reveal button to reveal coupon or bonus codes. Loved by coupon, betting, and casino affiliate websites, this block drives user engagement. You choose the layout, appearance and reveal conditions. You can style the buttons however you wish and control how it's revealed. It's a great block for improving conversion rate.
+
 
 ## Toggle Block  
 
-The Toggle block neatly organizes content into collapsible sections. It's ideal for FAQ accordions, product details, or any text-heavy sections. With various styling and layout options, you can easily integrate it into your site’s design. 
+The Toggle block neatly organizes content into collapsible sections. It's ideal for FAQ accordions, product details, or any text-heavy sections.
 
 
 ## Free About The Author Box Block  
@@ -87,7 +99,7 @@ The Toggle block neatly organizes content into collapsible sections. It's ideal 
 Add a professional "About the Author" section to your posts or pages with one click. Include your image, description, and social links. Perfect for bloggers and personal sites.  
 
 
-## Free Table of Contents  Block 
+## Free Table of Contents Block 
 
 Automatically generate a TOC from your headings with anchor links, complete with clickable links to each section of your article. This block is a must-have for blogs and content heavy websites. It offers full customizations for borders, backgrounds, paragraphs etc.
 
@@ -97,19 +109,9 @@ Automatically generate a TOC from your headings with anchor links, complete with
 Showcase your latest posts with sorting and filtering options. Perfect for news sites or blogs looking to highlight specific categories or articles.  
 
 
-## Free Google Maps Block  
-
-Embed an interactive Google Map to display your office, restaurant, café, or any location. A great feature for businesses and local services.  
-
-
 ## Free Cover Image Block  
 
-Showcase your images in any size or aspect ratio. Ideal for photographers, galleries, or anyone who displays cropped images to their readers.  
-
-
-## Free Coupon Reveal Buttons  
-
-Add a customizable reveal button to reveal coupon or bonus codes. Loved by coupon, betting, and casino affiliate websites, this block drives user engagement. You choose the layout, appearance and reveal conditions. You can style the buttons however you wish and control how it's revealed. It's a great block for improving conversion rate.
+Showcase your images in any size or aspect ratio. Ideal for photographers and galleries.
 
 
 ## WooCommerce Add To Cart Button Block  
@@ -126,28 +128,28 @@ We have added the following social media platforms to the Social Icons Block: Bi
 
 ## Drop caps for paragraphs
 
-Add a customizable drop cap to any paragraph block to give it a classic and elegant look.
+Add a customizable drop cap to any paragraph block.
 
-## Responsive Controls for Gutenberg & WordPress
+## Make WordPress and Gutenberg Responsive With Superb Addons Responsive Controls
 
-Superb Addons gives you both responsive visibility controls and advanced responsive design controls for WordPress blocks. Hide or show any Gutenberg block on desktop, tablet, or mobile, and customize how each block looks on different devices directly inside the WordPress editor. 
+Superb Addons gives you both [responsive visibility controls and advanced responsive design controls](https://superbthemes.com/features/responsive-controls/) for WordPress blocks. Hide or show any Gutenberg block on desktop, tablet, or mobile, and customize how each block looks on different devices directly inside the WordPress editor. 
 
 Adjust padding, margin, font size, text alignment, max width, block spacing, flex direction, column count, flex alignment, and block order separately for desktop, tablet, and mobile. 
 
-## Add Custom CSS: Optimized and Lightweight ⚡ 
+## Add Custom CSS: Optimized and Lightweight
 
-Superb Addons includes an Advanced Custom CSS feature that lets you easily add and manage custom CSS while keeping your website fast and optimized. Your custom CSS is automatically delivered in a lightweight and compressed format to ensure quick loading times and top-notch performance.  
+Access the [Advanced Custom CSS](https://superbthemes.com/features/smart-features/) feature that lets you easily add and manage custom CSS. Your custom CSS is automatically delivered in a lightweight and compressed format to ensure quick loading times and top-notch performance.  
 
 ## Display Conditions & Conditional Visibility
 
-Control exactly when WordPress blocks and elements should appear with advanced display conditions for Gutenberg and Full Site Editing (FSE). Superb Addons lets you show or hide blocks based on login state, user role, user meta, post type, post author, post category, post tag, post meta, date range, day of week, time of day, URL query strings, referral URL, browser language, and visitor country.
+Control exactly when WordPress blocks and elements should appear with [advanced display conditions](https://superbthemes.com/features/responsive-controls/) for Gutenberg and Full Site Editing (FSE). Superb Addons lets you show or hide blocks based on login state, user role, user meta, post type, post author, post category, post tag, post meta, date range, day of week, time of day, URL query strings, referral URL, browser language, and visitor country.
 
 Create dynamic WooCommerce experiences by showing blocks based on products in cart, cart value, total spent, and purchase history. You can also create personalized LearnDash experiences with conditions for course access and course status. 
 
 
 ## Dynamic Content & Dynamic Links
 
-Add dynamic content and dynamic links easily. Display dynamic values like post title, post content, post excerpt, post date, post type, post status, post terms, custom fields, Advanced Custom Fields (ACF), author information, archive information, current date, current time, URL parameters, logged in user data, and much more. You can also create dynamic links for post URLs, featured image URLs, author URLs, custom fields, Advanced Custom Fields (ACF), and other dynamic WordPress data.
+Add [dynamic content](https://superbthemes.com/features/smart-features/) and dynamic links easily. Display dynamic values like post title, post content, post excerpt, post date, post type, post status, post terms, custom fields, Advanced Custom Fields (ACF), author information, archive information, current date, current time, URL parameters, logged in user data, and much more. You can also create dynamic links for post URLs, featured image URLs, author URLs, custom fields, Advanced Custom Fields (ACF), and other dynamic WordPress data.
 
 ## Stacking Order & Z-Index Controls
 
@@ -155,7 +157,7 @@ Control which WordPress blocks appear above or behind other elements with easy s
 
 ## Animate Blocks, Sections or Elements easily with Superb Animations
 
-Looking to beautify your website with stunning animations for images, text, headlines, or other elements? Superb Addons makes it simple! With over 70+ animation options, you can bring your content to life and engage your visitors. We have animations for flipping, fading, sliding, counting, text typing, and much more. Choose animation triggers like scroll, click, hover, and more through our toggle menus.
+Looking to beautify your website with stunning [animations](https://superbthemes.com/features/animations/) for images, text, headlines, or other elements? Superb Addons makes it simple! With over 70+ animation options, you can bring your content to life and engage your visitors. We have animations for flipping, fading, sliding, counting, text typing, and much more. Choose animation triggers like scroll, click, hover, and more through our toggle menus.
 
 ## Sticky Blocks 
 
@@ -172,12 +174,12 @@ Design landing pages, business websites, blogs, online stores, portfolios, and m
 
 ## Powerful Theme Designer
 
-Easily customize every aspect of your WordPress theme, including the header, footer, homepage, about page, contact page, blog, and more – all with a single click. The Theme Designer works with all block themes, making it perfect for any website type. Whether you're building a lifestyle blog, fashion website, travel blog, business site, or online store, Superb Addons is your all-in-one solution for creating a professional and unique look.
+Easily customize every aspect of your WordPress theme, including the header, footer, homepage, about page, contact page, blog, and more – all with a single click. The [Theme Designer](https://superbthemes.com/features/theme-designer/) works with all block themes, making it perfect for any website type. Whether you're building a lifestyle blog, fashion website, travel blog, business site, or online store, Superb Addons is your all-in-one solution for creating a professional and unique look.
 
 
 ## Pre-built Pages and Patterns for Every Purpose  
 
-Superb Addons is designed to help you build any type of website quickly and easily. With hundreds of pre-built pages and patterns, you can create a professional website in just a few clicks. Whether you need layouts for calls to action, content sections, or testimonials, we’ve got you covered. Just open the editor and insert the pattern you want - our patterns work for all post types. 
+Superb Addons is designed to help you build any type of website quickly and easily. With hundreds of [pre-built pages and patterns](https://superbthemes.com/features/design-library/), you can create a professional website in just a few clicks. Whether you need layouts for calls to action, content sections, or testimonials, we’ve got you covered. Just open the editor and insert the pattern you want - our patterns work for all post types. 
 
 ## Extend the WordPress Navigation Block
 
@@ -330,6 +332,10 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 5. Theme Designer
 
 == Changelog ==
+= 4.0.4 =
+* Fixed the About the Author block escaping bold and italic formatting in the author name.
+* Various interface improvements
+
 = 4.0.3 =
 * Fixed an issue that could cause four of the reveal animations to not work correctly.
 

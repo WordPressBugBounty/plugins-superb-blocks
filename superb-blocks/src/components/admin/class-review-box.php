@@ -4,6 +4,8 @@ namespace SuperbAddons\Components\Admin;
 
 defined('ABSPATH') || exit();
 
+use SuperbAddons\Admin\Controllers\ReviewController;
+
 class ReviewBox
 {
     public function __construct()
@@ -22,7 +24,7 @@ class ReviewBox
                 <p class="superbaddons-element-text-xxs superbaddons-element-text-gray">
                     <?php echo esc_html__("If it's been useful, a quick review on WordPress.org means the world to us. We read every single one.", "superb-blocks"); ?>
                 </p>
-                <a class="superbaddons-element-button" target="_blank" href="https://wordpress.org/support/plugin/superb-blocks/reviews/"><?php echo esc_html__("Leave a review", "superb-blocks"); ?></a>
+                <a class="superbaddons-element-button" target="_blank" rel="noopener noreferrer" href="<?php echo esc_url(ReviewController::GetReviewUrl()); ?>"><?php echo esc_html__("Leave a review", "superb-blocks"); ?></a>
             </div>
         </div>
 <?php

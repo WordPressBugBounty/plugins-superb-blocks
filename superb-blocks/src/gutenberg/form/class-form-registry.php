@@ -4,6 +4,8 @@ namespace SuperbAddons\Gutenberg\Form;
 
 defined('ABSPATH') || exit();
 
+use SuperbAddons\Data\Utils\Engagement;
+
 class FormRegistry
 {
     const OPTION_KEY = 'spb_form_registry';
@@ -54,6 +56,10 @@ class FormRegistry
 
         foreach ($parsed_blocks as $block) {
             self::CollectFormBlocks($block, $found_form_ids, $post_id, $post->post_type, $registry, $changed);
+        }
+
+        if (!empty($found_form_ids)) {
+            Engagement::MarkUsed(Engagement::FEATURE_FORM);
         }
 
         // Cleanup: remove forms that were previously on this post but are no longer
