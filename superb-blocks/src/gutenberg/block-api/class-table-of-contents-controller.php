@@ -16,6 +16,14 @@ class TableOfContentsController
     private static $excluded_levels = array();
     private static $instance_count = 0;
 
+    // Set by getFlattenedPageBlocks(): true when the page is rendered through a
+    // template that places the queried post via a core/post-content block. The
+    // post's own content is then the page content, so the TOC must list only its
+    // headings, not the headings of the surrounding template chrome.
+    // $post_content_blocks holds that inlined post content as the heading source.
+    private static $page_renders_post_content = false;
+    private static $post_content_blocks = array();
+
     // Blocks whose headings are not part of the linear page content flow:
     // flattenBlockTree() leaves their innerBlocks untouched and heading
     // extraction does not descend into them.
@@ -61,8 +69,13 @@ class TableOfContentsController
 
             self::$excluded_levels = $excluded_levels;
 
+            // When the template renders the post through a core/post-content
+            // block, scope headings to the post content; otherwise list every
+            // heading in the template (the TOC block still gets found from the
+            // full page tree above).
+            $heading_blocks = self::$page_renders_post_content ? self::$post_content_blocks : $blocks;
             $headings = array();
-            self::extractHeadingsAndBuildAnchors($blocks, $headings, $auto_anchor_links, $excluded_levels);
+            self::extractHeadingsAndBuildAnchors($heading_blocks, $headings, $auto_anchor_links, $excluded_levels);
             self::$cached_toc = self::buildTableOfContents($headings);
 
             // Register anchor injection filter when auto anchor links are enabled
@@ -80,7 +93,13 @@ class TableOfContentsController
     {
         global $_wp_current_template_content;
 
-        if (is_string($_wp_current_template_content) && $_wp_current_template_content !== '') {
+        // Reset the post-content scoping state; flattenBlockTree() repopulates it
+        // if it inlines a core/post-content block while walking the page tree.
+        self::$page_renders_post_content = false;
+        self::$post_content_blocks = array();
+
+        $in_template = is_string($_wp_current_template_content) && $_wp_current_template_content !== '';
+        if ($in_template) {
             $root_markup = $_wp_current_template_content;
         } else {
             $post = get_post();
@@ -88,7 +107,17 @@ class TableOfContentsController
         }
 
         $visited = array();
-        return self::parseAndFlatten($root_markup, $visited);
+        $blocks = self::parseAndFlatten($root_markup, $visited);
+
+        // Post-content scoping only makes sense for a templated page: outside a
+        // template the root markup already is the post content, so there is no
+        // template chrome to exclude.
+        if (!$in_template) {
+            self::$page_renders_post_content = false;
+            self::$post_content_blocks = array();
+        }
+
+        return $blocks;
     }
 
     private static function parseAndFlatten($markup, &$visited)
@@ -121,7 +150,17 @@ class TableOfContentsController
             if ($name === 'core/template-part') {
                 $result = array_merge($result, self::expandTemplatePart($block, $visited));
             } elseif ($name === 'core/post-content') {
-                $result = array_merge($result, self::expandPostContent($visited));
+                $expanded = self::expandPostContent($visited);
+                // The rendered page includes the queried post's content here, so
+                // its headings are the page content. Remember that, and keep this
+                // inlined content as the heading source for post-content scoping.
+                // Capture the first occurrence only; a second core/post-content
+                // resolves empty through the visit guard in expandPostContent().
+                if (!self::$page_renders_post_content) {
+                    self::$page_renders_post_content = true;
+                    self::$post_content_blocks = $expanded;
+                }
+                $result = array_merge($result, $expanded);
             } elseif ($name === 'core/pattern') {
                 $result = array_merge($result, self::expandPattern($block, $visited));
             } elseif ($name === 'core/block') {
@@ -290,8 +329,9 @@ class TableOfContentsController
                 $blocks = self::getFlattenedPageBlocks();
                 $auto_anchor_links = isset($attributes['autoAnchorLinks']) ? (bool) $attributes['autoAnchorLinks'] : true;
                 $excluded_levels = isset($attributes['excludedHeadingLevels']) && is_array($attributes['excludedHeadingLevels']) ? array_map('intval', $attributes['excludedHeadingLevels']) : array();
+                $heading_blocks = self::$page_renders_post_content ? self::$post_content_blocks : $blocks;
                 $headings = array();
-                self::extractHeadingsAndBuildAnchors($blocks, $headings, $auto_anchor_links, $excluded_levels);
+                self::extractHeadingsAndBuildAnchors($heading_blocks, $headings, $auto_anchor_links, $excluded_levels);
                 $toc = self::buildTableOfContents($headings);
             }
 
@@ -627,7 +667,8 @@ class TableOfContentsController
             return $block_content;
         }
 
-        $text = wp_strip_all_tags($block_content);
+        $inner_html = isset($block['innerHTML']) && is_string($block['innerHTML']) ? $block['innerHTML'] : '';
+        $text = $inner_html !== '' ? wp_strip_all_tags($inner_html) : wp_strip_all_tags($block_content);
         if (empty($text) || !isset(self::$anchor_map[$text]) || empty(self::$anchor_map[$text])) {
             return $block_content;
         }
@@ -641,14 +682,22 @@ class TableOfContentsController
             return $block_content;
         }
 
+        // Seek the heading tag itself rather than trusting the first tag to be it:
+        // another plugin's filter may have wrapped the heading in an element, and
+        // injecting the id onto that wrapper would leave the heading without one.
         $processor = new \WP_HTML_Tag_Processor($block_content);
-        if ($processor->next_tag()) {
+        while ($processor->next_tag()) {
+            $tag = $processor->get_tag();
+            if ($tag === null || !preg_match('/^H[1-6]$/', $tag)) {
+                continue;
+            }
             $existing_id = $processor->get_attribute('id');
             if (empty($existing_id)) {
                 $processor->set_attribute('id', self::$anchor_map[$text][$index]);
                 self::$anchor_map_index[$text]++;
                 $block_content = $processor->get_updated_html();
             }
+            break;
         }
 
         return $block_content;

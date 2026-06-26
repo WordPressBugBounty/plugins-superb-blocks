@@ -103,6 +103,7 @@ class ComposerStaticInita94ee717fbe31078ea93f7c04889a4f8
         'SuperbAddons\\Data\\Utils\\SettingsException' => __DIR__ . '/../..' . '/src/data/utils/class-settings-exception.php',
         'SuperbAddons\\Data\\Utils\\ThemeInstaller' => __DIR__ . '/../..' . '/src/data/utils/class-theme-installer.php',
         'SuperbAddons\\Data\\Utils\\ThemeInstallerException' => __DIR__ . '/../..' . '/src/data/utils/class-theme-installer-exception.php',
+        'SuperbAddons\\Data\\Utils\\ThirdPartyCompatibilityUtil' => __DIR__ . '/../..' . '/src/data/utils/class-third-party-compatibility-util.php',
         'SuperbAddons\\Data\\Utils\\Wizard\\AddonsPageTemplateUtil' => __DIR__ . '/../..' . '/src/data/utils/class-addons-template-util.php',
         'SuperbAddons\\Data\\Utils\\Wizard\\WizardActionParameter' => __DIR__ . '/../..' . '/src/data/utils/wizard/class-wizard-constants.php',
         'SuperbAddons\\Data\\Utils\\Wizard\\WizardCreationUtil' => __DIR__ . '/../..' . '/src/data/utils/wizard/class-wizard-creation-util.php',

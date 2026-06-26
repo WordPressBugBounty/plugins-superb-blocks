@@ -23,13 +23,23 @@ class AdminLinkUtil
         if (!empty($id)) {
             $args['ref'] = substr(sanitize_text_field($id), 0, 25);
         }
-        $experiment = is_array($options) && isset($options['experiment']) ? $options['experiment'] : 'upsell';
-        $args = array_merge($args, LinkController::GetLinkExpArgs($experiment));
+        if (is_array($options) && isset($options['experiment'])) {
+            $args = array_merge($args, LinkController::GetLinkExpArgs($options['experiment']));
+        }
         $url = is_array($options) && isset($options['url']) ? $options['url'] : 'https://superbthemes.com/superb-addons/';
         if (is_array($options) && isset($options['anchor'])) {
             $url .= '#' . $options['anchor'];
         }
         return add_query_arg($args, $url);
+    }
+
+    public static function GetExpLink($source, $options = false)
+    {
+        $options = is_array($options) ? $options : array();
+        if (!isset($options['experiment'])) {
+            $options['experiment'] = 'upsell';
+        }
+        return self::GetLink($source, $options);
     }
 }
 
@@ -40,6 +50,7 @@ class AdminLinkSource
     const NOTICE_LOCK = 'notice-lock';
     const WP_PLUGIN_PAGE = 'plugin-page';
     const NAVIGATION = 'navigation';
+    const NAVIGATION_CTA = 'navigation-cta';
     const SETTINGS = 'settings';
     const LIBRARY_ITEM = 'pattern-library';
     const LIBRARY_PAGE_ITEM = 'prebuilt-pages';
@@ -55,6 +66,7 @@ class AdminLinkSource
         self::NOTICE_LOCK,
         self::WP_PLUGIN_PAGE,
         self::NAVIGATION,
+        self::NAVIGATION_CTA,
         self::SETTINGS,
         self::LIBRARY_ITEM,
         self::LIBRARY_PAGE_ITEM,

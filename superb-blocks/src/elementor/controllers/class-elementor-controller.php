@@ -62,7 +62,7 @@ class ElementorController
         return array(
             array(
                 "id" => "sections",
-                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_ITEM),
+                "premium_url" => AdminLinkUtil::GetExpLink(AdminLinkSource::LIBRARY_ITEM),
                 "title" => esc_html__('Sections', "superb-blocks"),
                 "routes" => array(
                     "list" => LibraryRequestController::ELEMENTOR_LIST_ROUTE,

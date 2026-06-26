@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.4
+Stable tag: 4.0.5
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -332,6 +332,12 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 5. Theme Designer
 
 == Changelog ==
+= 4.0.5 =
+* Fixed various block style settings not applying correctly for the Add to Cart block.
+* Fixed Table of Contents block not displaying content inside a template Content block correctly.
+* Fixed saved form submissions not being able to display in the admin dashboard for some permalink configurations.
+* Fixed theme designer previews not displaying correctly when Gutenverse is active.
+
 = 4.0.4 =
 * Fixed the About the Author block escaping bold and italic formatting in the author name.
 * Various interface improvements

@@ -92,12 +92,15 @@ class Navigation
                     <?php endif; ?>
                     <a class="superbaddons-admindashboard-navigation-shortcuts-item" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/"))); ?>" title="<?php echo esc_attr__("Contact Support", "superb-blocks"); ?>"><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/help.svg'); ?>" alt="<?php echo esc_attr__("Contact Support", "superb-blocks"); ?>" /></a>
                     <a class="superbaddons-admindashboard-navigation-shortcuts-item" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/documentation/"))); ?>" title="<?php echo esc_attr__("View Documentation", "superb-blocks"); ?>"><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/file.svg'); ?>" alt="<?php echo esc_attr__("View Documentation", "superb-blocks"); ?>" /></a>
-                    <span class="superbaddons-admindashboard-navigation-shortcuts-item">
+                    <span class="superbaddons-admindashboard-navigation-shortcuts-item superbaddons-admindashboard-navigation-shortcuts-version">
                         <?php echo esc_html(SUPERBADDONS_VERSION); ?>
                         <?php if ($this->has_premium) : ?>
                             <img class="superbaddons-element-ml1" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/purple-crown.svg'); ?>" alt="<?php echo esc_attr__("Premium License", "superb-blocks"); ?>" />
                         <?php endif; ?>
                     </span>
+                    <?php if (!$this->has_premium) : ?>
+                        <a class="superbaddons-element-button-pro superbaddons-admindashboard-navigation-shortcuts-unlock" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NAVIGATION_CTA)); ?>"><?php echo esc_html__("Unlock All Features", "superb-blocks"); ?></a>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php if (!$this->hide_navigation_items) : ?>

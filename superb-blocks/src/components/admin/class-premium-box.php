@@ -39,7 +39,7 @@ class PremiumBox
                     </p>
                     <a class="superbaddons-element-button-pro" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink($this->source, $this->options)); ?>"><?php echo esc_html__("Upgrade to Premium", "superb-blocks"); ?></a>
                 </div>
-                <span class="superbaddons-element-text-xs superbaddons-element-text-800 superbaddons-element-text-dark"><?php echo esc_html__("All this included", "superb-blocks"); ?><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/pointing_arrow.png'); ?>" /></span>
+                <span class="superbaddons-element-text-xs superbaddons-element-text-800 superbaddons-element-text-dark"><?php echo esc_html__("All this included", "superb-blocks"); ?><img class="superbaddons-admindashboard-included-arrow" aria-hidden="true" alt="" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/pointing_arrow.png'); ?>" /></span>
                 <?php new PremiumFeatureList(); ?>
             </div>
         </div>

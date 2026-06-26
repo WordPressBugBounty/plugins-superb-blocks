@@ -7,6 +7,7 @@ use SuperbAddons\Data\Controllers\CacheController;
 use SuperbAddons\Data\Utils\AllowedTemplateHTMLUtil;
 use SuperbAddons\Data\Utils\CacheTypes;
 use SuperbAddons\Data\Utils\GutenbergCache;
+use SuperbAddons\Data\Utils\ThirdPartyCompatibilityUtil;
 use SuperbAddons\Data\Utils\Wizard\AddonsPageTemplateUtil;
 use SuperbAddons\Data\Utils\Wizard\WizardItemIdAffix;
 use SuperbAddons\Data\Utils\Wizard\WizardItemTypes;
@@ -378,6 +379,8 @@ class WizardTemplatePreviewController
 
     private static function RenderTemplateCanvas($content)
     {
+        // Register shims for known third-party conflicts (e.g. Gutenverse) so the preview renders fully.
+        ThirdPartyCompatibilityUtil::guard_preview_render();
 
 ?>
         <!DOCTYPE html>
@@ -386,15 +389,19 @@ class WizardTemplatePreviewController
         <head>
             <meta charset="<?php bloginfo('charset'); ?>" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <?php wp_head(); ?>
+            <?php
+            // Run hook-firing calls through a safety net so an uncaught error from any third-party
+            // hook degrades the preview gracefully instead of white-screening it.
+            ThirdPartyCompatibilityUtil::run_guarded('wp_head');
+            ?>
         </head>
 
         <body <?php body_class(); ?>>
-            <?php wp_body_open(); ?>
+            <?php ThirdPartyCompatibilityUtil::run_guarded('wp_body_open'); ?>
             <?php AllowedTemplateHTMLUtil::enable_safe_styles(); ?>
             <?php echo wp_kses($content, "post"); ?>
             <?php AllowedTemplateHTMLUtil::disable_safe_styles(); ?>
-            <?php wp_footer(); ?>
+            <?php ThirdPartyCompatibilityUtil::run_guarded('wp_footer'); ?>
         </body>
 
         </html>

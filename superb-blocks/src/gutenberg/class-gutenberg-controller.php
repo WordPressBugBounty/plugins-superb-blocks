@@ -225,7 +225,7 @@ class GutenbergController
         return array(
             array(
                 "id" => "patterns",
-                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_ITEM),
+                "premium_url" => AdminLinkUtil::GetExpLink(AdminLinkSource::LIBRARY_ITEM),
                 "title" => esc_html__('Patterns', "superb-blocks"),
                 "routes" => array(
                     "list" => LibraryRequestController::GUTENBERG_V2_LIST_ROUTE,
@@ -236,7 +236,7 @@ class GutenbergController
             ),
             array(
                 "id" => "pages",
-                "premium_url" => AdminLinkUtil::GetLink(AdminLinkSource::LIBRARY_PAGE_ITEM),
+                "premium_url" => AdminLinkUtil::GetExpLink(AdminLinkSource::LIBRARY_PAGE_ITEM),
                 "title" => esc_html__('Pages', "superb-blocks"),
                 "routes" => array(
                     "list" => LibraryRequestController::GUTENBERG_V2_LIST_ROUTE,

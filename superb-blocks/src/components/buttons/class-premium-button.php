@@ -15,7 +15,7 @@ class PremiumButton
     {
         $attributes = array(
             'text' => __('Get Premium', "superb-blocks"),
-            'url' => AdminLinkUtil::GetLink($source, $options),
+            'url' => AdminLinkUtil::GetExpLink($source, $options),
             'class' => 'superb-addons-template-library-template-item-premium-btn superbaddons-element-button-pro superbaddons-element-flex1 superbaddons-item-premium-element',
             'target' => '_blank',
             'data' => array('superb-upsell-source' => $source),

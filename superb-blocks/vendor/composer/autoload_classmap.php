@@ -102,6 +102,7 @@ return array(
     'SuperbAddons\\Data\\Utils\\SettingsException' => $baseDir . '/src/data/utils/class-settings-exception.php',
     'SuperbAddons\\Data\\Utils\\ThemeInstaller' => $baseDir . '/src/data/utils/class-theme-installer.php',
     'SuperbAddons\\Data\\Utils\\ThemeInstallerException' => $baseDir . '/src/data/utils/class-theme-installer-exception.php',
+    'SuperbAddons\\Data\\Utils\\ThirdPartyCompatibilityUtil' => $baseDir . '/src/data/utils/class-third-party-compatibility-util.php',
     'SuperbAddons\\Data\\Utils\\Wizard\\AddonsPageTemplateUtil' => $baseDir . '/src/data/utils/class-addons-template-util.php',
     'SuperbAddons\\Data\\Utils\\Wizard\\WizardActionParameter' => $baseDir . '/src/data/utils/wizard/class-wizard-constants.php',
     'SuperbAddons\\Data\\Utils\\Wizard\\WizardCreationUtil' => $baseDir . '/src/data/utils/wizard/class-wizard-creation-util.php',
