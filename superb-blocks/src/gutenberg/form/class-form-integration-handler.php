@@ -385,18 +385,32 @@ class FormIntegrationHandler
                 $value = wp_json_encode($value);
             }
 
+            // Ensure unique column headers so two fields sharing a label don't collide
+            // when values are matched back to columns by header text below.
+            $base_label = $label;
+            $suffix = 2;
+            while (in_array($label, $header_labels, true)) {
+                $label = $base_label . ' (' . $suffix . ')';
+                $suffix++;
+            }
+
             $header_labels[] = $label;
             $row_values[] = (string) $value;
         }
 
-        $base_url = 'https://sheets.googleapis.com/v4/spreadsheets/' . urlencode($spreadsheet_id);
+        $base_url = 'https://sheets.googleapis.com/v4/spreadsheets/' . rawurlencode($spreadsheet_id);
         $auth_headers = array(
             'Authorization' => 'Bearer ' . $token,
             'Content-Type' => 'application/json',
         );
 
+        // A1 notation requires sheet names with spaces or special characters to be wrapped in
+        // single quotes (embedded quotes doubled). Use rawurlencode for path segments so a space
+        // becomes %20, not '+' (which is a literal plus in a URL path and would target the wrong sheet).
+        $quoted_sheet = "'" . str_replace("'", "''", $range) . "'";
+
         // Check if header row exists
-        $check_url = $base_url . '/values/' . urlencode($range . '!1:1');
+        $check_url = $base_url . '/values/' . rawurlencode($quoted_sheet . '!1:1');
         $check_response = wp_remote_get($check_url, array(
             'headers' => $auth_headers,
             'timeout' => 15,
@@ -445,21 +459,33 @@ class FormIntegrationHandler
             if (!empty($new_labels)) {
                 // Update the header row to include new columns
                 $updated_headers = array_merge($existing_headers, $new_labels);
-                $update_url = $base_url . '/values/' . urlencode($range . '!1:1') . '?valueInputOption=RAW';
-                wp_remote_request($update_url, array(
+                $update_url = $base_url . '/values/' . rawurlencode($quoted_sheet . '!1:1') . '?valueInputOption=RAW';
+                $update_response = wp_remote_request($update_url, array(
                     'method' => 'PUT',
                     'headers' => $auth_headers,
                     'body' => wp_json_encode(array('values' => array($updated_headers))),
                     'timeout' => 15,
                 ));
+
+                // If the header could not be extended, bail rather than appending values whose
+                // columns have no header, which would land permanently misaligned in the sheet.
+                if (is_wp_error($update_response)) {
+                    return array('sent' => false, 'error' => $update_response->get_error_message());
+                }
+                $update_code = wp_remote_retrieve_response_code($update_response);
+                if ($update_code < 200 || $update_code >= 300) {
+                    return array('sent' => false, 'error' => sprintf('Google Sheets API returned HTTP %d', $update_code));
+                }
+
                 $ordered_values = array_merge($ordered_values, $new_values);
             }
 
             $values_to_append[] = $ordered_values;
         }
 
-        // Append values
-        $append_url = $base_url . '/values/' . urlencode($range) . ':append?valueInputOption=USER_ENTERED';
+        // Append values. RAW (not USER_ENTERED) so submitted text is stored literally and a
+        // value beginning with = + - @ is never evaluated as a spreadsheet formula (CSV injection).
+        $append_url = $base_url . '/values/' . rawurlencode($quoted_sheet) . ':append?valueInputOption=RAW';
         $append_response = wp_remote_post($append_url, array(
             'headers' => $auth_headers,
             'body' => wp_json_encode(array('values' => $values_to_append)),

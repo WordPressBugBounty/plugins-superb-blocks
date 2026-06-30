@@ -311,9 +311,18 @@ class SettingsController
                 throw new SettingsException(__('Invalid client_email in the Service Account key.', 'superb-blocks'));
             }
 
+            // Validate the private key is a usable PEM key now, so a truncated/corrupt paste fails
+            // here with a clear message instead of later as "Failed to sign JWT" on submission.
+            if (function_exists('openssl_pkey_get_private') && openssl_pkey_get_private($private_key) === false) {
+                throw new SettingsException(__('The private_key in the Service Account JSON is not a valid key. Paste the entire JSON file.', 'superb-blocks'));
+            }
+
             // Store the extracted values
             FormSettings::Set(FormSettings::OPTION_GOOGLE_SHEETS_CLIENT_EMAIL, $client_email);
             FormSettings::Set(FormSettings::OPTION_GOOGLE_SHEETS_PRIVATE_KEY, $private_key);
+
+            // New credentials invalidate any access token cached from the previous key.
+            delete_transient('spb_google_token');
 
             return rest_ensure_response(array(
                 'success' => true,

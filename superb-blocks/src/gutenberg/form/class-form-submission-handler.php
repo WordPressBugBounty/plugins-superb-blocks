@@ -213,13 +213,33 @@ class FormSubmissionHandler
             return false;
         }
 
-        // Clean up associated uploaded files before deleting the post
+        // File cleanup is handled by OnDeletePost() on the before_delete_post
+        // hook, which wp_delete_post() fires below — and which also covers
+        // deletions that bypass this method.
+        return wp_delete_post($post_id, true) !== false;
+    }
+
+    /**
+     * Hook: before_delete_post — delete a submission's uploaded files.
+     *
+     * Single source of truth for stored-submission file cleanup. Fires for
+     * every permanent deletion of a submission, including those that bypass
+     * Delete() (WP admin "Delete Permanently", WP-CLI, trash auto-empty, other
+     * plugins). Meta is still readable at this point; wp_delete_post() removes
+     * it afterward.
+     *
+     * @param int      $post_id
+     * @param \WP_Post $post
+     */
+    public static function OnDeletePost($post_id, $post)
+    {
+        if (!$post || $post->post_type !== FormSubmissionCPT::POST_TYPE) {
+            return;
+        }
         $fields = get_post_meta($post_id, '_spb_form_fields', true);
         if (is_array($fields)) {
             FormFileHandler::DeleteSubmissionFiles($fields);
         }
-
-        return wp_delete_post($post_id, true) !== false;
     }
 
     /**

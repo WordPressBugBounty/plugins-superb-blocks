@@ -6,11 +6,12 @@ defined('ABSPATH') || exit();
 
 class LinkController
 {
-    const VARIANT_GROUP = 'modal-v1';
+    // Two upsell modal presentations: modal-direct (the standard layout) and
+    // modal-bonus (a compact layout with a lock icon and a discount callout).
+    const VARIANT_GROUP = 'modal-v2';
 
-    const VARIANT_LINKS = 'links';
-    const VARIANT_MODAL = 'modal';
     const VARIANT_MODAL_DIRECT = 'modal-direct';
+    const VARIANT_MODAL_BONUS = 'modal-bonus';
 
     const SEED_OPTION = 'superbaddons_pre_activation';
 
@@ -36,8 +37,8 @@ class LinkController
             return self::$cached;
         }
 
-        // active is unconditionally true: the test ships to every install.
-        // The JS link builder reads it to decide whether to append su_exp/su_var.
+        // active is unconditionally true for every install. The JS link builder
+        // reads it to decide whether to append the su_exp/su_var params.
         self::$cached = array(
             'active' => true,
             'group' => self::VARIANT_GROUP,
@@ -69,11 +70,16 @@ class LinkController
     }
 
     /**
-     * @return array { active: bool, group: string, variant: string }
+     * @return array { active: bool, group: string, variant: string, settingsLicenseUrl: string }
      */
     public static function GetJsConfig()
     {
-        return self::GetState();
+        $state = self::GetState();
+        // Destination for the bonus modal's "Already purchased?" link: the
+        // settings License & Account tab where users activate their key. Both
+        // modal shells read it off this localized global.
+        $state['settingsLicenseUrl'] = admin_url('admin.php?page=superbaddons-settings#license');
+        return $state;
     }
 
     public static function Localize($handle)
@@ -110,16 +116,12 @@ class LinkController
 
     private static function ComputeBucket()
     {
+        // Salted with the group name so this assignment is independent of the
+        // other seed-derived groupings (the earlier unsalted hash and the
+        // 'notice'-salted one).
         // abs() is required: crc32() returns a negative int on 32-bit PHP.
-        $bucket = abs(crc32(self::SeedValue())) % 3;
-        switch ($bucket) {
-            case 0:
-                return self::VARIANT_LINKS;
-            case 2:
-                return self::VARIANT_MODAL_DIRECT;
-            default:
-                return self::VARIANT_MODAL;
-        }
+        $bucket = abs(crc32(self::VARIANT_GROUP . '|' . self::SeedValue())) % 2;
+        return $bucket === 1 ? self::VARIANT_MODAL_BONUS : self::VARIANT_MODAL_DIRECT;
     }
 
     private static function SeedValue()

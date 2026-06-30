@@ -283,6 +283,9 @@ class SettingsPage
                                 </div>
                                 <button id="spbaddons-license-submit-btn" class="superbaddons-element-button" type="button" disabled><?php echo esc_html__('Add License Key', "superb-blocks"); ?></button>
                             </div>
+                            <p class="superbaddons-element-text-xs superbaddons-element-text-gray superbaddons-license-key-help">
+                                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::SETTINGS, array("url" => "https://superbthemes.com/license-key/"))); ?>" target="_blank" rel="noopener"><?php echo esc_html__("Where do I find my license key?", "superb-blocks"); ?></a>
+                            </p>
                         <?php endif; ?>
                         <div class="superbaddons-spinner-wrapper" style="display:none;">
                             <img class="spbaddons-spinner" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . "/img/blocks-spinner.svg"); ?>" />
@@ -542,8 +545,10 @@ class SettingsPage
                         <code class="superbaddons-input-api-key-masked"><?php echo esc_html($this->GoogleSheetsClientEmail); ?></code>
                         <button type="button" class="superbaddons-element-button spbaddons-admin-btn-danger superbaddons-element-button-sm superbaddons-input-api-key-remove-btn" id="superbaddons-google-sheets-key-remove-btn"><img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/trash-light.svg'); ?>" /><?php echo esc_html__("Disconnect", "superb-blocks"); ?></button>
                     </div>
+                    <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-gs-share-hint"><?php echo esc_html__("Share your spreadsheet with this email address (as an Editor) so it can add rows.", "superb-blocks"); ?></p>
                 <?php else : ?>
-                    <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-integration-card-description" style="flex:0;"><?php echo esc_html__("Append form submissions as rows to a Google spreadsheet.", "superb-blocks"); ?></p>
+                    <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-integration-card-description" style="flex:0;"><?php echo esc_html__("Append form submissions as rows to a Google spreadsheet.", "superb-blocks"); ?><button type="button" class="superbaddons-help-toggle" aria-label="<?php echo esc_attr__('Toggle help text', 'superb-blocks'); ?>">i</button></p>
+                    <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-help-text"><?php echo esc_html__("Create a Service Account in Google Cloud and enable the Google Sheets API, then create a JSON key for it and download the file. Paste the entire file contents here and click Connect. After connecting, share your spreadsheet with the service account email (shown once connected) as an Editor so it can add rows.", "superb-blocks"); ?></p>
                     <div class="superbaddons-input-api-key-input-row" style="flex:1;">
                         <textarea id="superbaddons-google-sheets-key-input" class="superbaddons-input-api-key-input" rows="3" placeholder="<?php echo esc_attr__("Paste Service Account JSON key", "superb-blocks"); ?>" autocomplete="off"></textarea>
                         <button type="button" class="superbaddons-element-button superbaddons-element-button-sm superbaddons-input-api-key-save-btn" id="superbaddons-google-sheets-key-save-btn" disabled><?php echo esc_html__("Connect", "superb-blocks"); ?></button>
@@ -624,7 +629,6 @@ class SettingsPage
     private function RenderFormsTabContent()
     {
         $configurable_roles = FormPermissions::GetConfigurableRoles();
-        $capabilities = FormPermissions::GetCapabilities();
         $access_control_enabled = FormAccessControl::IsEnabled();
 
         $cap_labels = array(

@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.5
+Stable tag: 4.0.6
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -332,6 +332,11 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 5. Theme Designer
 
 == Changelog ==
+= 4.0.6 =
+* Added an option to hide the character counter on form fields while keeping the character limit active.
+* Fixed form file uploads not being attached to admin notification emails. Files within a 10MB total are now attached, and larger files are noted in the email instead.
+* Fixed the Google Sheets Connect button not always enabling after pasting a Service Account JSON key.
+
 = 4.0.5 =
 * Fixed various block style settings not applying correctly for the Add to Cart block.
 * Fixed Table of Contents block not displaying content inside a template Content block correctly.

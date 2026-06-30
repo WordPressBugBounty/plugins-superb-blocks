@@ -151,16 +151,6 @@ class FormPermissions
     }
 
     /**
-     * Get the list of all capability names.
-     *
-     * @return array
-     */
-    public static function GetCapabilities()
-    {
-        return self::$capabilities;
-    }
-
-    /**
      * Get the current user's permissions as an associative array.
      * Used for JS localization.
      *

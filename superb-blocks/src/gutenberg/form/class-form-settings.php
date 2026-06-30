@@ -60,7 +60,10 @@ class FormSettings
         if ($value !== '' && self::IsSensitiveKey($key)) {
             $value = FormEncryption::Encrypt($value);
         }
-        update_option($key, $value);
+        // Secrets are only read in admin/REST and on form submission, never on front-end page
+        // loads, so keep them out of the autoloaded options set. Pass null for ordinary settings
+        // to preserve WordPress's default autoload behavior.
+        update_option($key, $value, self::IsSensitiveKey($key) ? false : null);
     }
 
     /**

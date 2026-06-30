@@ -34,6 +34,11 @@ class FormEmailHandler
             $fields
         );
 
+        // Annotate file fields with attach/too-large flags and collect the file
+        // paths that fit within the total email-attachment budget. BuildEmailBody
+        // reads the flags, so this must run before the body is built.
+        list($fields, $attachments) = self::PrepareAttachments($fields, $form_data);
+
         $body = self::BuildEmailBody($form_data, $fields);
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
@@ -74,7 +79,7 @@ class FormEmailHandler
 
         self::$last_mail_error = null;
         add_action('wp_mail_failed', array(__CLASS__, 'CaptureMailError'));
-        $result = wp_mail($to, $subject, $body, $headers);
+        $result = wp_mail($to, $subject, $body, $headers, $attachments);
         remove_action('wp_mail_failed', array(__CLASS__, 'CaptureMailError'));
 
         if ($post_id > 0) {
@@ -199,9 +204,16 @@ class FormEmailHandler
             $label_map[$entry['fieldId']] = $entry['label'];
         }
 
-        // Build sensitive field lookup to skip in email body
+        // Build sensitive field lookup to skip in email body. The sensitive
+        // toggle is unavailable for file and hidden fields, so a flag left over
+        // from a prior field type is treated as off. Those fields are shown,
+        // and files attached, like any other field.
         $sensitive_ids = array();
         foreach ($form_fields as $field_def) {
+            $field_type = isset($field_def['fieldType']) ? $field_def['fieldType'] : '';
+            if ($field_type === 'file' || $field_type === 'hidden') {
+                continue;
+            }
             if (!empty($field_def['sensitive']) && !empty($field_def['fieldId'])) {
                 $sensitive_ids[$field_def['fieldId']] = true;
             }
@@ -227,15 +239,34 @@ class FormEmailHandler
             }
             $label = esc_html(isset($label_map[$field_id]) ? $label_map[$field_id] : $field_id);
 
-            // File fields store an array of file metadata
+            // File fields store an array of file metadata. Attached files are
+            // listed by name; files that exceeded the attachment budget get a
+            // plain-text note (no admin URL, since it may be quoted in a reply
+            // to the submitter when Reply-To is mapped to their email).
             if (is_array($value)) {
-                $names = array();
+                // Only point the admin to the dashboard when submissions are
+                // stored. With storage off there is no submission to open, so an
+                // oversized file is gone once it misses the email; say no more.
+                $store_enabled = !empty($form_data['store_enabled']);
+                $parts = array();
                 foreach ($value as $file) {
-                    if (is_array($file) && isset($file['name'])) {
-                        $names[] = esc_html($file['name']);
+                    if (!is_array($file) || !isset($file['name'])) {
+                        continue;
+                    }
+                    $name = esc_html($file['name']);
+                    if (!empty($file['too_large'])) {
+                        $size_str = isset($file['size']) ? esc_html(self::FormatBytes($file['size'])) : '';
+                        $file_label = $size_str !== '' ? $name . ' (' . $size_str . ')' : $name;
+                        $parts[] = $store_enabled
+                            /* translators: %s: file name, optionally followed by its size in parentheses */
+                            ? sprintf(__('%s is too large to email. It is available in this form\'s submissions in your dashboard.', 'superb-blocks'), $file_label)
+                            /* translators: %s: file name, optionally followed by its size in parentheses */
+                            : sprintf(__('%s is too large to email.', 'superb-blocks'), $file_label);
+                    } else {
+                        $parts[] = $name;
                     }
                 }
-                $val = implode(', ', array_filter($names));
+                $val = implode('<br>', array_filter($parts));
                 if (empty($val)) {
                     continue;
                 }
@@ -251,6 +282,100 @@ class FormEmailHandler
         $content .= '<table style="width:100%;border-collapse:collapse;font-size:14px;">' . $rows . '</table>';
 
         return self::WrapInTemplate($content);
+    }
+
+    /**
+     * Decide which uploaded files can ride along as email attachments.
+     *
+     * Files are attached greedily in field order while the running total stays
+     * within the budget returned by GetMaxAttachmentBytes(). Each file's
+     * metadata array is annotated with 'attached' (bool) and, when a present
+     * file did not fit, 'too_large' (bool) so BuildEmailBody can render it.
+     * The per-field upload cap (fileSettings.maxFileSize) is intentionally NOT
+     * reused: it is per-file, while this budget bounds the whole message.
+     *
+     * @param array $fields    Submitted field data (field_id => value).
+     * @param array $form_data Form configuration (passed through to the filter).
+     * @return array list($fields, $attachment_paths)
+     */
+    private static function PrepareAttachments($fields, $form_data)
+    {
+        $max_total = self::GetMaxAttachmentBytes($form_data);
+        $attachments = array();
+        $used = 0;
+
+        // The only array-valued fields reaching here are file fields (multi-value
+        // fields are stringified during sanitization), and the sensitive toggle
+        // is never available for file fields, so no sensitive check is needed.
+        foreach ($fields as $field_id => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+            foreach ($value as $i => $file) {
+                if (!is_array($file) || empty($file['path'])) {
+                    continue;
+                }
+                $fields[$field_id][$i]['attached'] = false;
+                if (!file_exists($file['path'])) {
+                    continue;
+                }
+                $size = isset($file['size']) ? intval($file['size']) : 0;
+                if ($size <= 0) {
+                    $size = (int) filesize($file['path']);
+                }
+                if ($max_total > 0 && $size > 0 && ($used + $size) <= $max_total) {
+                    $attachments[] = $file['path'];
+                    $used += $size;
+                    $fields[$field_id][$i]['attached'] = true;
+                } else {
+                    $fields[$field_id][$i]['too_large'] = true;
+                }
+            }
+        }
+
+        return array($fields, $attachments);
+    }
+
+    /**
+     * Total byte budget for files attached to a single notification email.
+     *
+     * Defaults to 10MB, which clears the strict end of common mail-server
+     * limits after base64 inflation (~33%). Not a user-facing setting because
+     * the real ceiling is a property of the recipient's mail server; devs on a
+     * generous SMTP relay can raise it (or return 0 to disable attachments).
+     *
+     * @param array $form_data Form configuration, for per-form overrides.
+     * @return int Maximum total attachment size in bytes (0 disables).
+     */
+    private static function GetMaxAttachmentBytes($form_data)
+    {
+        $default = 10 * 1024 * 1024;
+        /**
+         * Filters the total attachment byte budget for form notification emails.
+         *
+         * @param int   $default   Default budget in bytes (10MB).
+         * @param array $form_data The form configuration for the submission.
+         */
+        $bytes = apply_filters('superbaddons_form_email_max_attachment_bytes', $default, $form_data);
+        return max(0, intval($bytes));
+    }
+
+    /**
+     * Format a byte count as a short human-readable size (e.g. "14MB").
+     *
+     * @param int|float $bytes
+     * @return string
+     */
+    private static function FormatBytes($bytes)
+    {
+        $bytes = floatval($bytes);
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 1) . 'MB';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024) . 'KB';
+        }
+        return intval($bytes) . 'B';
     }
 
     private static function WrapInTemplate($content)

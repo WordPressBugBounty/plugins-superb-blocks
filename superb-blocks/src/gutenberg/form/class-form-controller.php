@@ -64,6 +64,11 @@ class FormController
         FormSubmissionHandler::ScheduleRetentionPurge();
         add_action(FormSubmissionHandler::RETENTION_PURGE_HOOK, array('SuperbAddons\Gutenberg\Form\FormSubmissionHandler', 'PurgeOldSubmissions'));
 
+        // Clean up uploaded files whenever a submission is permanently deleted,
+        // including deletions that bypass FormSubmissionHandler::Delete() (WP
+        // admin, WP-CLI, trash auto-empty, other plugins).
+        add_action('before_delete_post', array('SuperbAddons\Gutenberg\Form\FormSubmissionHandler', 'OnDeletePost'), 10, 2);
+
         RestController::AddRoute(self::NONCE_ROUTE, array(
             'methods' => 'GET',
             'permission_callback' => '__return_true',
@@ -567,6 +572,15 @@ class FormController
 
         // Premium hook
         do_action('superbaddons_form_after_submit', $form_id, $sanitized_fields, $form_data);
+
+        // No submission post was stored (storage disabled, or Store() failed),
+        // so the uploaded files have no record tying them to anything and would
+        // otherwise orphan on disk forever. They have already served the
+        // notification email, integrations, and the premium hook above, so this
+        // is the last point at which they are needed. Clean them up now.
+        if ($submission_post_id === 0 && !empty($file_data)) {
+            FormFileHandler::DeleteSubmissionFiles($file_data);
+        }
 
         $response = array(
             'success' => true,
@@ -1826,7 +1840,10 @@ class FormController
         }
 
         $range = !empty($sheet_name) ? $sheet_name : 'Sheet1';
-        $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . urlencode($spreadsheet_id) . '/values/' . urlencode($range . '!A1');
+        // Single-quote the sheet name for A1 notation and rawurlencode the path segment, matching
+        // SendToGoogleSheets so the test exercises the same range the live append will use.
+        $quoted_sheet = "'" . str_replace("'", "''", $range) . "'";
+        $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . rawurlencode($spreadsheet_id) . '/values/' . rawurlencode($quoted_sheet . '!A1');
 
         $response = wp_remote_get($url, array(
             'headers' => array('Authorization' => 'Bearer ' . $token),

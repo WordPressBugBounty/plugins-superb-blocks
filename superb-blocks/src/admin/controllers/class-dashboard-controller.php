@@ -647,6 +647,10 @@ class DashboardController
                     "title" => esc_html__("Remove Brevo API Key", "superb-blocks"),
                     "content" => esc_html__("Are you sure you want to remove your Brevo API key? Forms using the Brevo integration will stop sending contacts until a new key is added.", "superb-blocks"),
                 ),
+                "remove_google_sheets_key" => array(
+                    "title" => esc_html__("Disconnect Google Sheets", "superb-blocks"),
+                    "content" => esc_html__("Are you sure you want to disconnect Google Sheets? Forms using the Google Sheets integration will stop appending rows until a new Service Account key is added.", "superb-blocks"),
+                ),
                 "remove_captcha_key" => array(
                     "title" => esc_html__("Remove CAPTCHA Keys", "superb-blocks"),
                     "content" => esc_html__("Are you sure you want to remove these CAPTCHA keys? Forms using this provider will fall back to basic spam protection.", "superb-blocks"),
@@ -683,6 +687,8 @@ class DashboardController
             "connect_label" => esc_html__("Connect", "superb-blocks"),
             "placeholder_mailchimp" => esc_attr__("Enter Mailchimp API key", "superb-blocks"),
             "placeholder_brevo" => esc_attr__("Enter Brevo API key", "superb-blocks"),
+            "placeholder_google_sheets" => esc_attr__("Paste Service Account JSON key", "superb-blocks"),
+            "gs_share_hint" => esc_html__("Share your spreadsheet with this email address (as an Editor) so it can add rows.", "superb-blocks"),
             "trash_icon_url" => esc_url(SUPERBADDONS_ASSETS_PATH . '/img/trash-light.svg'),
             "spinner_url" => esc_url(SUPERBADDONS_ASSETS_PATH . '/img/blocks-spinner.svg'),
             "captcha_saved" => esc_html__("CAPTCHA keys saved.", "superb-blocks"),

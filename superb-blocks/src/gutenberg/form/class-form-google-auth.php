@@ -91,6 +91,10 @@ class FormGoogleAuth
 
         $signing_input = implode('.', $segments);
 
+        if (!function_exists('openssl_sign')) {
+            return new \WP_Error('no_openssl', __('The OpenSSL PHP extension is required for Google Sheets.', 'superb-blocks'));
+        }
+
         $signature = '';
         $sign_result = openssl_sign($signing_input, $signature, $private_key, 'sha256WithRSAEncryption');
         if (!$sign_result) {

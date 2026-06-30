@@ -67,6 +67,10 @@
     "maxLength": {
       "type": "number"
     },
+    "showCharacterCounter": {
+      "type": "boolean",
+      "default": true
+    },
     "minValue": {
       "type": "number"
     },
