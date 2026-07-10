@@ -114,9 +114,9 @@ class SettingsController
             if (!isset($request['spbaddons_reason']) || empty($request['spbaddons_reason'])) throw new SettingsException(__('Unable to send feedback. No feedback provided.', "superb-blocks"));
 
             if ($request['spbaddons_reason'] === 'other' && isset($request['spbaddons_other'])) {
-                $message = sanitize_text_field(wp_unslash($request['spbaddons_other']));
+                $message = sanitize_text_field($request['spbaddons_other']);
             } else {
-                $message = sanitize_text_field(wp_unslash($request['spbaddons_reason']));
+                $message = sanitize_text_field($request['spbaddons_reason']);
             }
             LogController::SendFeedback($message);
 
@@ -242,8 +242,10 @@ class SettingsController
     private function SaveIntegrationKeyCallback($request)
     {
         try {
-            $integration = isset($request['integration']) ? sanitize_text_field(wp_unslash($request['integration'])) : '';
-            $api_key = isset($request['api_key']) ? wp_unslash($request['api_key']) : '';
+            // REST body params are already unslashed by core (WP_REST_Server::serve_request),
+            // so no wp_unslash here — a second pass would strip the \n escapes in pasted JSON keys.
+            $integration = isset($request['integration']) ? sanitize_text_field($request['integration']) : '';
+            $api_key = isset($request['api_key']) ? $request['api_key'] : '';
 
             // Google Sheets uses a JSON Service Account key
             if ($integration === 'google_sheets') {
@@ -339,7 +341,7 @@ class SettingsController
     private function RemoveIntegrationKeyCallback($request)
     {
         try {
-            $integration = isset($request['integration']) ? sanitize_text_field(wp_unslash($request['integration'])) : '';
+            $integration = isset($request['integration']) ? sanitize_text_field($request['integration']) : '';
 
             // Google Sheets has two option keys
             if ($integration === 'google_sheets') {
@@ -448,8 +450,8 @@ class SettingsController
     private function SaveDefaultEmailCallback($request)
     {
         try {
-            $from_name = isset($request['from_name']) ? sanitize_text_field(wp_unslash($request['from_name'])) : '';
-            $from_email = isset($request['from_email']) ? sanitize_email(wp_unslash($request['from_email'])) : '';
+            $from_name = isset($request['from_name']) ? sanitize_text_field($request['from_name']) : '';
+            $from_email = isset($request['from_email']) ? sanitize_email($request['from_email']) : '';
 
             // Validate email if provided
             if ($from_email !== '' && !is_email($from_email)) {
@@ -514,9 +516,9 @@ class SettingsController
     private function SaveCaptchaKeyCallback($request)
     {
         try {
-            $provider = isset($request['provider']) ? sanitize_text_field(wp_unslash($request['provider'])) : '';
-            $site_key = isset($request['site_key']) ? sanitize_text_field(wp_unslash($request['site_key'])) : '';
-            $secret_key = isset($request['secret_key']) ? sanitize_text_field(wp_unslash($request['secret_key'])) : '';
+            $provider = isset($request['provider']) ? sanitize_text_field($request['provider']) : '';
+            $site_key = isset($request['site_key']) ? sanitize_text_field($request['site_key']) : '';
+            $secret_key = isset($request['secret_key']) ? sanitize_text_field($request['secret_key']) : '';
 
             $keys = self::GetCaptchaOptionKeys($provider);
             if (!$keys) {
@@ -544,7 +546,7 @@ class SettingsController
     private function RemoveCaptchaKeyCallback($request)
     {
         try {
-            $provider = isset($request['provider']) ? sanitize_text_field(wp_unslash($request['provider'])) : '';
+            $provider = isset($request['provider']) ? sanitize_text_field($request['provider']) : '';
             $keys = self::GetCaptchaOptionKeys($provider);
             if (!$keys) {
                 throw new SettingsException(__('Invalid CAPTCHA provider.', 'superb-blocks'));
