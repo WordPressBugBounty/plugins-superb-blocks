@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.7
+Stable tag: 4.0.8
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -325,13 +325,17 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 
 
 == Screenshots ==
-1. Gutenberg Patterns
-2. Gutenberg Blocks
-3. Elementor Sections
-4. Editor Highlight
-5. Theme Designer
+1. Theme Designer
+2. Design Library
+3. Block Library
+4. Free Forms
+5. Animations
+6. Power Up Gutenberg
 
 == Changelog ==
+= 4.0.8 =
+* Fixed line breaks in the form confirmation email not being preserved in the email sent to the user.
+
 = 4.0.7 =
 * Fixed the Google Sheets JSON key not being accepted when containing newline characters.
 

@@ -136,7 +136,10 @@ class FormEmailHandler
             true // Escape for HTML email body
         );
 
-        $body = self::WrapInTemplate($message);
+        // The message is authored in a plain textarea, so its newlines carry the
+        // intended spacing. The body is sent as text/html, where newlines collapse
+        // to spaces, so convert them to <br> the way the editor preview does.
+        $body = self::WrapInTemplate(nl2br($message));
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
         // From name/email: form-level -> global default -> WordPress default
