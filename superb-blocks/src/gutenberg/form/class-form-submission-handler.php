@@ -472,6 +472,11 @@ class FormSubmissionHandler
                     'key' => '_spb_form_id',
                     'value' => sanitize_text_field($form_id),
                 ),
+                array(
+                    'key' => '_spb_form_status',
+                    'value' => 'spam',
+                    'compare' => '!=',
+                ),
             ),
         );
 

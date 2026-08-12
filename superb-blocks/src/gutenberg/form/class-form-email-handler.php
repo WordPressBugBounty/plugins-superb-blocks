@@ -305,6 +305,7 @@ class FormEmailHandler
     {
         $max_total = self::GetMaxAttachmentBytes($form_data);
         $attachments = array();
+        $used_names = array();
         $used = 0;
 
         // The only array-valued fields reaching here are file fields (multi-value
@@ -319,15 +320,36 @@ class FormEmailHandler
                     continue;
                 }
                 $fields[$field_id][$i]['attached'] = false;
-                if (!file_exists($file['path'])) {
+                // Stored paths may predate the randomized upload directory
+                $file_path = FormFileHandler::ResolveStoredPath($file['path']);
+                if ($file_path === '' || !file_exists($file_path)) {
                     continue;
                 }
                 $size = isset($file['size']) ? intval($file['size']) : 0;
                 if ($size <= 0) {
-                    $size = (int) filesize($file['path']);
+                    $size = (int) filesize($file_path);
                 }
                 if ($max_total > 0 && $size > 0 && ($used + $size) <= $max_total) {
-                    $attachments[] = $file['path'];
+                    // Attach under the original upload name (stored files carry
+                    // a random suffix). wp_mail supports name => path pairs on
+                    // WP 6.2+, which is this code path's version floor.
+                    $display = isset($file['name']) && $file['name'] !== '' ? $file['name'] : basename($file_path);
+                    if (isset($used_names[$display])) {
+                        // Suffix until unique. Generated names are registered
+                        // below like any other, so "name (2).ext" can collide
+                        // neither with a later duplicate nor with a file
+                        // genuinely named "name (2).ext".
+                        $base = $display;
+                        $dot = strrpos($base, '.');
+                        do {
+                            $used_names[$base]++;
+                            $display = $dot !== false
+                                ? substr($base, 0, $dot) . ' (' . $used_names[$base] . ')' . substr($base, $dot)
+                                : $base . ' (' . $used_names[$base] . ')';
+                        } while (isset($used_names[$display]));
+                    }
+                    $used_names[$display] = 1;
+                    $attachments[$display] = $file_path;
                     $used += $size;
                     $fields[$field_id][$i]['attached'] = true;
                 } else {

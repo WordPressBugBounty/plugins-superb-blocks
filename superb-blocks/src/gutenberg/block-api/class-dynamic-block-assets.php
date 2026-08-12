@@ -140,6 +140,15 @@ class DynamicBlockAssets
         );
         ScriptTranslations::Set('superbaddons-form');
 
+        /* Form-wide default message for empty required fields. */
+        if (!empty($attr['requiredMessage'])) {
+            $processor = new \WP_HTML_Tag_Processor($content);
+            if ($processor->next_tag('form')) {
+                $processor->set_attribute('data-required-message', sanitize_text_field($attr['requiredMessage']));
+                $content = $processor->get_updated_html();
+            }
+        }
+
         static $localized = false;
         if (!$localized) {
             $localized = true;

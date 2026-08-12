@@ -96,6 +96,10 @@
     "errorRetryLabel": {
       "type": "string"
     },
+    "requiredMessage": {
+      "type": "string",
+      "default": ""
+    },
     "summaryFieldsMode": {
       "type": "string"
     },

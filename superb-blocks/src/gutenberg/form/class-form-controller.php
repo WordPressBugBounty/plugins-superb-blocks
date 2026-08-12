@@ -462,7 +462,8 @@ class FormController
 
         // Validate submitted fields against server-side config
         $form_fields = isset($form_data['form_fields']) ? $form_data['form_fields'] : array();
-        $validation_result = FormFieldValidator::Validate($fields, $form_fields);
+        $default_required_message = isset($form_data['required_message']) ? $form_data['required_message'] : '';
+        $validation_result = FormFieldValidator::Validate($fields, $form_fields, $default_required_message);
         $fields = $validation_result['fields'];
 
         if (!empty($validation_result['errors'])) {
@@ -621,12 +622,14 @@ class FormController
 
         $result = FormSubmissionHandler::GetSubmissions($form_id, $page, $per_page, $status, $starred, $search, $date_after, $date_before);
 
-        // Include counts for filter tabs
+        // Include counts for the stats bar and filter tabs
         if (!empty($form_id)) {
-            $counts = FormSubmissionHandler::GetCount($form_id);
-            $result['count_total'] = $counts['total'];
-            $result['count_new'] = $counts['new'];
-            $result['count_read'] = $counts['total'] - $counts['new'];
+            $stats = FormSubmissionHandler::GetFormStats($form_id);
+            $result['count_total'] = $stats['total'];
+            $result['count_new'] = $stats['new'];
+            $result['count_read'] = $stats['total'] - $stats['new'];
+            $result['count_today'] = $stats['today'];
+            $result['count_week'] = $stats['this_week'];
         }
 
         // Load form config once (kept as array so downstream !empty()/is_array() checks stay safe)
@@ -682,6 +685,23 @@ class FormController
                 foreach ($sensitive_fields as $sfid) {
                     if (isset($sub['fields'][$sfid]) && is_string($sub['fields'][$sfid]) && $sub['fields'][$sfid] !== '') {
                         $sub['fields'][$sfid] = str_repeat("\xE2\x80\xA2", 8);
+                    }
+                }
+            }
+            // File fields: expose only display metadata. The stored server path
+            // and direct URL stay server-side; downloads go through the
+            // permission-checked file download route.
+            foreach ($sub['fields'] as $ffid => $fvalue) {
+                if (!is_array($fvalue)) {
+                    continue;
+                }
+                foreach ($fvalue as $fi => $fmeta) {
+                    if (is_array($fmeta)) {
+                        $sub['fields'][$ffid][$fi] = array(
+                            'name' => isset($fmeta['name']) ? $fmeta['name'] : '',
+                            'size' => isset($fmeta['size']) ? $fmeta['size'] : 0,
+                            'type' => isset($fmeta['type']) ? $fmeta['type'] : '',
+                        );
                     }
                 }
             }
@@ -842,7 +862,8 @@ class FormController
     public static function GetSubmissionsCountCallback($request)
     {
         $form_id = isset($request['form_id']) ? sanitize_text_field($request['form_id']) : '';
-        $count = FormSubmissionHandler::GetCount($form_id);
+        // GetFormStats requires a form id; without one, fall back to the plain all-forms count.
+        $count = !empty($form_id) ? FormSubmissionHandler::GetFormStats($form_id) : FormSubmissionHandler::GetCount($form_id);
         $count['form_exists'] = FormRegistry::Get($form_id) !== null;
         return rest_ensure_response($count);
     }
@@ -1468,6 +1489,7 @@ class FormController
                 ? array_map('intval', $attrs['brevoListIds'])
                 : array(),
             'form_fields' => isset($attrs['formFields']) && is_array($attrs['formFields']) ? $attrs['formFields'] : array(),
+            'required_message' => isset($attrs['requiredMessage']) && is_string($attrs['requiredMessage']) ? sanitize_text_field($attrs['requiredMessage']) : '',
             'store_spam_enabled' => isset($attrs['storeSpamEnabled']) ? (bool) $attrs['storeSpamEnabled'] : false,
             // Webhook
             'webhook_enabled' => isset($attrs['webhookEnabled']) ? (bool) $attrs['webhookEnabled'] : false,

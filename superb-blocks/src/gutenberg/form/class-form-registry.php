@@ -158,23 +158,35 @@ class FormRegistry
                 // Recurse into form-step to find form-field blocks
                 if (!empty($inner['innerBlocks'])) {
                     foreach ($inner['innerBlocks'] as $step_inner) {
-                        if (
-                            isset($step_inner['blockName']) && $step_inner['blockName'] === self::FIELD_BLOCK_NAME
-                            && !empty($step_inner['attrs']['fieldId'])
-                        ) {
+                        if (self::IsConfigField($step_inner)) {
                             $form_fields[] = $step_inner['attrs'];
                         }
                     }
                 }
-            } elseif (
-                isset($inner['blockName']) && $inner['blockName'] === self::FIELD_BLOCK_NAME
-                && !empty($inner['attrs']['fieldId'])
-            ) {
+            } elseif (self::IsConfigField($inner)) {
                 $form_fields[] = $inner['attrs'];
             }
         }
 
         return $form_fields;
+    }
+
+    /**
+     * Whether an inner block is a form-field that belongs in the form config.
+     * Content fields are static text — they render no input and submit no value,
+     * so validation, emails, submissions, exports, and integrations must never
+     * see them. Excluding them here covers all of those in one place.
+     */
+    private static function IsConfigField($block)
+    {
+        if (!isset($block['blockName']) || $block['blockName'] !== self::FIELD_BLOCK_NAME) {
+            return false;
+        }
+        if (empty($block['attrs']['fieldId'])) {
+            return false;
+        }
+        $type = isset($block['attrs']['fieldType']) ? $block['attrs']['fieldType'] : 'text';
+        return $type !== 'content';
     }
 
     /**

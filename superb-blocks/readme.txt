@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 4.0.8
+Stable tag: 4.0.9
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -40,7 +40,7 @@ The last WordPress plugin you’ll ever need. Unlock free forms, powerful Gutenb
 
 Superb Addons includes a powerful free form builder that lets you create contact forms, newsletter signup forms, feedback forms, support forms, RSVP forms, booking request forms, quote request forms, and multi-step forms.
 
-[Create forms for free](https://superbthemes.com/features/forms/) using a wide range of field types including email fields, textareas, number fields, calculated fields, sliders, dropdowns, radio buttons, checkboxes, rating fields, file uploads, date pickers, time pickers, color pickers, signature fields, phone fields, URL fields, and more. Customize placeholders, default values, validation rules, regex patterns, field widths, success messages, error messages, and submission behavior.
+[Create forms for free](https://superbthemes.com/features/forms/) using a wide range of field types including email fields, textareas, number fields, calculated fields, sliders, dropdowns, radio buttons, checkboxes, consent checkboxes, rating fields, file uploads, date pickers, time pickers, color pickers, signature fields, phone fields, URL fields, content fields, and more. Customize placeholders, default values, validation rules, regex patterns, field widths, success messages, error messages, and submission behavior.
 
 Superb Forms also includes integrations for Mailchimp, Brevo, Google Sheets, Slack, and webhooks, making it easy to connect your forms to newsletters, automations, CRMs, and workflows. Protect your forms with built-in anti-spam tools like Honeypot, hCaptcha, reCAPTCHA v2/v3, and Cloudflare Turnstile.
 
@@ -333,6 +333,16 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.0.9 =
+* Added a Consent field type for forms. A single checkbox, required by default, with rich text next to it that can link to pages like your Terms and Conditions or Privacy Policy. Works with conditional logic, so other fields can be shown or hidden based on whether it is checked.
+* Added a Content field type for forms. Place text with links, bold, and italic anywhere between your form fields for instructions, section intros, or legal notes. Content fields are display-only.
+* Added support for links, bold, and italic in form field help text.
+* Added a setting to customize the error message shown for empty required form fields, either per field or as a default for the whole form.
+* Added common video and audio file types (MP4, MOV, WebM, AVI, MKV, MPG, WMV, M4V, MP3, WAV, M4A, OGG, FLAC) to the Accepted File Types picker for form File Upload fields.
+* The Max File Size setting for File Upload fields now follows your server's upload limit instead of a fixed cap, and oversized uploads show a clearer error message.
+* Uploaded files from the File Upload fields can now be downloaded from the submission panel in the forms dashboard.
+* Fixed special characters such as ampersands displaying incorrectly in form field help text.
+
 = 4.0.8 =
 * Fixed line breaks in the form confirmation email not being preserved in the email sent to the user.
 

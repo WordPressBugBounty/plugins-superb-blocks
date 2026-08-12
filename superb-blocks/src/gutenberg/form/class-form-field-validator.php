@@ -11,9 +11,10 @@ class FormFieldValidator
      *
      * @param array $submitted_fields field_id => value from submission
      * @param array $form_fields_config Array of field attribute arrays from form config
+     * @param string $default_required_message Form-wide message for empty required fields, '' for the localized default
      * @return array ('fields' => cleaned fields, 'errors' => field_id => error message)
      */
-    public static function Validate($submitted_fields, $form_fields_config)
+    public static function Validate($submitted_fields, $form_fields_config, $default_required_message = '')
     {
         // Build lookup: fieldId => config
         $config_lookup = array();
@@ -45,7 +46,7 @@ class FormFieldValidator
 
             // File fields: validate via FormFileHandler (separate from text validation)
             if ($field_type === 'file') {
-                $file_error = FormFileHandler::ValidateFiles($field_config);
+                $file_error = FormFileHandler::ValidateFiles($field_config, $default_required_message);
                 if ($file_error !== '') {
                     $errors[$field_id] = $file_error;
                 }
@@ -62,7 +63,7 @@ class FormFieldValidator
                 continue;
             }
 
-            $error = self::ValidateField($value, $field_config);
+            $error = self::ValidateField($value, $field_config, $default_required_message);
 
             /**
              * Filter the validation error for a field.
@@ -90,16 +91,17 @@ class FormFieldValidator
      *
      * @param string $value Submitted value
      * @param array $config Field config array
+     * @param string $default_required_message Form-wide message for empty required fields, '' for the localized default
      * @return string Error message, empty if valid
      */
-    private static function ValidateField($value, $config)
+    private static function ValidateField($value, $config, $default_required_message = '')
     {
         $field_type = isset($config['fieldType']) ? $config['fieldType'] : 'text';
         $required = !empty($config['required']);
 
         // Required check
         if ($required && ($value === '' || $value === null)) {
-            return __('This field is required.', 'superb-blocks');
+            return self::GetRequiredMessage($config, $default_required_message);
         }
 
         // Skip further validation if empty and not required
@@ -131,6 +133,12 @@ class FormFieldValidator
 
             case 'checkbox':
                 return self::ValidateCheckbox($value, $config);
+
+            case 'consent':
+                // Only the fixed marker value is legitimate ("Checked" — kept
+                // in English so stored submissions and exports are stable
+                // across locales). Anything else is a forged submission.
+                return $value === 'Checked' ? '' : __('Invalid selection.', 'superb-blocks');
 
             case 'date':
                 return self::ValidateDate($value, $config);
@@ -608,6 +616,26 @@ class FormFieldValidator
 
         // Invalid regex or match: pass
         return '';
+    }
+
+    /**
+     * Resolve the error message for an empty required field.
+     * Field-level override wins, then the form-wide default, then the localized fallback.
+     * Also used by FormFileHandler so file fields resolve identically.
+     *
+     * @param array $config Field config array
+     * @param string $default_required_message Form-wide default, '' when not set
+     * @return string
+     */
+    public static function GetRequiredMessage($config, $default_required_message = '')
+    {
+        if (isset($config['requiredMessage']) && is_string($config['requiredMessage']) && $config['requiredMessage'] !== '') {
+            return sanitize_text_field($config['requiredMessage']);
+        }
+        if (is_string($default_required_message) && $default_required_message !== '') {
+            return $default_required_message;
+        }
+        return __('This field is required.', 'superb-blocks');
     }
 
     /**

@@ -10,6 +10,7 @@ use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\Option;
 use SuperbAddons\Gutenberg\Controllers\GutenbergEnhancementsController;
 use SuperbAddons\Library\Controllers\FavoritesController;
+use SuperbAddons\Gutenberg\Form\FormFileHandler;
 use SuperbAddons\Gutenberg\Form\FormGoogleAuth;
 use SuperbAddons\Gutenberg\Form\FormRegistry;
 use SuperbAddons\Gutenberg\Form\FormSettings;
@@ -155,6 +156,14 @@ class PluginResetController
             if (!empty($submission_ids)) {
                 FormSubmissionHandler::BulkDelete($submission_ids);
             }
+            // Remove the upload directory trees (scaffolding, empty date
+            // subdirs, and any files orphaned by crashed requests), then
+            // retire the randomized directory token; the next upload mints a
+            // fresh directory. Both are kept when submissions are kept, since
+            // stored file paths live under the current token's directory.
+            // Directory removal must run before the token option is deleted.
+            FormFileHandler::DeleteUploadDirectories();
+            delete_option(FormFileHandler::UPLOAD_DIR_TOKEN_OPTION);
         }
 
         return true;

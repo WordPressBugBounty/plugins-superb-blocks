@@ -2,34 +2,45 @@
 
 namespace SuperbAddons\Data\Controllers;
 
+use SuperbAddons\Admin\Utils\AdminLinkSource;
+
 defined('ABSPATH') || exit();
 
 class LinkController
 {
-    // Two upsell modal presentations: modal-direct (the standard layout) and
-    // modal-bonus (a compact layout with a lock icon and a discount callout).
-    const VARIANT_GROUP = 'modal-v2';
-
-    const VARIANT_MODAL_DIRECT = 'modal-direct';
-    const VARIANT_MODAL_BONUS = 'modal-bonus';
+    // Upsell modal presentation buckets: two independent toggles on the rich
+    // modal layout, reported together as one variant string.
+    // - bonus: a discount line rendered under the modal footer.
+    // - cta: the modal CTA label wording.
+    const VARIANT_GROUP = 'modal-v3';
+    const BONUS_SALT = 'modal-v3-bonus';
+    const CTA_SALT = 'modal-v3-cta';
 
     const SEED_OPTION = 'superbaddons_pre_activation';
 
-    // Delayed admin notice
+    // Delayed admin notice content buckets
     // Bucketed independently
-    const NOTICE_GROUP = 'notice-v1';
-    const NOTICE_VARIANT_CONTROL = 'notice';
-    const NOTICE_VARIANT_ADV = 'notice-adv';
-    const NOTICE_SALT = 'notice';
+    const NOTICE_GROUP = 'notice-v2';
+    const NOTICE_SALT = 'notice-v2';
+    const NOTICE_VARIANT_DISCOUNT = 'discount';
+    const NOTICE_VARIANT_BENEFITS = 'benefits';
 
-    const NOTICE_FILE_CONTROL = 'addons-notice.php';
-    const NOTICE_FILE_ADV = 'addons-notice-adv.php';
+    const NOTICE_FILE_DISCOUNT = 'addons-notice.php';
+    const NOTICE_FILE_BENEFITS = 'addons-notice-benefits.php';
+
+    // Admin navigation CTA buckets: direct link vs opening the upsell modal
+    // Bucketed independently
+    const NAV_GROUP = 'nav-v1';
+    const NAV_SALT = 'nav-v1';
+    const NAV_VARIANT_DIRECT = 'nav-direct';
+    const NAV_VARIANT_MODAL = 'nav-modal';
 
     private static $cached = null;
     private static $notice_variant = null;
+    private static $nav_variant = null;
 
     /**
-     * @return array { active: bool, group: string, variant: string }
+     * @return array { active: bool, group: string, variant: string, bonusLine: bool, ctaAll: bool }
      */
     public static function GetState()
     {
@@ -37,12 +48,17 @@ class LinkController
             return self::$cached;
         }
 
+        $bonus_line = self::Bucket(self::BONUS_SALT) === 1;
+        $cta_all = self::Bucket(self::CTA_SALT) === 1;
+
         // active is unconditionally true for every install. The JS link builder
         // reads it to decide whether to append the su_exp/su_var params.
         self::$cached = array(
             'active' => true,
             'group' => self::VARIANT_GROUP,
-            'variant' => self::ComputeBucket(),
+            'variant' => ($bonus_line ? 'bonus' : 'plain') . '-' . ($cta_all ? 'all' : 'prem'),
+            'bonusLine' => $bonus_line,
+            'ctaAll' => $cta_all,
         );
         return self::$cached;
     }
@@ -58,6 +74,9 @@ class LinkController
         if ($experiment === 'notice') {
             return self::GetNoticeExpArgs();
         }
+        if ($experiment === 'nav') {
+            return self::GetNavExpArgs();
+        }
 
         $state = self::GetState();
         if (empty($state['active'])) {
@@ -70,15 +89,20 @@ class LinkController
     }
 
     /**
-     * @return array { active: bool, group: string, variant: string, settingsLicenseUrl: string }
+     * @return array { active, group, variant, bonusLine, ctaAll, sourceExperiments }
      */
     public static function GetJsConfig()
     {
         $state = self::GetState();
-        // Destination for the bonus modal's "Already purchased?" link: the
-        // settings License & Account tab where users activate their key. Both
-        // modal shells read it off this localized global.
-        $state['settingsLicenseUrl'] = admin_url('admin.php?page=superbaddons-settings#license');
+        // Links built for these sources report their own group/variant instead
+        // of the modal group, so each surface's clicks stay attributable to the
+        // surface they came from.
+        $state['sourceExperiments'] = array(
+            AdminLinkSource::NAVIGATION_CTA => array(
+                'group' => self::NAV_GROUP,
+                'variant' => self::GetNavVariant(),
+            ),
+        );
         return $state;
     }
 
@@ -93,17 +117,17 @@ class LinkController
             return self::$notice_variant;
         }
 
-        // Salt the seed so the buckets are independent
-        $bucket = abs(crc32(self::NOTICE_SALT . '|' . self::SeedValue())) % 2;
-        self::$notice_variant = $bucket === 1 ? self::NOTICE_VARIANT_ADV : self::NOTICE_VARIANT_CONTROL;
+        self::$notice_variant = self::Bucket(self::NOTICE_SALT) === 1
+            ? self::NOTICE_VARIANT_BENEFITS
+            : self::NOTICE_VARIANT_DISCOUNT;
         return self::$notice_variant;
     }
 
     public static function GetNoticeContentFile()
     {
-        return self::GetNoticeVariant() === self::NOTICE_VARIANT_ADV
-            ? self::NOTICE_FILE_ADV
-            : self::NOTICE_FILE_CONTROL;
+        return self::GetNoticeVariant() === self::NOTICE_VARIANT_BENEFITS
+            ? self::NOTICE_FILE_BENEFITS
+            : self::NOTICE_FILE_DISCOUNT;
     }
 
     public static function GetNoticeExpArgs()
@@ -114,14 +138,37 @@ class LinkController
         );
     }
 
-    private static function ComputeBucket()
+    public static function GetNavVariant()
     {
-        // Salted with the group name so this assignment is independent of the
-        // other seed-derived groupings (the earlier unsalted hash and the
-        // 'notice'-salted one).
-        // abs() is required: crc32() returns a negative int on 32-bit PHP.
-        $bucket = abs(crc32(self::VARIANT_GROUP . '|' . self::SeedValue())) % 2;
-        return $bucket === 1 ? self::VARIANT_MODAL_BONUS : self::VARIANT_MODAL_DIRECT;
+        if (self::$nav_variant !== null) {
+            return self::$nav_variant;
+        }
+
+        self::$nav_variant = self::Bucket(self::NAV_SALT) === 1
+            ? self::NAV_VARIANT_MODAL
+            : self::NAV_VARIANT_DIRECT;
+        return self::$nav_variant;
+    }
+
+    public static function NavOpensModal()
+    {
+        return self::GetNavVariant() === self::NAV_VARIANT_MODAL;
+    }
+
+    public static function GetNavExpArgs()
+    {
+        return array(
+            'su_exp' => self::NAV_GROUP,
+            'su_var' => self::GetNavVariant(),
+        );
+    }
+
+    // Salted per bucket so each assignment is independent of the other
+    // seed-derived groupings (including earlier salts on the same seed).
+    // abs() is required: crc32() returns a negative int on 32-bit PHP.
+    private static function Bucket($salt)
+    {
+        return abs(crc32($salt . '|' . self::SeedValue())) % 2;
     }
 
     private static function SeedValue()

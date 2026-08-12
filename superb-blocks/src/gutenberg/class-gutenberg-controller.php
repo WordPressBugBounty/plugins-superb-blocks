@@ -28,6 +28,7 @@ use SuperbAddons\Gutenberg\Form\FormAccessControl;
 use SuperbAddons\Gutenberg\Form\FormController;
 use SuperbAddons\Gutenberg\Form\FormEmailConfigCheck;
 use SuperbAddons\Gutenberg\Form\FormEncryption;
+use SuperbAddons\Gutenberg\Form\FormFileHandler;
 use SuperbAddons\Gutenberg\Form\FormPermissions;
 use SuperbAddons\Gutenberg\Form\FormRegistry;
 use SuperbAddons\Gutenberg\Import\GutenbergBlockIdRegenerator;
@@ -438,30 +439,13 @@ class GutenbergController
                 'canCreate' => $ac_enabled ? FormPermissions::Can('create') : true,
                 'sensitiveAttrs' => FormAccessControl::GetSensitiveAttrs(),
             ),
-            // Picker for the file-field accept whitelist. Must stay in sync with
-            // FormFileHandler::HasDangerousExtension server-side deny-list:
-            // anything denied there must be omitted here so editors cannot pick
-            // an extension whose uploads will be rejected. SVG is excluded
-            // because it is XML and can host inline <script>.
-            'allowedFileTypes' => array(
-                // Images
-                array('ext' => '.jpg',  'label' => 'JPG',  'mime' => 'image/jpeg'),
-                array('ext' => '.jpeg', 'label' => 'JPEG', 'mime' => 'image/jpeg'),
-                array('ext' => '.png',  'label' => 'PNG',  'mime' => 'image/png'),
-                array('ext' => '.gif',  'label' => 'GIF',  'mime' => 'image/gif'),
-                array('ext' => '.webp', 'label' => 'WebP', 'mime' => 'image/webp'),
-                // Documents
-                array('ext' => '.pdf',  'label' => 'PDF',  'mime' => 'application/pdf'),
-                array('ext' => '.doc',  'label' => 'DOC',  'mime' => 'application/msword'),
-                array('ext' => '.docx', 'label' => 'DOCX', 'mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
-                array('ext' => '.txt',  'label' => 'TXT',  'mime' => 'text/plain'),
-                // Spreadsheets
-                array('ext' => '.xls',  'label' => 'XLS',  'mime' => 'application/vnd.ms-excel'),
-                array('ext' => '.xlsx', 'label' => 'XLSX', 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
-                array('ext' => '.csv',  'label' => 'CSV',  'mime' => 'text/csv'),
-                // Archives
-                array('ext' => '.zip',  'label' => 'ZIP',  'mime' => 'application/zip'),
-            ),
+            // Picker for the file-field accept whitelist. Sourced from
+            // FormFileHandler so the editor list, server-side validation, and
+            // the superbaddons_form_allowed_file_types filter stay in sync;
+            // deny-listed extensions are stripped there so editors cannot pick
+            // an extension whose uploads will be rejected.
+            'allowedFileTypes' => FormFileHandler::GetAllowedFileTypes(),
+            'maxUploadSizeMb' => max(1, (int) floor(wp_max_upload_size() / (1024 * 1024))),
         ), JSON_HEX_TAG) . ';', 'before');
 
         // Popup registry — pass registered popups to the block editor

@@ -846,6 +846,7 @@ class DashboardController
                     "submissions_notes_delete" => '/form/submissions/{id}/notes/{index}',
                     "fields_save" => \SuperbAddons\Gutenberg\Form\FormController::FIELDS_SAVE_ROUTE,
                     "fields_get" => '/form/fields/{form_id}',
+                    "file_download" => '/form/submissions/{id}/file/{field_id}/{index}',
                     "submissions_count" => \SuperbAddons\Gutenberg\Form\FormController::SUBMISSIONS_COUNT_ROUTE,
                 )
             ),
