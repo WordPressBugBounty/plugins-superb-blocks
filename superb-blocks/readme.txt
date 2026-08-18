@@ -2,9 +2,9 @@
 Contributors: SuPlugins, superbaddons
 Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 4.0.9
+Stable tag: 4.1.0
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -262,7 +262,7 @@ If you need help, then please contact our support or look through our docs. We�
 - **Visit Our Documentation**: [SuperbThemes Documentation](https://superbthemes.com/documentation/)
 - **Contact Our Support Team**: [Support Page](https://superbthemes.com/contact/) 
 - **Explore WordPress Block Documentation**: [WordPress Block Guide](https://wordpress.com/support/wordpress-editor/blocks/) 
-- **Learn the Block Editor**: [Block Editor Tutorial](https://www.youtube.com/watch?v=yQ8JBM3Sb5c) 
+- **Learn the Block Editor**: [Block Editor Tutorial](https://www.youtube.com/watch?v=yQ8JBM3Sb5c)
 
 
 == Frequently Asked Questions ==
@@ -281,7 +281,11 @@ No it won't. We continually optimize Superb Addons to maintain top-notch perform
 
 = Is Superb Addons GDPR compatible? =
 
-Yes, we've made sure the plugin doesn't break any GDPR or privacy laws, so you can safely use it if you live in Europe. 
+Yes, we've made sure the plugin doesn't break any GDPR or privacy laws, so you can safely use it if you live in Europe. The plugin sends no personal information about you or your visitors to us — no account or registration is required, and form submissions are stored in your own WordPress database, with optional data retention controls that can automatically delete them after a chosen amount of time. Third-party services like captchas and form integrations are only ever contacted if you enable them yourself — see "Does Superb Addons connect to any external services?" below.
+
+= Does Superb Addons connect to any external services? =
+
+Only when you actively use a feature that requires it — no data is sent by simply installing or activating the plugin. Design Library and pattern content is fetched from our own API at [superbthemes.com](https://superbthemes.com/) (fallback: superbdemo.com — [Terms](https://superbthemes.com/terms-of-service/), [Privacy](https://superbthemes.com/privacy-policy/)). No account, registration, or API key is required for this, and no personal information about you, your visitors, or your site content is sent — it's a standard web request from your server, like fetching any web page. If you protect a form with a captcha or connect it to a service using your own API keys or webhook URL, the data needed for that feature (captcha tokens or the submitted form fields) is exchanged with the service you chose: [hCaptcha](https://www.hcaptcha.com/) ([Terms](https://www.hcaptcha.com/terms), [Privacy](https://www.hcaptcha.com/privacy)), [Google reCAPTCHA](https://www.google.com/recaptcha/about/) ([Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)), [Cloudflare Turnstile](https://www.cloudflare.com/application-services/products/turnstile/) ([Terms](https://www.cloudflare.com/website-terms/), [Privacy](https://www.cloudflare.com/privacypolicy/)), [Mailchimp](https://mailchimp.com/) ([Terms](https://mailchimp.com/legal/terms/), [Privacy](https://www.intuit.com/privacy/statement/)), [Brevo](https://www.brevo.com/) ([Terms](https://www.brevo.com/legal/termsofuse/), [Privacy](https://www.brevo.com/legal/privacypolicy/)), [Google Sheets](https://workspace.google.com/products/sheets/) ([Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)), [Slack](https://slack.com/) ([Terms](https://slack.com/terms-of-service), [Privacy](https://slack.com/privacy-policy)), or a custom webhook URL you configure yourself.
 
 = What features are you working on? =
 
@@ -320,7 +324,7 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 - **Gutenberg, Block Editor and FSE Fans**: Extend the functionality of the block editor with advanced tools and features.  
 - **Page Builder Users**: Seamlessly enhance popular page builders like Elementor with additional functionality.  
 - **Anyone Who Needs to Add Custom CSS**: Add lightweight, optimized custom CSS without compromising speed.  
-- **People Who Need a Responsive Website**: Ensure your website looks flawless on any device with responsive block controls.  
+- **People Who Need a Responsive Website**: Ensure your website looks flawless on any device with responsive block controls.
 
 
 
@@ -333,6 +337,15 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.1.0 =
+* Added compatibility with WordPress 7.1, with full support for custom navigation overlays.
+* Navigation submenu styles (Card, Separators, Liquid Background) now preview live in the editor.
+* The Desktop Submenus settings are now also available when a Submenu block is selected.
+* The Overlay Menu settings now show a short note when they don't apply instead of inactive controls.
+* Fixed desktop submenu styles not applying for hover-opened, always-visible, or overlay-off navigation menus.
+* Fixed overlay menu justification affecting the desktop menu and skipping page lists and wrapped labels.
+* Fixed spacing issues in the collapsible overlay menu and refined the Liquid Background effect.
+
 = 4.0.9 =
 * Added a Consent field type for forms. A single checkbox, required by default, with rich text next to it that can link to pages like your Terms and Conditions or Privacy Policy. Works with conditional logic, so other fields can be shown or hidden based on whether it is checked.
 * Added a Content field type for forms. Place text with links, bold, and italic anywhere between your form fields for instructions, section intros, or legal notes. Content fields are display-only.

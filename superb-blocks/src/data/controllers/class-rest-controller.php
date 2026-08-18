@@ -50,6 +50,12 @@ class RestController
             if (!isset($response['headers']) || (isset($response['headers']['server']) && strpos($response['headers']['server'], 'imunify360') !== false)) {
                 return false;
             }
+            // Security layers such as imunify360 WebShield intercept requests with an HTML challenge page served as HTTP 200,
+            // without identifying themselves in the server header. Our API endpoints never return text/html,
+            // so treat it as an unacceptable connection to trigger the domain fallback.
+            if (isset($response['headers']['content-type']) && is_string($response['headers']['content-type']) && stripos($response['headers']['content-type'], 'text/html') !== false) {
+                return false;
+            }
             return true;
         }
 

@@ -421,6 +421,7 @@ class SettingsPage
                             $this->RenderGoogleSheetsCard();
                             $this->RenderCaptchaCard('hcaptcha', __('hCaptcha', 'superb-blocks'), __('Privacy-focused challenge widget for your forms.', 'superb-blocks'), $this->HcaptchaConfigured, $this->HcaptchaSiteKey, $this->HcaptchaMaskedSecret, 'https://dashboard.hcaptcha.com/signup', __('Get keys from hCaptcha Dashboard', 'superb-blocks'));
                             $this->RenderCaptchaCard('recaptcha', __('reCAPTCHA (Google)', 'superb-blocks'), __('Works with both reCAPTCHA v2 and v3 for your forms.', 'superb-blocks'), $this->RecaptchaConfigured, $this->RecaptchaSiteKey, $this->RecaptchaMaskedSecret, 'https://www.google.com/recaptcha/admin', __('Get keys from Google reCAPTCHA', 'superb-blocks'));
+                            // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- External link to the Cloudflare dashboard where site owners create their Turnstile keys. No assets are loaded from this URL.
                             $this->RenderCaptchaCard('turnstile', __('Cloudflare Turnstile', 'superb-blocks'), __('Non-intrusive Cloudflare challenge for your forms.', 'superb-blocks'), $this->TurnstileConfigured, $this->TurnstileSiteKey, $this->TurnstileMaskedSecret, 'https://dash.cloudflare.com/?to=:/turnstile', __('Get keys from Cloudflare Dashboard', 'superb-blocks'));
                             ?>
                         </div>

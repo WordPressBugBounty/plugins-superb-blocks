@@ -77,6 +77,7 @@ class FormCaptchaHandler
             return __('Turnstile is not configured.', 'superb-blocks');
         }
 
+        // phpcs:ignore PluginCheck.CodeAnalysis.Offloading.OffloadedContent -- Server-to-server Turnstile token verification required by the Cloudflare Turnstile API. No assets are loaded from this URL.
         $response = wp_remote_post('https://challenges.cloudflare.com/turnstile/v0/siteverify', array(
             'body' => array(
                 'secret' => $secret,

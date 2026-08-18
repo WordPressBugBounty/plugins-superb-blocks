@@ -12,6 +12,8 @@ use SuperbAddons\Data\Utils\ElementorCache;
 use SuperbAddons\Data\Utils\KeyException;
 use SuperbAddons\Data\Utils\KeyType;
 use SuperbAddons\Tours\Controllers\TourController;
+use SuperbAddons\Data\Controllers\LogController;
+use Exception;
 
 defined('ABSPATH') || exit();
 
@@ -40,7 +42,7 @@ class TroubleshootingController
     {
         // Restrict endpoint to only users who have the proper capability.
         if (!current_user_can(Capabilities::ADMIN)) {
-            return new WP_Error('rest_forbidden', esc_html__('Unauthorized. Please check user permissions.', "superb-blocks"), array('status' => 401));
+            return new \WP_Error('rest_forbidden', esc_html__('Unauthorized. Please check user permissions.', "superb-blocks"), array('status' => 401));
         }
 
         return true;
@@ -50,7 +52,7 @@ class TroubleshootingController
     {
         // Restrict endpoint to only users who have the proper capability.
         if (!current_user_can(Capabilities::CONTRIBUTOR)) {
-            return new WP_Error('rest_forbidden', esc_html__('Unauthorized. Please check user permissions.', "superb-blocks"), array('status' => 401));
+            return new \WP_Error('rest_forbidden', esc_html__('Unauthorized. Please check user permissions.', "superb-blocks"), array('status' => 401));
         }
 
         return true;
@@ -67,8 +69,8 @@ class TroubleshootingController
                     $url = TourController::GetElementorTourURL();
                     return rest_ensure_response(['success' => true, 'url' => esc_url_raw($url)]);
                 case 'cleanup-elementor-tour-page':
-                    $removed = TourController::CleanUpTourPage($request['tour-nonce']);
-                    return rest_ensure_response(['success' => $removed]);
+                    TourController::CleanUpTourPage($request['tour-nonce']);
+                    return rest_ensure_response(['success' => true]);
                 case 'mark-tour-complete':
                     $tour = isset($request['tour']) ? sanitize_text_field($request['tour']) : '';
                     $allowed = array(TourController::TOUR_DASHBOARD_WELCOME_META, TourController::TOUR_BLOCK_THEME_META);

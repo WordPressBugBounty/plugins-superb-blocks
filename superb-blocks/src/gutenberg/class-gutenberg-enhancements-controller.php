@@ -318,6 +318,12 @@ class GutenbergEnhancementsController
             return $block_content;
         }
 
+        // The justification classes are injected regardless of the WP 7.0
+        // `overlay` attribute: core only emits `disable-default-overlay` when
+        // the overlay template part actually resolves, and the CSS excludes
+        // that state — so a deleted overlay target falls back to the default
+        // overlay with justification intact, exactly matching core's fallback.
+        // Checking the raw attribute here would break that fallback.
         if (
             isset($block['attrs']['spbaddMobileMenuJustification']) &&
             !empty($block['attrs']['spbaddMobileMenuJustification']) &&

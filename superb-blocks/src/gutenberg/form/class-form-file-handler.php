@@ -154,8 +154,6 @@ class FormFileHandler
          * not allow by default do not need a separate upload_mimes filter; this
          * list is authoritative for form uploads.
          *
-         * @since 4.0.9
-         *
          * @param array $types Entries of array('ext' => ..., 'label' => ..., 'mime' => ...).
          */
         $types = apply_filters('superbaddons_form_allowed_file_types', $types);
