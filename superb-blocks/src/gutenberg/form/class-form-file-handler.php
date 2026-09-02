@@ -484,6 +484,40 @@ class FormFileHandler
     }
 
     /**
+     * Resolve a stored upload path and confirm it lives inside the plugin's
+     * form upload directory (legacy or tokenized): the same confinement
+     * ServeFile() applies before streaming a single file, for callers that
+     * read many files in one request (ZIP downloads).
+     *
+     * @param string $path Absolute path from submission file metadata.
+     * @return string Real path when the file exists, is a readable regular
+     *                file and is confined; '' otherwise.
+     */
+    public static function ConfineUploadPath($path)
+    {
+        // Resolve the current directory first: on the very first touch this
+        // mints the token and migrates the legacy directory, which would
+        // otherwise move the file out from under a path resolved earlier.
+        self::GetUploadSubdir();
+        $upload_dir = wp_upload_dir();
+
+        $path = self::ResolveStoredPath($path);
+        if ($path === '' || !is_file($path) || !is_readable($path)) {
+            return '';
+        }
+        $real_path = realpath($path);
+        $real_uploads = realpath($upload_dir['basedir']);
+        if ($real_path === false || $real_uploads === false || strpos($real_path, $real_uploads . DIRECTORY_SEPARATOR) !== 0) {
+            return '';
+        }
+        $segments = explode(DIRECTORY_SEPARATOR, substr($real_path, strlen($real_uploads) + 1));
+        if (count($segments) < 2 || !preg_match('/^' . preg_quote(self::UPLOAD_SUBDIR, '/') . '(-[a-z0-9]{8,64})?$/', $segments[0])) {
+            return '';
+        }
+        return $real_path;
+    }
+
+    /**
      * Delete all files associated with a submission's field data.
      *
      * @param array $fields Submission fields (field_id => value)

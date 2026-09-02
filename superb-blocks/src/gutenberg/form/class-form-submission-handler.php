@@ -34,6 +34,41 @@ class FormSubmissionHandler
     }
 
     /**
+     * Reorder submitted fields to match the form's field configuration.
+     *
+     * Files are merged into the field array after the text fields, and
+     * calculated fields may be appended, so stored order does not always
+     * match the form. Fields missing from the config (removed fields, or a
+     * form whose config is gone) keep their stored order at the end.
+     *
+     * @param array $fields             field_id => value
+     * @param array $form_fields_config Field definitions from form config.
+     * @return array
+     */
+    public static function OrderFieldsByConfig($fields, $form_fields_config)
+    {
+        if (!is_array($fields) || empty($form_fields_config) || !is_array($form_fields_config)) {
+            return $fields;
+        }
+        $ordered = array();
+        foreach ($form_fields_config as $field_def) {
+            if (!isset($field_def['fieldId'])) {
+                continue;
+            }
+            $fid = $field_def['fieldId'];
+            if (array_key_exists($fid, $fields)) {
+                $ordered[$fid] = $fields[$fid];
+            }
+        }
+        foreach ($fields as $fid => $value) {
+            if (!array_key_exists($fid, $ordered)) {
+                $ordered[$fid] = $value;
+            }
+        }
+        return $ordered;
+    }
+
+    /**
      * Get submissions for a form.
      *
      * @param string $form_id
@@ -44,9 +79,10 @@ class FormSubmissionHandler
      * @param string $search Search term to match against field data
      * @param string $date_after ISO date string for date range start
      * @param string $date_before ISO date string for date range end
+     * @param array|null $ids Restrict to these submission IDs; null applies the filters only.
      * @return array
      */
-    public static function GetSubmissions($form_id, $page = 1, $per_page = 20, $status = '', $starred = '', $search = '', $date_after = '', $date_before = '')
+    public static function GetSubmissions($form_id, $page = 1, $per_page = 20, $status = '', $starred = '', $search = '', $date_after = '', $date_before = '', $ids = null)
     {
         $args = array(
             'post_type' => FormSubmissionCPT::POST_TYPE,
@@ -56,6 +92,17 @@ class FormSubmissionHandler
             'orderby' => 'date',
             'order' => 'DESC',
         );
+
+        // Explicit selection (bulk actions, single-submission downloads). The
+        // form ID meta filter below still applies, so an ID that belongs to
+        // another form is dropped rather than exported.
+        if (is_array($ids)) {
+            $ids = array_values(array_filter(array_map('intval', $ids)));
+            if (empty($ids)) {
+                return array('submissions' => array(), 'total' => 0, 'total_pages' => 0);
+            }
+            $args['post__in'] = $ids;
+        }
 
         $meta_query = array();
 

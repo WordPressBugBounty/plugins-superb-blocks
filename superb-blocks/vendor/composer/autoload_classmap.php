@@ -158,6 +158,7 @@ return array(
     'SuperbAddons\\Gutenberg\\Form\\FormSettings' => $baseDir . '/src/gutenberg/form/class-form-settings.php',
     'SuperbAddons\\Gutenberg\\Form\\FormSubmissionCPT' => $baseDir . '/src/gutenberg/form/class-form-submission-cpt.php',
     'SuperbAddons\\Gutenberg\\Form\\FormSubmissionHandler' => $baseDir . '/src/gutenberg/form/class-form-submission-handler.php',
+    'SuperbAddons\\Gutenberg\\Form\\FormZipExporter' => $baseDir . '/src/gutenberg/form/class-form-zip-exporter.php',
     'SuperbAddons\\Gutenberg\\Import\\GutenbergBlockIdRegenerator' => $baseDir . '/src/gutenberg/import/class-gutenberg-block-id-regenerator.php',
     'SuperbAddons\\Gutenberg\\Popup\\PopupButtonRender' => $baseDir . '/src/gutenberg/popup/class-popup-button-render.php',
     'SuperbAddons\\Gutenberg\\Popup\\PopupRegistry' => $baseDir . '/src/gutenberg/popup/class-popup-registry.php',

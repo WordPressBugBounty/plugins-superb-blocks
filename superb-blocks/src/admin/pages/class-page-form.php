@@ -713,9 +713,14 @@ class FormsPage
                                         <span class="spbaddons-checkbox-mark"><img src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/checkmark.svg'); ?>" alt="" aria-hidden="true" /></span>
                                         <span><?php echo esc_html__('Export all fields', 'superb-blocks'); ?></span>
                                     </label>
-                                    <button type="button" id="spbaddons-form-submissions-export-download" class="superbaddons-element-button spbaddons-admin-btn-primary superbaddons-element-button-small superbaddons-element-m0">
-                                        <?php echo esc_html__('Download CSV', 'superb-blocks'); ?>
-                                    </button>
+                                    <div class="spbaddons-form-submissions-export-actions">
+                                        <button type="button" id="spbaddons-form-submissions-export-download" class="superbaddons-element-button spbaddons-admin-btn-primary superbaddons-element-button-small superbaddons-element-m0">
+                                            <?php echo esc_html__('Download CSV', 'superb-blocks'); ?>
+                                        </button>
+                                        <button type="button" id="spbaddons-form-submissions-export-zip" class="superbaddons-element-button superbaddons-element-button-small superbaddons-element-m0">
+                                            <?php echo esc_html__('Download ZIP (CSV + files)', 'superb-blocks'); ?>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -746,6 +751,12 @@ class FormsPage
                                     <button type="button" id="spbaddons-form-submissions-bulk-unstar" class="superbaddons-element-button superbaddons-element-button-sm">
                                         <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/purple-star-regular.svg'); ?>" alt="" aria-hidden="true" />
                                         <?php echo esc_html__('Unstar', 'superb-blocks'); ?>
+                                    </button>
+                                </div>
+                                <div class="spbaddons-form-submissions-toolbar-group">
+                                    <button type="button" id="spbaddons-form-submissions-bulk-zip" class="superbaddons-element-button superbaddons-element-button-sm">
+                                        <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/download-simple-duotone.svg'); ?>" alt="" aria-hidden="true" />
+                                        <?php echo esc_html__('Download ZIP', 'superb-blocks'); ?>
                                     </button>
                                 </div>
                                 <div class="spbaddons-form-submissions-toolbar-group">
@@ -902,6 +913,10 @@ class FormsPage
                             <button type="button" id="spbaddons-form-submissions-panel-not-spam" class="superbaddons-element-button superbaddons-element-button-small superbaddons-element-m0 spbaddons-panel-action-btn" style="display:none;">
                                 <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/eye.svg'); ?>" alt="" aria-hidden="true" />
                                 <?php echo esc_html__('Not Spam', 'superb-blocks'); ?>
+                            </button>
+                            <button type="button" id="spbaddons-form-submissions-panel-zip" class="superbaddons-element-button superbaddons-element-button-small superbaddons-element-m0 spbaddons-panel-action-btn" style="display:none;">
+                                <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/download-simple-duotone.svg'); ?>" alt="" aria-hidden="true" />
+                                <?php echo esc_html__('Download Files (ZIP)', 'superb-blocks'); ?>
                             </button>
                             <button type="button" id="spbaddons-form-submissions-panel-delete" class="superbaddons-element-button superbaddons-element-button-small spbaddons-admin-btn-danger superbaddons-element-m0 spbaddons-panel-action-btn">
                                 <img class="superbaddons-element-button-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/trash-light.svg'); ?>" alt="" aria-hidden="true" />

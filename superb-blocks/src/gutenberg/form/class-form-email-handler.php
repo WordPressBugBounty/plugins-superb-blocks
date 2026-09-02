@@ -34,6 +34,10 @@ class FormEmailHandler
             $fields
         );
 
+        // Older submissions were stored with file fields after the text fields;
+        // present them in form order regardless of how they were stored.
+        $fields = FormSubmissionHandler::OrderFieldsByConfig($fields, isset($form_data['form_fields']) ? $form_data['form_fields'] : array());
+
         // Annotate file fields with attach/too-large flags and collect the file
         // paths that fit within the total email-attachment budget. BuildEmailBody
         // reads the flags, so this must run before the body is built.
@@ -100,6 +104,7 @@ class FormEmailHandler
     public static function SendConfirmation($form_data, $fields, $post_id = 0)
     {
         $form_fields = isset($form_data['form_fields']) ? $form_data['form_fields'] : array();
+        $fields = FormSubmissionHandler::OrderFieldsByConfig($fields, $form_fields);
 
         // Find the email field value — use configured field if set, otherwise auto-detect
         $user_email = '';

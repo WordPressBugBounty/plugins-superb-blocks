@@ -159,6 +159,7 @@ class ComposerStaticInita94ee717fbe31078ea93f7c04889a4f8
         'SuperbAddons\\Gutenberg\\Form\\FormSettings' => __DIR__ . '/../..' . '/src/gutenberg/form/class-form-settings.php',
         'SuperbAddons\\Gutenberg\\Form\\FormSubmissionCPT' => __DIR__ . '/../..' . '/src/gutenberg/form/class-form-submission-cpt.php',
         'SuperbAddons\\Gutenberg\\Form\\FormSubmissionHandler' => __DIR__ . '/../..' . '/src/gutenberg/form/class-form-submission-handler.php',
+        'SuperbAddons\\Gutenberg\\Form\\FormZipExporter' => __DIR__ . '/../..' . '/src/gutenberg/form/class-form-zip-exporter.php',
         'SuperbAddons\\Gutenberg\\Import\\GutenbergBlockIdRegenerator' => __DIR__ . '/../..' . '/src/gutenberg/import/class-gutenberg-block-id-regenerator.php',
         'SuperbAddons\\Gutenberg\\Popup\\PopupButtonRender' => __DIR__ . '/../..' . '/src/gutenberg/popup/class-popup-button-render.php',
         'SuperbAddons\\Gutenberg\\Popup\\PopupRegistry' => __DIR__ . '/../..' . '/src/gutenberg/popup/class-popup-registry.php',

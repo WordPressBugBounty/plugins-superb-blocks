@@ -847,6 +847,8 @@ class DashboardController
                     "fields_save" => \SuperbAddons\Gutenberg\Form\FormController::FIELDS_SAVE_ROUTE,
                     "fields_get" => '/form/fields/{form_id}',
                     "file_download" => '/form/submissions/{id}/file/{field_id}/{index}',
+                    "export_zip" => '/form/{form_id}/export-zip',
+                    "submission_zip" => '/form/submissions/{id}/zip',
                     "submissions_count" => \SuperbAddons\Gutenberg\Form\FormController::SUBMISSIONS_COUNT_ROUTE,
                 )
             ),
@@ -964,6 +966,14 @@ class DashboardController
                 "fields_error" => esc_html__("Failed to save field preferences.", "superb-blocks"),
                 "fields_reset" => esc_html__("Reset", "superb-blocks"),
                 "export_all_fields" => esc_html__("Export all fields", "superb-blocks"),
+                // ZIP downloads (CSV + uploaded files)
+                "zip_confirm_title" => esc_html__("Download ZIP", "superb-blocks"),
+                /* translators: 1: number of submissions, 2: number of files, 3: archive size */
+                "zip_confirm" => esc_html__('%1$s submissions with %2$s uploaded files (%3$s). The archive also includes the CSV export.', "superb-blocks"),
+                /* translators: %d: number of files */
+                "zip_missing" => esc_html__("%d files could not be found on the server and will be skipped.", "superb-blocks"),
+                "zip_download" => esc_html__("Download", "superb-blocks"),
+                "zip_started" => esc_html__("Preparing your download...", "superb-blocks"),
                 // Phase 3: Real-time
                 "new_submission_received" => esc_html__("New submission received", "superb-blocks"),
             )

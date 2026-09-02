@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 4.1.0
+Stable tag: 4.2.0
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -285,7 +285,7 @@ Yes, we've made sure the plugin doesn't break any GDPR or privacy laws, so you c
 
 = Does Superb Addons connect to any external services? =
 
-Only when you actively use a feature that requires it — no data is sent by simply installing or activating the plugin. Design Library and pattern content is fetched from our own API at [superbthemes.com](https://superbthemes.com/) (fallback: superbdemo.com — [Terms](https://superbthemes.com/terms-of-service/), [Privacy](https://superbthemes.com/privacy-policy/)). No account, registration, or API key is required for this, and no personal information about you, your visitors, or your site content is sent — it's a standard web request from your server, like fetching any web page. If you protect a form with a captcha or connect it to a service using your own API keys or webhook URL, the data needed for that feature (captcha tokens or the submitted form fields) is exchanged with the service you chose: [hCaptcha](https://www.hcaptcha.com/) ([Terms](https://www.hcaptcha.com/terms), [Privacy](https://www.hcaptcha.com/privacy)), [Google reCAPTCHA](https://www.google.com/recaptcha/about/) ([Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)), [Cloudflare Turnstile](https://www.cloudflare.com/application-services/products/turnstile/) ([Terms](https://www.cloudflare.com/website-terms/), [Privacy](https://www.cloudflare.com/privacypolicy/)), [Mailchimp](https://mailchimp.com/) ([Terms](https://mailchimp.com/legal/terms/), [Privacy](https://www.intuit.com/privacy/statement/)), [Brevo](https://www.brevo.com/) ([Terms](https://www.brevo.com/legal/termsofuse/), [Privacy](https://www.brevo.com/legal/privacypolicy/)), [Google Sheets](https://workspace.google.com/products/sheets/) ([Terms](https://policies.google.com/terms), [Privacy](https://policies.google.com/privacy)), [Slack](https://slack.com/) ([Terms](https://slack.com/terms-of-service), [Privacy](https://slack.com/privacy-policy)), or a custom webhook URL you configure yourself.
+Only when you actively use a feature that requires it — no data is sent by simply installing or activating the plugin. Design Library and pattern content is fetched from our own API at [superbthemes.com](https://superbthemes.com/) (fallback: superbdemo.com — [Privacy](https://superbthemes.com/privacy-policy/)). No account, registration, or API key is required for this, and no personal information about you, your visitors, or your site content is sent — it's a standard web request from your server, like fetching any web page. If you protect a form with a captcha or connect it to a service using your own API keys or webhook URL, the data needed for that feature (captcha tokens or the submitted form fields) is exchanged with the service you chose: [hCaptcha](https://www.hcaptcha.com/) ([Privacy](https://www.hcaptcha.com/privacy)), [Google reCAPTCHA](https://www.google.com/recaptcha/about/) ([Privacy](https://policies.google.com/privacy)), [Cloudflare Turnstile](https://www.cloudflare.com/application-services/products/turnstile/) ([Privacy](https://www.cloudflare.com/privacypolicy/)), [Mailchimp](https://mailchimp.com/) ([Privacy](https://mailchimp.com/legal/privacy/)), [Brevo](https://www.brevo.com/) ([Privacy](https://www.brevo.com/legal/privacypolicy/)), [Google Sheets](https://workspace.google.com/products/sheets/) ([Privacy](https://policies.google.com/privacy)), [Slack](https://slack.com/) ([Privacy](https://slack.com/privacy-policy)), or a custom webhook URL you configure yourself.
 
 = What features are you working on? =
 
@@ -337,6 +337,15 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.0 =
+* Added a ZIP download for form submissions that bundles the CSV export with every uploaded file, one folder per submission. Download a single submission from the submission panel, a selection from the bulk actions bar, or the filtered or full list from the Export menu.
+* Content fields in forms can now hold blocks: paragraphs, headings, lists, images, galleries, audio, video, files, embeds, buttons, spacers, and separators. Existing content text is converted to a paragraph block automatically.
+* Form fields with conditions now show a badge in the editor that spells out when the field is shown or hidden. A condition that points at a dropdown, radio, or checkbox option that no longer exists is marked in red.
+* The list view now names every form field by its label, type, and condition instead of "Form Field", and every multi-step form step by its title.
+* Added a Dependent Fields section to the Field Conditions panel. It lists the fields that are shown or hidden based on the selected field, with a link to each, and can add new fields that are already wired to the selected field, including one field per option for dropdown, radio, and checkbox fields.
+* Fixed the submission panel, print view, and notification emails listing File Upload fields after all other fields instead of in form order.
+* Fixed some issues that could occur with the Superb blocks and the Block Highlighter in the block editor if using WordPress versions 6.5 or earlier.
+
 = 4.1.0 =
 * Added compatibility with WordPress 7.1, with full support for custom navigation overlays.
 * Navigation submenu styles (Card, Separators, Liquid Background) now preview live in the editor.

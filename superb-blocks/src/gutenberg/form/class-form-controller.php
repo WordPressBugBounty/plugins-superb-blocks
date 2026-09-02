@@ -29,6 +29,8 @@ class FormController
     const SUBMISSIONS_RESEND_EMAIL_ROUTE = '/form/submissions/(?P<id>\d+)/resend-email';
     const EXPORT_ROUTE = '/form/(?P<form_id>[a-zA-Z0-9_-]+)/export';
     const FILE_DOWNLOAD_ROUTE = '/form/submissions/(?P<id>\d+)/file/(?P<field_id>[a-zA-Z0-9_-]+)/(?P<index>\d+)';
+    const ZIP_EXPORT_ROUTE = '/form/(?P<form_id>[a-zA-Z0-9_-]+)/export-zip';
+    const SUBMISSION_ZIP_ROUTE = '/form/submissions/(?P<id>\d+)/zip';
     const NONCE_ACTION = 'superb_form_submit';
 
     const SUBMISSIONS_NOT_SPAM_ROUTE = '/form/submissions/(?P<id>\d+)/not-spam';
@@ -168,6 +170,20 @@ class FormController
             'permission_callback' => array(__CLASS__, 'ExportPermissionCheck'),
             'callback' => array(__CLASS__, 'ExportCallback'),
         ));
+        RestController::AddRoute(self::ZIP_EXPORT_ROUTE, array(
+            'methods' => 'GET',
+            'permission_callback' => array(__CLASS__, 'ExportPermissionCheck'),
+            'callback' => array(__CLASS__, 'ZipExportCallback'),
+        ));
+
+        // View permission, like single-file downloads: a viewer can already
+        // fetch each of the submission's files one by one.
+        RestController::AddRoute(self::SUBMISSION_ZIP_ROUTE, array(
+            'methods' => 'GET',
+            'permission_callback' => array(__CLASS__, 'ViewPermissionCheck'),
+            'callback' => array(__CLASS__, 'SubmissionZipCallback'),
+        ));
+
 
         // Spam permission
         RestController::AddRoute(self::SUBMISSIONS_NOT_SPAM_ROUTE, array(
@@ -529,6 +545,11 @@ class FormController
             }
         }
 
+        // Files and calculated values are added after the text fields, so restore
+        // the form's field order before the submission is stored, emailed, or sent
+        // to integrations.
+        $sanitized_fields = FormSubmissionHandler::OrderFieldsByConfig($sanitized_fields, $form_fields);
+
         if (empty($sanitized_fields)) {
             return new \WP_REST_Response(array(
                 'success' => false,
@@ -855,6 +876,146 @@ class FormController
         // Export streams and exits, so this line is never reached.
         exit;
     }
+    /**
+     * Stream a ZIP of a form's submissions: the CSV plus every uploaded file
+     * in a folder per submission. With estimate=1 it instead returns counts
+     * and the archive size as JSON so the UI can confirm before downloading.
+     *
+     * Selection: an explicit `ids` list (bulk action) wins over the list
+     * filters. IDs are validated against the form by the form ID meta filter
+     * in FormSubmissionHandler::GetSubmissions(), so a submission from
+     * another form can never be pulled into an export by ID.
+     */
+    public static function ZipExportCallback($request)
+    {
+        $form_id = sanitize_key($request['form_id']);
+        if (empty($form_id)) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => __('Invalid form ID.', 'superb-blocks'),
+            ), 400);
+        }
+
+        $attrs = FormRegistry::GetConfig($form_id);
+        $form_fields = (!empty($attrs) && is_array($attrs) && !empty($attrs['formFields'])) ? $attrs['formFields'] : array();
+        $pending_delete = empty($form_fields) && FormRegistry::IsPendingDelete($form_id);
+
+        // Same opt-in gates as the CSV export: the flag alone is not enough.
+        $include_sensitive = isset($request['include_sensitive']) && $request['include_sensitive'] === '1' && FormPermissions::Can('sensitive');
+        $include_notes = isset($request['include_notes']) && $request['include_notes'] === '1' && FormPermissions::Can('notes');
+
+        $ids = null;
+        if (isset($request['ids'])) {
+            $ids = array();
+            foreach (explode(',', sanitize_text_field($request['ids'])) as $raw_id) {
+                $id = intval($raw_id);
+                if ($id > 0) {
+                    $ids[] = $id;
+                }
+            }
+            if (empty($ids)) {
+                return new \WP_REST_Response(array(
+                    'success' => false,
+                    'message' => __('No submissions selected.', 'superb-blocks'),
+                ), 400);
+            }
+        }
+
+        // List filters apply only when no explicit selection was made.
+        $status = $ids === null && isset($request['status']) ? sanitize_text_field($request['status']) : '';
+        $starred = $ids === null && isset($request['starred']) ? sanitize_text_field($request['starred']) : '';
+        $search = $ids === null && isset($request['search']) ? sanitize_text_field($request['search']) : '';
+        $date_after = $ids === null && isset($request['date_after']) ? sanitize_text_field($request['date_after']) : '';
+        $date_before = $ids === null && isset($request['date_before']) ? sanitize_text_field($request['date_before']) : '';
+
+        $export_fields = null;
+        $export_all = isset($request['export_all_fields']) && $request['export_all_fields'] === '1';
+        if (!$export_all) {
+            $field_prefs = FormSubmissionHandler::GetFieldPreference(get_current_user_id(), $form_id);
+            if ($field_prefs !== null) {
+                $export_fields = $field_prefs;
+            }
+        }
+
+        $collected = FormExporter::Collect($form_id, $form_fields, $include_sensitive, $status, $starred, $search, $date_after, $date_before, $pending_delete, $ids);
+        if (empty($collected['submissions'])) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => __('No submissions to export.', 'superb-blocks'),
+            ), 404);
+        }
+
+        $visible_fields = FormExporter::VisibleFields($collected, $include_sensitive, $export_fields);
+        $estimate_only = isset($request['estimate']) && $request['estimate'] === '1';
+        return self::RespondWithZip($collected, $visible_fields, $include_notes, FormExporter::ExportFilename($form_id, 'zip'), $estimate_only);
+    }
+
+    /**
+     * ZIP of one submission's files plus a one-row CSV. Sensitive values and
+     * notes are left out: unlike the export dialog there is no opt-in here.
+     */
+    public static function SubmissionZipCallback($request)
+    {
+        $post_id = intval($request['id']);
+        $post = get_post($post_id);
+        if (!$post || $post->post_type !== FormSubmissionCPT::POST_TYPE) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => __('Submission not found.', 'superb-blocks'),
+            ), 404);
+        }
+
+        $form_id = get_post_meta($post_id, '_spb_form_id', true);
+        if (!is_string($form_id) || $form_id === '') {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => __('Submission not found.', 'superb-blocks'),
+            ), 404);
+        }
+
+        $attrs = FormRegistry::GetConfig($form_id);
+        $form_fields = (!empty($attrs) && is_array($attrs) && !empty($attrs['formFields'])) ? $attrs['formFields'] : array();
+        $pending_delete = empty($form_fields) && FormRegistry::IsPendingDelete($form_id);
+
+        $collected = FormExporter::Collect($form_id, $form_fields, false, '', '', '', '', '', $pending_delete, array($post_id));
+        if (empty($collected['submissions'])) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => __('Submission not found.', 'superb-blocks'),
+            ), 404);
+        }
+
+        $visible_fields = FormExporter::VisibleFields($collected, false, null);
+        $safe_name = sanitize_file_name(FormRegistry::GetName($form_id));
+        $filename = ($safe_name !== '' ? $safe_name : 'form') . '-submission-' . $post_id . '.zip';
+        return self::RespondWithZip($collected, $visible_fields, false, $filename, false);
+    }
+
+    /**
+     * Shared tail of the ZIP routes: plan the archive, enforce the size cap,
+     * answer an estimate request, or stream (which exits).
+     */
+    private static function RespondWithZip($collected, $visible_fields, $include_notes, $filename, $estimate_only)
+    {
+        $plan = FormZipExporter::Plan($collected);
+        $csv = FormExporter::BuildCsvString($collected, $visible_fields, $include_notes, $plan['folders']);
+        $summary = FormZipExporter::Summary($plan, strlen($csv), count($collected['submissions']));
+
+        if ($estimate_only) {
+            return rest_ensure_response($summary);
+        }
+        if ($summary['too_large']) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => $summary['message'],
+            ), 413);
+        }
+
+        FormZipExporter::Stream($filename, $plan['entries'], $csv);
+        // Stream exits, so this line is never reached.
+        exit;
+    }
+
 
     /**
      * Get submission count for a form.

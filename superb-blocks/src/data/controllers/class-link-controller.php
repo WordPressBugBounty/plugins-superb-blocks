@@ -8,30 +8,28 @@ defined('ABSPATH') || exit();
 
 class LinkController
 {
-    // Upsell modal presentation buckets: two independent toggles on the rich
+    // Modal presentation buckets: two independent toggles on the rich
     // modal layout, reported together as one variant string.
-    // - bonus: a discount line rendered under the modal footer.
-    // - cta: the modal CTA label wording.
-    const VARIANT_GROUP = 'modal-v3';
-    const BONUS_SALT = 'modal-v3-bonus';
-    const CTA_SALT = 'modal-v3-cta';
+    const VARIANT_GROUP = 'modal-v4';
+    const BONUS_SALT = 'modal-v4-bonus';
+    const CTA_SALT = 'modal-v4-cta';
 
     const SEED_OPTION = 'superbaddons_pre_activation';
 
-    // Delayed admin notice content buckets
-    // Bucketed independently
-    const NOTICE_GROUP = 'notice-v2';
-    const NOTICE_SALT = 'notice-v2';
+    // Delayed admin notice content buckets, hashed independently.
+    // v3: md5 hashing, same content as v2.
+    const NOTICE_GROUP = 'notice-v3';
+    const NOTICE_SALT = 'notice-v3';
     const NOTICE_VARIANT_DISCOUNT = 'discount';
     const NOTICE_VARIANT_BENEFITS = 'benefits';
 
     const NOTICE_FILE_DISCOUNT = 'addons-notice.php';
     const NOTICE_FILE_BENEFITS = 'addons-notice-benefits.php';
 
-    // Admin navigation CTA buckets: direct link vs opening the upsell modal
-    // Bucketed independently
-    const NAV_GROUP = 'nav-v1';
-    const NAV_SALT = 'nav-v1';
+    // Admin navigation CTA buckets: direct link vs opening the modal,
+    // hashed independently. v2: md5 hashing, same behaviour as v1.
+    const NAV_GROUP = 'nav-v2';
+    const NAV_SALT = 'nav-v2';
     const NAV_VARIANT_DIRECT = 'nav-direct';
     const NAV_VARIANT_MODAL = 'nav-modal';
 
@@ -94,9 +92,8 @@ class LinkController
     public static function GetJsConfig()
     {
         $state = self::GetState();
-        // Links built for these sources report their own group/variant instead
-        // of the modal group, so each surface's clicks stay attributable to the
-        // surface they came from.
+        // Links built for these sources carry their own group/variant instead
+        // of the modal group's.
         $state['sourceExperiments'] = array(
             AdminLinkSource::NAVIGATION_CTA => array(
                 'group' => self::NAV_GROUP,
@@ -163,12 +160,15 @@ class LinkController
         );
     }
 
-    // Salted per bucket so each assignment is independent of the other
-    // seed-derived groupings (including earlier salts on the same seed).
-    // abs() is required: crc32() returns a negative int on 32-bit PHP.
+    // Salted per bucket so each result is independent of the others
+    // (including earlier salts on the same seed).
+    // md5 rather than crc32: crc32 is linear, so with a fixed-length seed (the
+    // install timestamp) the parities of two prefix-salted crc32 values differ
+    // by a constant and every bucket ends up identical.
+    // Four hex chars keep hexdec() inside int range on 32-bit PHP.
     private static function Bucket($salt)
     {
-        return abs(crc32($salt . '|' . self::SeedValue())) % 2;
+        return hexdec(substr(md5($salt . '|' . self::SeedValue()), 0, 4)) % 2;
     }
 
     private static function SeedValue()

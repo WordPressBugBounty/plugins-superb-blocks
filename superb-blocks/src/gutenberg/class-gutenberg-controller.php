@@ -121,6 +121,7 @@ class GutenbergController
         }
 
         add_action('block_categories_all', array($this, 'RegisterBlockCategory'), defined('PHP_INT_MAX') ? PHP_INT_MAX : 999, 2);
+        add_action('init', array($this, 'RegisterJsxRuntimeFallback'), 0);
         add_action('init', array($this, 'RegisterBlocksAndStyles'), 0);
         add_action('enqueue_block_editor_assets', array($this, 'EnqueueBlockEditorAssets'));
         add_filter('register_block_type_args', array($this, 'MaybeHideDisabledBlock'), 10, 2);
@@ -141,6 +142,33 @@ class GutenbergController
         PopupRegistry::Initialize();
         PopupButtonRender::Initialize();
         WizardController::Initialize();
+    }
+
+    /**
+     * Register the `react-jsx-runtime` script on WordPress versions that do not ship it.
+     *
+     * The block editor bundles are compiled with the automatic JSX runtime, so every
+     * block script depends on the `react-jsx-runtime` handle and reads
+     * `window.ReactJSXRuntime`. Core registers that handle from 6.6 on; on older
+     * versions a script with an unregistered dependency is silently never printed,
+     * which left every Superb block unavailable in the editor. The fallback file only
+     * exposes the JSX runtime of the React that WordPress already loads.
+     *
+     * Approach as documented by the Gutenberg team:
+     * https://github.com/WordPress/gutenberg/issues/62202#issuecomment-2156796649
+     */
+    public function RegisterJsxRuntimeFallback()
+    {
+        if (wp_script_is('react-jsx-runtime', 'registered')) {
+            return;
+        }
+        wp_register_script(
+            'react-jsx-runtime',
+            SUPERBADDONS_ASSETS_PATH . '/js/react-jsx-runtime.js',
+            array('react'),
+            SUPERBADDONS_VERSION,
+            true
+        );
     }
 
     /**
