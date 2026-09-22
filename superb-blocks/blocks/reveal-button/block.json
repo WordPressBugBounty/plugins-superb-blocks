@@ -3,7 +3,7 @@
   "apiVersion": 3,
   "parent": ["superb-addons/reveal-buttons"],
   "name": "superb-addons/reveal-button",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "title": "Superb Reveal Button",
   "category": "superb-addons-blocks",
   "icon": "button",

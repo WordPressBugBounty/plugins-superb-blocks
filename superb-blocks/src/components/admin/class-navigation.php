@@ -7,7 +7,6 @@ use SuperbAddons\Admin\Controllers\RewriteCheckController;
 use SuperbAddons\Admin\Utils\AdminLinkSource;
 use SuperbAddons\Admin\Utils\AdminLinkUtil;
 use SuperbAddons\Data\Controllers\KeyController;
-use SuperbAddons\Data\Controllers\LinkController;
 
 defined('ABSPATH') || exit();
 
@@ -100,8 +99,7 @@ class Navigation
                         <?php endif; ?>
                     </span>
                     <?php if (!$this->has_premium) : ?>
-                        <?php // In the modal bucket the data attribute routes the click to the upsell modal; the href stays as a fallback when the modal script is unavailable. ?>
-                        <a class="superbaddons-element-button-pro superbaddons-admindashboard-navigation-shortcuts-unlock" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NAVIGATION_CTA, array("experiment" => "nav"))); ?>" <?php echo LinkController::NavOpensModal() ? 'data-superb-upsell-source="' . esc_attr(AdminLinkSource::NAVIGATION_CTA) . '"' : ''; ?>><?php echo esc_html__("Unlock All Features", "superb-blocks"); ?></a>
+                        <a class="superbaddons-element-button-pro superbaddons-admindashboard-navigation-shortcuts-unlock" target="_blank" href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::NAVIGATION_CTA)); ?>"><?php echo esc_html__("Unlock All Features", "superb-blocks"); ?></a>
                     <?php endif; ?>
                 </div>
             </div>

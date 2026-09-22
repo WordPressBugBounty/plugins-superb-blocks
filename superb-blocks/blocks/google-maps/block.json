@@ -2,7 +2,7 @@
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
   "name": "superb-addons/google-maps",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "title": "Superb Google Maps",
   "category": "superb-addons-blocks",
   "icon": "location",

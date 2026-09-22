@@ -55,7 +55,9 @@ class KeyController
             try {
                 $option_controller->UpdateKey($key, $data->verification->stamp);
                 self::UpdateKeyType($data->level, $data->active, $data->expired, $data->exceeded);
-                LicenseResolveController::ClearCooldown();
+                if ($is_registration) {
+                    LicenseResolveController::ClearCooldown();
+                }
                 return array("type" => $data->level, "active" => $data->active, "expired" => $data->expired, "verified" => $data->verification->verified, "exceeded" => $data->exceeded);
             } catch (OptionException $o_ex) {
                 self::RemoveKey($key, $data->verification->stamp);

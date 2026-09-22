@@ -23,8 +23,8 @@ class AdminLinkUtil
         if (!empty($id)) {
             $args['ref'] = substr(sanitize_text_field($id), 0, 25);
         }
-        if (is_array($options) && isset($options['experiment'])) {
-            $args = array_merge($args, LinkController::GetLinkExpArgs($options['experiment']));
+        if (is_array($options) && !empty($options['experiment'])) {
+            $args = array_merge($args, LinkController::GetLinkExpArgs());
         }
         $url = is_array($options) && isset($options['url']) ? $options['url'] : 'https://superbthemes.com/superb-addons/';
         if (is_array($options) && isset($options['anchor'])) {
@@ -47,7 +47,6 @@ class AdminLinkSource
 {
     const DEFAULT = 'superb-addons';
     const NOTICE = 'notice';
-    const NOTICE_LOCK = 'notice-lock';
     const WP_PLUGIN_PAGE = 'plugin-page';
     const NAVIGATION = 'navigation';
     const NAVIGATION_CTA = 'navigation-cta';
@@ -63,7 +62,6 @@ class AdminLinkSource
 
     const ALLOWED_SOURCE = array(
         self::NOTICE,
-        self::NOTICE_LOCK,
         self::WP_PLUGIN_PAGE,
         self::NAVIGATION,
         self::NAVIGATION_CTA,

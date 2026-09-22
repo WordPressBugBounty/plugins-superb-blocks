@@ -316,7 +316,7 @@ class DashboardController
             if (!KeyController::HasValidPremiumKey()) {
                 $options["notices"][] = array(
                     'unique_id' => self::NOTICE_ID_UPSELL,
-                    'content' => LinkController::GetNoticeContentFile(),
+                    'content' => 'addons-notice.php',
                     'delay' => '+2 days'
                 );
             }

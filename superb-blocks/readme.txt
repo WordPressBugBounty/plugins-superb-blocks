@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 4.2.0
+Stable tag: 4.2.1
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -337,6 +337,10 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.1 =
+* Added Title Bar Text and Title Bar Background color settings to the Superb Toggle block, so the bar at the top of the toggle can use its own colors from the palette or custom ones.
+* Added a Title Bar Hover Effect setting to the Superb Toggle block. Turn it off to keep the title bar at its normal color while it is hovered or open.
+
 = 4.2.0 =
 * Added a ZIP download for form submissions that bundles the CSV export with every uploaded file, one folder per submission. Download a single submission from the submission panel, a selection from the bulk actions bar, or the filtered or full list from the Export menu.
 * Content fields in forms can now hold blocks: paragraphs, headings, lists, images, galleries, audio, video, files, embeds, buttons, spacers, and separators. Existing content text is converted to a paragraph block automatically.

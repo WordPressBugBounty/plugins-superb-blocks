@@ -3,7 +3,7 @@
   "apiVersion": 3,
   "name": "superb-addons/form-field",
   "parent": ["superb-addons/form", "superb-addons/form-step"],
-  "version": "0.1.0",
+  "version": "0.2.0",
   "title": "Form Field",
   "category": "superb-addons-blocks",
   "icon": "editor-textcolor",
