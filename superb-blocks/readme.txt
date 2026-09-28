@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 4.2.1
+Stable tag: 4.2.2
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -337,6 +337,12 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.2 =
+* Fixed the mobile menu of the Navigation block opening inside the header instead of covering the screen when the header is sticky or has an entrance animation.
+* Fixed popups placed inside a sticky block opening at the size of the block instead of covering the screen.
+* Fixed animated blocks staying invisible when placed in the mobile menu of the Navigation block, or nested inside a popup or a Superb Toggle block.
+* Fixed the "Open a popup after adding" setting of the Superb Add to Cart block and the "Open popup on click" setting of buttons switching straight back off when there are no popups to choose from.
+
 = 4.2.1 =
 * Added Title Bar Text and Title Bar Background color settings to the Superb Toggle block, so the bar at the top of the toggle can use its own colors from the palette or custom ones.
 * Added a Title Bar Hover Effect setting to the Superb Toggle block. Turn it off to keep the title bar at its normal color while it is hovered or open.
