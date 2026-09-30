@@ -597,6 +597,11 @@ class GutenbergController
             $allowed_block_types = array_keys($registry->get_all_registered());
         }
 
+        // false disables every block; other plugins can also pass null or other non-arrays through this filter
+        if (!is_array($allowed_block_types)) {
+            return $allowed_block_types;
+        }
+
         return array_values(array_diff($allowed_block_types, self::WIDGET_EDITOR_EXCLUDED_BLOCKS));
     }
 

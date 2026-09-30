@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 5.6
-Stable tag: 4.2.2
+Stable tag: 4.2.3
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -337,6 +337,9 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.3 =
+* Added a safeguard for other plugins and themes that return an invalid allowed-blocks setting for the widget editor, which could stop the Customizer from loading.
+
 = 4.2.2 =
 * Fixed the mobile menu of the Navigation block opening inside the header instead of covering the screen when the header is sticky or has an entrance animation.
 * Fixed popups placed inside a sticky block opening at the size of the block instead of covering the screen.
