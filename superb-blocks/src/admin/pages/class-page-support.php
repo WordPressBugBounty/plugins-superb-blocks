@@ -254,7 +254,7 @@ class SupportPage
                             <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php esc_html_e("How do you insert the included blocks? This tutorial will show you.", "superb-blocks"); ?></p>
                             <a class="superbaddons-element-button superbaddons-element-button-sm" href="<?php echo esc_url(add_query_arg(array(TourController::TOUR_GUTENBERG => TourController::GUTENBERG_TOUR_BLOCKS, TourController::TOUR_NONCE_PARAM => wp_create_nonce(TourController::TOUR_NONCE_ACTION)), admin_url('post-new.php'))); ?>"><?php esc_html_e("Start Tutorial", "superb-blocks"); ?></a>
                         </div>
-                        <?php if (ElementorController::is_compatible()) : ?>
+                        <?php if (ElementorController::is_compatible() && current_user_can('edit_pages')) : ?>
                             <div class="superbaddons-dashboard-feature-card superbaddons-start-tutorial-link-elementor" id="superbaddons-tour-elementor">
                                 <div class="superbaddons-dashboard-feature-card-header">
                                     <img class="superbaddons-dashboard-block-card-icon" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/logo-elementor.svg'); ?>" aria-hidden="true" />

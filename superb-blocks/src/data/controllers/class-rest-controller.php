@@ -6,7 +6,7 @@ defined('ABSPATH') || exit();
 
 class RestController
 {
-    const NAMESPACE = 'superbaddons';
+    const REST_NAMESPACE = 'superbaddons';
     const TOKEN = 'SPBAV1iZV7b674&p7%8#v#Z';
 
     private static $Routes = array();
@@ -23,7 +23,7 @@ class RestController
     {
         add_action('rest_api_init', function () {
             foreach (self::$Routes as $Route) {
-                register_rest_route(self::NAMESPACE, $Route['route'], $Route['args']);
+                register_rest_route(self::REST_NAMESPACE, $Route['route'], $Route['args']);
             }
         });
     }

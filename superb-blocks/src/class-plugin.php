@@ -12,6 +12,7 @@ use SuperbAddons\Admin\Controllers\Wizard\WizardController;
 use SuperbAddons\Admin\Controllers\Wizard\WizardRestorationPointController;
 use SuperbAddons\Data\Controllers\CSSController;
 use SuperbAddons\Data\Controllers\LogController;
+use SuperbAddons\Data\Controllers\MigrationController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Gutenberg\Controllers\GutenbergController;
 use SuperbAddons\Library\Controllers\FavoritesController;
@@ -47,6 +48,7 @@ class SuperbAddonsPlugin
         new TourController();
         new CSSController();
         LogController::AddCronAction();
+        MigrationController::Initialize();
         RestController::RegisterRoutes();
     }
 
@@ -66,6 +68,7 @@ class SuperbAddonsPlugin
         try {
             LogController::MaybeUnsubscribeCron();
             WizardRestorationPointController::MaybeUnsubscribeCron();
+            MigrationController::Unschedule();
         } catch (Exception $e) {
             // Make sure deactivation succeeds
             LogController::HandleException($e);

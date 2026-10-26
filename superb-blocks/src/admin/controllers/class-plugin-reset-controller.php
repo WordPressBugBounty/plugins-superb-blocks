@@ -7,6 +7,7 @@ defined('ABSPATH') || exit();
 use Exception;
 use SuperbAddons\Data\Controllers\KeyController;
 use SuperbAddons\Data\Controllers\LogController;
+use SuperbAddons\Data\Controllers\MigrationController;
 use SuperbAddons\Data\Controllers\Option;
 use SuperbAddons\Gutenberg\Controllers\GutenbergEnhancementsController;
 use SuperbAddons\Library\Controllers\FavoritesController;
@@ -50,6 +51,7 @@ class PluginResetController
             'superb_blocks_template_restoration_cleanup',
             'spb_form_spam_purge',
             'spb_form_retention_purge',
+            MigrationController::CRON_HOOK,
         );
         foreach ($cron_hooks as $hook) {
             wp_clear_scheduled_hook($hook);
@@ -84,6 +86,10 @@ class PluginResetController
             'superbaddons_pre_activation',
             'superbaddons_engagement',
             'superbaddons_css_block_target_valid_labels',
+            // Data migrations: the next request runs every migration again on the wiped data
+            MigrationController::KEY_OPTION,
+            MigrationController::STATE_OPTION,
+            MigrationController::LOCK_OPTION,
             // Form settings
             FormSettings::OPTION_HCAPTCHA_SITE_KEY,
             FormSettings::OPTION_HCAPTCHA_SECRET_KEY,
@@ -121,7 +127,8 @@ class PluginResetController
             delete_transient($transient_key);
         }
 
-        // 5b. Purge namespaced commerce transients (product/stock/search caches).
+        // 5b. Purge namespaced commerce transients (product/stock/search caches) and the forms' holder search
+        // results (FormRegistry::SCAN_RESULT_PREFIX).
         // Keys look like: _transient_superb_commerce_product_123_1700000000 etc.
         // Direct query: no WP API exists for bulk-deleting transients by prefix; iterating get_option() to find them would itself bypass caching and is far slower. Pattern is a constant string with literal underscores escaped so they aren't treated as LIKE wildcards. Caching does not apply to a DELETE; this runs once during plugin reset.
         global $wpdb;
@@ -130,7 +137,9 @@ class PluginResetController
             $wpdb->query(
                 "DELETE FROM {$wpdb->options}
                  WHERE option_name LIKE '_transient_superb_commerce\\_%'
-                    OR option_name LIKE '_transient_timeout_superb_commerce\\_%'"
+                    OR option_name LIKE '_transient_timeout_superb_commerce\\_%'
+                    OR option_name LIKE '_transient_spb\\_form\\_scan\\_%'
+                    OR option_name LIKE '_transient_timeout_spb\\_form\\_scan\\_%'"
             );
         }
 
@@ -141,6 +150,9 @@ class PluginResetController
         delete_metadata('user', 0, TourController::TOUR_BLOCK_THEME_META, false, true);
         delete_metadata('user', 0, GutenbergEnhancementsController::ENHANCEMENTS_OPTION, false, true);
         delete_metadata('user', 0, FavoritesController::FAVORITES_META_KEY, false, true);
+
+        // 6b. Delete the forms' post meta on site posts (site-wide).
+        delete_metadata('post', 0, FormRegistry::UNSCANNED_META, false, true);
 
         // 7. Optionally wipe every stored form submission.
         if ($include_submissions) {

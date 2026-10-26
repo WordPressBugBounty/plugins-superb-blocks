@@ -18,7 +18,7 @@ class FeatureRequestBox
                 "title" => __("Request a feature", "superb-blocks"),
                 "description" => __("We're always looking for ways to improve Superb Addons. If you have a feature request or suggestion, we'd love to hear from you.", "superb-blocks"),
                 "cta" => __("Request feature", "superb-blocks"),
-                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/"))
+                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/contact/"))
             )
         );
     }

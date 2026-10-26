@@ -20,6 +20,7 @@ use SuperbAddons\Data\Utils\Wizard\WizardPartCreator;
 use SuperbAddons\Data\Utils\Wizard\WizardStageTypes;
 use SuperbAddons\Data\Utils\Wizard\WizardStageUtil;
 use SuperbAddons\Gutenberg\Controllers\GutenbergController;
+use SuperbAddons\Library\Controllers\LibraryRequestController;
 use WP_Error;
 use WP_REST_Server;
 
@@ -142,6 +143,13 @@ class WizardController
 
             return $block_template;
         }, 10, 3);
+
+        // Before 6.7, the REST templates endpoint names a plugin template's author with get_plugins(), which REST requests don't load.
+        add_action('rest_api_init', function () {
+            if (!function_exists('get_plugins') && version_compare(get_bloginfo('version'), '6.7', '<')) {
+                require_once ABSPATH . 'wp-admin/includes/plugin.php';
+            }
+        });
 
         self::AddTemplatePartFallback('header', 'header');
         self::AddTemplatePartFallback('footer', 'footer');
@@ -458,6 +466,9 @@ class WizardController
         } catch (WizardException $wex) {
             return rest_ensure_response(['success' => false, 'text' => $wex->getMessage()]);
         } catch (Exception $ex) {
+            if (LibraryRequestController::IsLibraryUnavailable($ex)) {
+                return rest_ensure_response(['success' => false, 'text' => LibraryRequestController::GetLibraryUnavailableMessage()]);
+            }
             LogController::HandleException($ex);
             return new WP_Error('internal_error_plugin', 'Internal Plugin Error', array('status' => 500));
         }

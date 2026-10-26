@@ -140,14 +140,7 @@ class DynamicBlockAssets
         );
         ScriptTranslations::Set('superbaddons-form');
 
-        /* Form-wide default message for empty required fields. */
-        if (!empty($attr['requiredMessage'])) {
-            $processor = new \WP_HTML_Tag_Processor($content);
-            if ($processor->next_tag('form')) {
-                $processor->set_attribute('data-required-message', sanitize_text_field($attr['requiredMessage']));
-                $content = $processor->get_updated_html();
-            }
-        }
+        $content = self::SyncFormMarkup($content, $attr, isset($block->name) ? $block->name : '');
 
         static $localized = false;
         if (!$localized) {
@@ -167,6 +160,63 @@ class DynamicBlockAssets
         }
 
         return $content;
+    }
+
+    /**
+     * Visitors submit the data-form-id of the element with the block's class (form.js), so the block's form tag
+     * and every other tag that carries a data-form-id get the block's formId. The block's form tag also gets the
+     * form-wide default message for empty required fields. Markup the tag processor can't read is left as it is.
+     */
+    private static function SyncFormMarkup($content, $attr, $block_name)
+    {
+        if (!class_exists('WP_HTML_Tag_Processor')) {
+            return $content;
+        }
+        $form_id = isset($attr['formId']) && is_string($attr['formId']) ? sanitize_key($attr['formId']) : '';
+        $form_class = $block_name === 'superb-addons/multistep-form' ? 'wp-block-superb-addons-multistep-form' : 'wp-block-superb-addons-form';
+        // Past the block's form tag, the markup is only read while it may hold another data-form-id
+        $unseen_ids = substr_count(strtolower($content), 'data-form-id');
+        try {
+            $processor = new \WP_HTML_Tag_Processor($content);
+            $changed = false;
+            $found_form = false;
+            while ($processor->next_tag()) {
+                // The block's form tag: the first form tag with the block's class
+                $is_form = !$found_form && $processor->get_tag() === 'FORM' && self::HasClass($processor->get_attribute('class'), $form_class);
+                $markup_id = $processor->get_attribute('data-form-id');
+                if (($is_form || $markup_id !== null) && (!is_string($markup_id) || sanitize_key($markup_id) !== $form_id)) {
+                    $processor->set_attribute('data-form-id', $form_id);
+                    $changed = true;
+                }
+                if ($markup_id !== null) {
+                    $unseen_ids--;
+                }
+                if ($is_form) {
+                    $found_form = true;
+                    if (!empty($attr['requiredMessage'])) {
+                        $processor->set_attribute('data-required-message', sanitize_text_field($attr['requiredMessage']));
+                        $changed = true;
+                    }
+                }
+                if ($found_form && $unseen_ids < 1) {
+                    break;
+                }
+            }
+            return $changed ? $processor->get_updated_html() : $content;
+        } catch (\Exception $e) {
+            return $content;
+        } catch (\Throwable $e) {
+            // WordPress 6.2's tag processor throws a ValueError on PHP 8 for some malformed markup
+            return $content;
+        }
+    }
+
+    /**
+     * Whether a class attribute value lists the class (the tag processor's has_class() only exists from WordPress 6.4).
+     */
+    private static function HasClass($class_attr, $class_name)
+    {
+        return is_string($class_attr) && in_array($class_name, preg_split('/[ \t\n\f\r]+/', $class_attr, -1, PREG_SPLIT_NO_EMPTY), true);
     }
 
     public static function EnqueueAddToCart($attr, $content = '')

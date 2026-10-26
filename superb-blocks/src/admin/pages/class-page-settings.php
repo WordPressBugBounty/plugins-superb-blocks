@@ -912,7 +912,7 @@ class SettingsPage
                 ?>
                 <?php if ($this->KeyStatus['expired'] || $this->KeyStatus['exceeded']): ?>
                     <br />
-                    <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/renew-subscription/"))); ?>" target="_blank" class="superbaddons-element-colorlink">
+                    <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/renew-subscription/"))); ?>" target="_blank" class="superbaddons-element-colorlink">
                         <?php echo esc_html__("Renew License", "superb-blocks"); ?>
                     </a>
                     <br />
@@ -945,7 +945,7 @@ class SettingsPage
             <p>
                 <?php esc_html_e('Your license key is active, but the required premium plugin is not installed on this site. Some premium features will not be available until it is installed and activated.', "superb-blocks"); ?>
             </p>
-            <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/license-key/"))); ?>" target="_blank" rel="noopener" class="superbaddons-element-button">
+            <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/license-key/"))); ?>" target="_blank" rel="noopener" class="superbaddons-element-button">
                 <?php echo esc_html__("View Installation Guide", "superb-blocks"); ?>
             </a>
         </div>

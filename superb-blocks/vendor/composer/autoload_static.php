@@ -81,6 +81,7 @@ class ComposerStaticInita94ee717fbe31078ea93f7c04889a4f8
         'SuperbAddons\\Data\\Controllers\\KeyDomainOptionKey' => __DIR__ . '/../..' . '/src/data/controllers/class-option-controller.php',
         'SuperbAddons\\Data\\Controllers\\LinkController' => __DIR__ . '/../..' . '/src/data/controllers/class-link-controller.php',
         'SuperbAddons\\Data\\Controllers\\LogController' => __DIR__ . '/../..' . '/src/data/controllers/class-log-controller.php',
+        'SuperbAddons\\Data\\Controllers\\MigrationController' => __DIR__ . '/../..' . '/src/data/controllers/class-migration-controller.php',
         'SuperbAddons\\Data\\Controllers\\Option' => __DIR__ . '/../..' . '/src/data/controllers/class-option-controller.php',
         'SuperbAddons\\Data\\Controllers\\OptionController' => __DIR__ . '/../..' . '/src/data/controllers/class-option-controller.php',
         'SuperbAddons\\Data\\Controllers\\RestController' => __DIR__ . '/../..' . '/src/data/controllers/class-rest-controller.php',

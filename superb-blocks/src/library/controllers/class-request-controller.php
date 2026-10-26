@@ -11,6 +11,7 @@ use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\CacheController;
 use SuperbAddons\Data\Controllers\DomainShiftController;
 use SuperbAddons\Data\Controllers\KeyController;
+use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\OptionController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Data\Utils\CacheException;
@@ -106,6 +107,9 @@ class LibraryRequestController
 
             return $this->ElementorListHandler();
         } catch (CacheException $cex) {
+            if (self::IsLibraryUnavailable($cex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_cache', 'Internal Cache Error: ' .  esc_html($cex->getMessage()), array('status' => 500));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
@@ -122,7 +126,7 @@ class LibraryRequestController
         $response = DomainShiftController::RemoteGet(self::ELEMENTOR_ENDPOINT_BASE . 'sections?action=list&key=' . $license_key);
         ///
         if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-            return new \WP_Error('service_unavailable', 'Plugin Service Unavailable', array('status' => 503));
+            return self::LibraryUnavailableError();
         }
         ///
         $data = json_decode($response['body']);
@@ -178,8 +182,14 @@ class LibraryRequestController
             $data->premium = KeyController::HasValidPremiumKey();
             return rest_ensure_response($data);
         } catch (CacheException $cex) {
+            if (self::IsLibraryUnavailable($cex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_cache', 'Internal Cache Error: ' . esc_html($cex->getMessage()), array('status' => 500));
         } catch (RequestException $rex) {
+            if (self::IsLibraryUnavailable($rex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_request', 'Internal Request Error: ' . esc_html($rex->getMessage()), array('status' => $rex->getCode()));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
@@ -205,6 +215,9 @@ class LibraryRequestController
             Engagement::MarkUsed(Engagement::FEATURE_PATTERN);
             return rest_ensure_response(array("content" => $data['content'], "name" => esc_html(isset($data['title']) ? $data['title'] : '')));
         } catch (RequestException $rex) {
+            if (self::IsLibraryUnavailable($rex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_request', 'Internal Request Error: ' . esc_html($rex->getMessage()), array('status' => $rex->getCode()));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
@@ -382,8 +395,14 @@ class LibraryRequestController
             $chunk = $this->FetchAndMergeChunk($page);
             return rest_ensure_response($chunk);
         } catch (CacheException $cex) {
+            if (self::IsLibraryUnavailable($cex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_cache', 'Internal Cache Error: ' . esc_html($cex->getMessage()), array('status' => 500));
         } catch (RequestException $rex) {
+            if (self::IsLibraryUnavailable($rex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_request', 'Internal Request Error: ' . esc_html($rex->getMessage()), array('status' => $rex->getCode()));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
@@ -438,8 +457,14 @@ class LibraryRequestController
             $partial = CacheController::GetDataCacheDirect(GutenbergCache::LIBRARY_PARTIAL);
             return rest_ensure_response(array('status' => 'loading', 'progress' => self::BuildProgress($partial)));
         } catch (CacheException $cex) {
+            if (self::IsLibraryUnavailable($cex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_cache', 'Internal Cache Error: ' . esc_html($cex->getMessage()), array('status' => 500));
         } catch (RequestException $rex) {
+            if (self::IsLibraryUnavailable($rex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_request', 'Internal Request Error: ' . esc_html($rex->getMessage()), array('status' => $rex->getCode()));
         } catch (Exception $ex) {
             LogController::HandleException($ex);
@@ -690,6 +715,27 @@ class LibraryRequestController
 
     // ─── Shared ─────────────────────────────────────────────────────────
 
+    /**
+     * True when the exception means the library service could not be reached.
+     */
+    public static function IsLibraryUnavailable($exception)
+    {
+        if ($exception instanceof CacheException) {
+            return $exception->getCode() === CacheController::SERVICE_UNAVAILABLE_CODE;
+        }
+        return $exception instanceof RequestException && in_array($exception->getCode(), array(502, 503), true);
+    }
+
+    public static function GetLibraryUnavailableMessage()
+    {
+        return esc_html__('The library is temporarily unavailable. Please try again in a little while.', "superb-blocks");
+    }
+
+    private static function LibraryUnavailableError()
+    {
+        return new \WP_Error('library_unavailable', self::GetLibraryUnavailableMessage(), array('status' => 503));
+    }
+
     private function UpdatePatternRequirementStatus(&$data)
     {
         if (!function_exists('is_plugin_active')) {
@@ -704,7 +750,7 @@ class LibraryRequestController
                     if (!is_plugin_active($required_plugin)) {
                         $item->external_plugin_required = true;
                         $item->required_plugin_names = isset($item->required_plugin_names) ? $item->required_plugin_names : array();
-                        if (isset(self::PLUGIN_NAMES[$required_plugin])) {
+                        if (array_key_exists($required_plugin, self::PLUGIN_NAMES)) {
                             $item->required_plugin_names[] = self::PLUGIN_NAMES[$required_plugin];
                         } else {
                             $item->required_plugin_names[] = esc_attr(explode('/', $required_plugin)[0]);
@@ -756,6 +802,9 @@ class LibraryRequestController
             $data = ElementorController::ElementorDataImportAction($data);
             return rest_ensure_response($data['content']);
         } catch (RequestException $rex) {
+            if (self::IsLibraryUnavailable($rex)) {
+                return self::LibraryUnavailableError();
+            }
             return new \WP_Error('internal_error_request', 'Internal Request Error: ' .  esc_html($rex->getMessage()), array('status' => $rex->getCode()));
         } catch (Exception $ex) {
             LogController::HandleException($ex);

@@ -53,7 +53,8 @@ class DomainShiftController
             if ($status_code === 401) {
                 return array("online" => false, "message" => __("Unauthorized. Please make sure that you are using the latest version of this plugin.", "superb-blocks"));
             }
-            return array("online" => false, "message" => __("Service Unavailable. Please contact our support team.", "superb-blocks"));
+            // "unavailable" marks a connection failure or an error response, which is usually temporary
+            return array("online" => false, "unavailable" => true, "message" => __("Service Unavailable. Please contact our support team.", "superb-blocks"));
         }
 
         $data = json_decode($response['body']);

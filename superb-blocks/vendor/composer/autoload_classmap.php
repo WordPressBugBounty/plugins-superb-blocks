@@ -80,6 +80,7 @@ return array(
     'SuperbAddons\\Data\\Controllers\\KeyDomainOptionKey' => $baseDir . '/src/data/controllers/class-option-controller.php',
     'SuperbAddons\\Data\\Controllers\\LinkController' => $baseDir . '/src/data/controllers/class-link-controller.php',
     'SuperbAddons\\Data\\Controllers\\LogController' => $baseDir . '/src/data/controllers/class-log-controller.php',
+    'SuperbAddons\\Data\\Controllers\\MigrationController' => $baseDir . '/src/data/controllers/class-migration-controller.php',
     'SuperbAddons\\Data\\Controllers\\Option' => $baseDir . '/src/data/controllers/class-option-controller.php',
     'SuperbAddons\\Data\\Controllers\\OptionController' => $baseDir . '/src/data/controllers/class-option-controller.php',
     'SuperbAddons\\Data\\Controllers\\RestController' => $baseDir . '/src/data/controllers/class-rest-controller.php',

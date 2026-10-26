@@ -3,8 +3,8 @@ Contributors: SuPlugins, superbaddons
 Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
-Requires PHP: 5.6
-Stable tag: 4.2.3
+Requires PHP: 7.0
+Stable tag: 4.2.4
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -337,6 +337,12 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.4 =
+* Improved how forms keep their settings when pages are copied, revised or scheduled, and when they are saved by users with limited form permissions.
+* Fixed an error in Dynamic Content on WordPress 6.2 and 6.3, and editor errors in some blocks and settings on WordPress 6.2 to 6.6.
+* Improved compatibility with other plugins that use Composer.
+* The minimum PHP version is now 7.0.
+
 = 4.2.3 =
 * Added a safeguard for other plugins and themes that return an invalid allowed-blocks setting for the widget editor, which could stop the Customizer from loading.
 

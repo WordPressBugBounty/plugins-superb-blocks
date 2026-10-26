@@ -66,10 +66,18 @@ class TroubleshootingController
         try {
             switch ($request['action']) {
                 case 'elementor-tour':
+                    if (!current_user_can('edit_pages')) {
+                        return new \WP_Error('tour_unavailable', __('The Elementor tutorial requires permission to edit pages.', "superb-blocks"), array('status' => 403));
+                    }
                     $url = TourController::GetElementorTourURL();
+                    if (!$url) {
+                        return rest_ensure_response(['success' => false]);
+                    }
                     return rest_ensure_response(['success' => true, 'url' => esc_url_raw($url)]);
                 case 'cleanup-elementor-tour-page':
-                    TourController::CleanUpTourPage($request['tour-nonce']);
+                    $tour_nonce = isset($request['tour-nonce']) ? sanitize_text_field($request['tour-nonce']) : '';
+                    $tour_page = isset($request['tour-page']) ? absint($request['tour-page']) : 0;
+                    TourController::CleanUpTourPage($tour_nonce, $tour_page);
                     return rest_ensure_response(['success' => true]);
                 case 'mark-tour-complete':
                     $tour = isset($request['tour']) ? sanitize_text_field($request['tour']) : '';
@@ -206,6 +214,8 @@ class TroubleshootingController
         try {
             $status_arr = DomainShiftController::GetServiceStatus();
             if ($status_arr['online']) {
+                // Service is reachable again -> Allow the next status check right away
+                delete_transient(CacheController::SERVICE_OFFLINE_TRANSIENT);
                 return rest_ensure_response(['success' => true]);
             }
 

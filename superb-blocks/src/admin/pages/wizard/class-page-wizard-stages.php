@@ -80,7 +80,7 @@ class PageWizardStagesPage
                     <div class="superbaddons-wizard-interstitial-bar-track"></div>
                 </div>
                 <div class="superbaddons-wizard-interstitial-error" style="display:none;" role="alert">
-                    <p class="superbaddons-wizard-interstitial-error-text"><?php echo esc_html__('Something went wrong while preparing your library. Please try again.', 'superb-blocks'); ?></p>
+                    <p class="superbaddons-wizard-interstitial-error-text" data-unavailable-text="<?php echo esc_attr__('The library is temporarily unavailable. Please try again in a little while.', 'superb-blocks'); ?>"><?php echo esc_html__('Something went wrong while preparing your library. Please try again.', 'superb-blocks'); ?></p>
                     <button type="button" class="superbaddons-wizard-interstitial-retry superbthemes-module-cta"><?php echo esc_html__('Retry', 'superb-blocks'); ?></button>
                 </div>
             </div>

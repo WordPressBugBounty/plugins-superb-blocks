@@ -200,7 +200,7 @@ class WizardTemplateProvider
         }
 
         try {
-            $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_V2_LIST_ROUTE);
+            $request = new WP_REST_Request('GET', '/' . RestController::REST_NAMESPACE . LibraryRequestController::GUTENBERG_V2_LIST_ROUTE);
             $library_response = rest_do_request($request);
             if (!$library_response || is_wp_error($library_response) || $library_response->is_error() || !isset($library_response->data) || !isset($library_response->data->patterns) || !isset($library_response->data->patterns->items)) {
                 throw new WizardException(__("An error occurred while fetching available patterns.", "superb-blocks"));
@@ -277,7 +277,7 @@ class WizardTemplateProvider
 
         // Add addons service templates
         try {
-            $request = new WP_REST_Request('GET', '/' . RestController::NAMESPACE . LibraryRequestController::GUTENBERG_V2_LIST_ROUTE);
+            $request = new WP_REST_Request('GET', '/' . RestController::REST_NAMESPACE . LibraryRequestController::GUTENBERG_V2_LIST_ROUTE);
             $library_response = rest_do_request($request);
             if (!$library_response || is_wp_error($library_response) || $library_response->is_error() || !isset($library_response->data) || !isset($library_response->data->pages) || !isset($library_response->data->pages->items)) {
                 throw new WizardException(__("An error occurred while fetching available pages.", "superb-blocks"));
@@ -443,7 +443,10 @@ class WizardTemplateProvider
 
         // Sort restoration templates by timestamp
         usort($restoration_templates, function ($a, $b) {
-            return $a->timestamp <=> $b->timestamp;
+            if ($a->timestamp == $b->timestamp) {
+                return 0;
+            }
+            return $a->timestamp < $b->timestamp ? -1 : 1;
         });
 
         $this->SortTemplatesIntoArraysBySlug($restoration_templates, "restoration");

@@ -157,8 +157,9 @@ class GutenbergDynamicContentController
         while (preg_match('/<span\s[^>]*>/s', $content, $match, PREG_OFFSET_CAPTURE, $offset)) {
             $candidate = $match[0][0];
             $candidate_start = $match[0][1];
-            $p = new WP_HTML_Tag_Processor($candidate);
-            if ($p->next_tag() && $p->has_class($class_name)) {
+            // Only parse spans that mention the class, and only whole tags: a '>' inside a quoted value cuts the
+            // match short, which WordPress 6.2's tag processor reports as an error
+            if (strpos($candidate, $class_name) !== false && self::IsWholeTag($candidate) && self::TagHasClass($candidate, $class_name)) {
                 $start = $candidate_start;
                 $open_tag = $candidate;
                 break;
@@ -204,6 +205,30 @@ class GutenbergDynamicContentController
         }
 
         return false;
+    }
+
+    /**
+     * Whether the tag ends at its last '>' the way WordPress's tag processor reads attributes: whitespace and
+     * slashes separate them, a quote opens a value only after a name and its '=' (and must close inside the tag),
+     * and an '=' that starts an attribute is part of its name.
+     */
+    private static function IsWholeTag($tag)
+    {
+        return preg_match('/^<span[^ \t\f\r\n\/>]*+(?:[ \t\f\r\n\/]++|[^ \t\f\r\n\/>][^=>\/]*+(?:=[ \t\f\r\n]*+(?:"[^"]*+"|\'[^\']*+\'|[^"\'> \t\f\r\n][^> \t\f\r\n]*+|(?=>))|(?!=)))*+>$/', $tag) === 1;
+    }
+
+    private static function TagHasClass($tag, $class_name)
+    {
+        try {
+            $p = new WP_HTML_Tag_Processor($tag);
+            // A class_name query, not has_class(): has_class() only exists from WordPress 6.4.
+            return $p->next_tag(array('class_name' => $class_name));
+        } catch (\Exception $e) {
+            return false;
+        } catch (\Throwable $e) {
+            // WordPress 6.2's tag processor throws a ValueError on PHP 8 for some malformed tags
+            return false;
+        }
     }
 
     /**

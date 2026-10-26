@@ -72,7 +72,7 @@ class SlotRenderUtility
             return $styles;
         });
         ob_start();
-        ($contentCallback)();
+        call_user_func($contentCallback);
         $content = ob_get_clean();
         echo wp_kses(
             $content,

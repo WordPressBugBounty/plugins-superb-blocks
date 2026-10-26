@@ -14,7 +14,7 @@ class AdminLinkUtil
     public static function GetLink($source, $options = false)
     {
         if (!in_array($source, AdminLinkSource::ALLOWED_SOURCE)) {
-            $source = AdminLinkSource::DEFAULT;
+            $source = AdminLinkSource::DEFAULT_SOURCE;
         }
         $args = array(
             'su_source' => $source,
@@ -45,7 +45,7 @@ class AdminLinkUtil
 
 class AdminLinkSource
 {
-    const DEFAULT = 'superb-addons';
+    const DEFAULT_SOURCE = 'superb-addons';
     const NOTICE = 'notice';
     const WP_PLUGIN_PAGE = 'plugin-page';
     const NAVIGATION = 'navigation';

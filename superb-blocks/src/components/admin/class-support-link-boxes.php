@@ -19,7 +19,7 @@ class SupportLinkBoxes
                 "title" => __("Customer support", "superb-blocks"),
                 "description" => __("We prioritize top-notch support for our customers. If you have any questions or need assistance with our plugin, don't hesitate to reach out. ", "superb-blocks"),
                 "cta" => __("Contact support", "superb-blocks"),
-                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/")),
+                "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/contact/")),
             )
         );
         if (KeyController::HasValidPremiumKey()) {
@@ -38,7 +38,7 @@ class SupportLinkBoxes
                     "title" => __("Premium support", "superb-blocks"),
                     "description" => __("Unlock expert assistance for any question through our premium support package. Enjoy one-on-one help from the creators of Superb Addons.", "superb-blocks"),
                     "cta" => __("Get Premium Support", "superb-blocks"),
-                    "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/extended-premium-support/")),
+                    "link" => AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/extended-premium-support/")),
                     "pro" => true,
                 )
             );

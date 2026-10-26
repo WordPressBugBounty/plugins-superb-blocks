@@ -472,7 +472,7 @@ class FormsPage
                                     <strong class="superbaddons-element-text-xxs superbaddons-element-text-dark"><?php echo esc_html__('Missing a feature?', 'superb-blocks'); ?></strong>
                                     <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php echo esc_html__('Let us know how we can improve our forms.', 'superb-blocks'); ?></p>
                                 </div>
-                                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" class="superbaddons-element-colorlink superbaddons-element-text-xxs"><?php echo esc_html__('Request Feature', 'superb-blocks'); ?> &rarr;</a>
+                                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" class="superbaddons-element-colorlink superbaddons-element-text-xxs"><?php echo esc_html__('Request Feature', 'superb-blocks'); ?> &rarr;</a>
                             </div>
                         </div>
                     <?php endif; ?>

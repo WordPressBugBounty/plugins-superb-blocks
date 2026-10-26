@@ -93,7 +93,7 @@ use SuperbAddons\Components\Buttons\PreviewButton;
                         <div class="superb-addons-template-library-page-content-inner-list-footer">
                             <div class="superb-addons-template-library-footer-suggest">
                                 <span class="superb-addons-template-library-footer-suggest-text"><?php echo esc_html__("Have a pattern request?", "superb-blocks"); ?></span>
-                                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" rel="noopener" class="superb-addons-template-library-footer-suggest-link"><?php echo esc_html__("Suggest a design", "superb-blocks"); ?></a>
+                                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" rel="noopener" class="superb-addons-template-library-footer-suggest-link"><?php echo esc_html__("Suggest a design", "superb-blocks"); ?></a>
                             </div>
                         </div>
                     </div>

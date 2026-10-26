@@ -349,7 +349,7 @@ class DashboardPage
                 </div>
             </div>
             <div class="superbaddons-admindashboard-sidebarlayout-right">
-                <?php new PremiumBox(AdminLinkSource::DEFAULT); ?>
+                <?php new PremiumBox(AdminLinkSource::DEFAULT_SOURCE); ?>
                 <?php new NewsletterForm(__("Stay updated with new features and freebies.", "superb-blocks"), true); ?>
                 <?php new ReviewBox(); ?>
                 <?php new SupportBox(); ?>
@@ -382,11 +382,11 @@ class DashboardPage
                 <strong class="superbaddons-element-text-xxs superbaddons-element-text-dark"><?php echo esc_html($title); ?></strong>
                 <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-element-m0"><?php echo esc_html($description); ?></p>
                 <?php if ($stacked) : ?>
-                    <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" class="superbaddons-element-colorlink superbaddons-element-text-xxs"><?php echo esc_html__("Request Feature", "superb-blocks"); ?> &rarr;</a>
+                    <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" class="superbaddons-element-colorlink superbaddons-element-text-xxs"><?php echo esc_html__("Request Feature", "superb-blocks"); ?> &rarr;</a>
                 <?php endif; ?>
             </div>
             <?php if (!$stacked) : ?>
-                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" class="superbaddons-element-colorlink superbaddons-element-text-xxs"><?php echo esc_html__("Request Feature", "superb-blocks"); ?> &rarr;</a>
+                <a href="<?php echo esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array("url" => "https://superbthemes.com/contact/", "anchor" => "create-ticket"))); ?>" target="_blank" class="superbaddons-element-colorlink superbaddons-element-text-xxs"><?php echo esc_html__("Request Feature", "superb-blocks"); ?> &rarr;</a>
             <?php endif; ?>
         </div>
 <?php

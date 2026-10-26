@@ -4,6 +4,7 @@ namespace SuperbAddons\Elementor\Controllers;
 
 defined('ABSPATH') || exit();
 
+use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Library\Controllers\FavoritesController;
 use SuperbAddons\Library\Controllers\LibraryController;
@@ -83,13 +84,15 @@ class ElementorController
             "category_placeholder" => esc_html__('All categories', "superb-blocks"),
             "snacks" => array(
                 "insert_error" => esc_html__('Something went wrong while attempting to insert this element. Please try again or contact support if the problem persists.', "superb-blocks"),
-                "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks")
+                "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks"),
+                "insert_unavailable" => esc_html__('This item cannot be inserted right now because the library is temporarily unavailable. Please try again in a little while.', "superb-blocks"),
+                "list_unavailable" => esc_html__('The library is temporarily unavailable. Please try again in a little while.', "superb-blocks")
             ),
             "menu_items" => self::GetElementorLibraryMenuItems(),
             "favorites" => FavoritesController::GetFavorites(get_current_user_id()),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest")
             )
         ));

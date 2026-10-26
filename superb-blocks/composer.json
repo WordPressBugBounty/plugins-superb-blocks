@@ -3,5 +3,8 @@
     "classmap": [
       "./src"
     ]
+  },
+  "config": {
+    "prepend-autoloader": false
   }
 }

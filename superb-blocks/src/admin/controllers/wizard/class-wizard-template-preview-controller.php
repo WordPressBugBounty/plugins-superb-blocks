@@ -362,9 +362,13 @@ class WizardTemplatePreviewController
 
     private static function GetLibraryCache()
     {
-        $cache = CacheController::GetCache(GutenbergCache::LIBRARY, CacheTypes::GUTENBERG);
-        if ($cache) return $cache;
-        // Fall back to partial cache while chunks are still loading
+        try {
+            $cache = CacheController::GetCache(GutenbergCache::LIBRARY, CacheTypes::GUTENBERG);
+            if ($cache) return $cache;
+        } catch (\Exception $e) {
+            // Fall through to the partial cache.
+        }
+        // Fall back to partial cache while chunks are still loading or the service is unavailable
         return CacheController::GetDataCacheDirect(GutenbergCache::LIBRARY_PARTIAL);
     }
 

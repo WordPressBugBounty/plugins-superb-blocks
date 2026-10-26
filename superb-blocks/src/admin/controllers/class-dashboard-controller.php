@@ -274,7 +274,7 @@ class DashboardController
         echo '</style>';
         echo '<div class="superbaddons-theme-designer-redirect-footer">';
         echo '<p>' . esc_html__('If you continue to experience issues, please contact support.', 'superb-blocks') . '</p>';
-        echo '<p><a href="' . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT, array('url' => 'https://superbthemes.com/contact/'))) . '" target="_blank" rel="noopener">' . esc_html__('Contact Support', 'superb-blocks') . '</a></p>';
+        echo '<p><a href="' . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::DEFAULT_SOURCE, array('url' => 'https://superbthemes.com/contact/'))) . '" target="_blank" rel="noopener">' . esc_html__('Contact Support', 'superb-blocks') . '</a></p>';
 
         echo '</div>';
         echo '</div>';
@@ -441,7 +441,7 @@ class DashboardController
             "plugin" => plugin_basename(SUPERBADDONS_BASE),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "settings" => SettingsController::SETTINGS_ROUTE,
@@ -479,7 +479,8 @@ class DashboardController
             "style_placeholder" => esc_html__('All themes', "superb-blocks"),
             "category_placeholder" => esc_html__('All categories', "superb-blocks"),
             "snacks" => array(
-                "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks")
+                "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks"),
+                "list_unavailable" => esc_html__('The library is temporarily unavailable. Please try again in a little while.', "superb-blocks")
             ),
             "gutenberg_menu_items" => GutenbergController::GetGutenbergLibraryMenuItems(),
             "elementor_menu_items" => ElementorController::GetElementorLibraryMenuItems(),
@@ -503,7 +504,7 @@ class DashboardController
             ),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "settings" => SettingsController::SETTINGS_ROUTE,
@@ -524,7 +525,7 @@ class DashboardController
             "auto_start" => !TourController::IsTourCompleted(TourController::TOUR_DASHBOARD_WELCOME_META),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "tutorial" => TroubleshootingController::TUTORIAL_ROUTE,
@@ -540,11 +541,11 @@ class DashboardController
         wp_localize_script('superb-addons-troubleshooting', 'superbaddonstroubleshooting_g', array(
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "fallback_url" => add_query_arg(
                     'rest_route',
-                    '/' . RestController::NAMESPACE . TroubleshootingController::TROUBLESHOOTING_ROUTE,
+                    '/' . RestController::REST_NAMESPACE . TroubleshootingController::TROUBLESHOOTING_ROUTE,
                     trailingslashit(home_url()) . 'index.php'
                 ),
                 "routes" => array(
@@ -706,7 +707,7 @@ class DashboardController
             "search_placeholder" => esc_attr__("Search settings...", "superb-blocks"),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "settings" => SettingsController::SETTINGS_ROUTE,
@@ -734,7 +735,7 @@ class DashboardController
             "codeEditorSettings" => $code_editor_settings,
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "css" => CSSController::CSS_ROUTE,
@@ -759,7 +760,7 @@ class DashboardController
             "industries" => self::GetLibraryIndustries(),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "wizard" => WizardController::WIZARD_ROUTE,
@@ -782,7 +783,7 @@ class DashboardController
             "auto_start" => !TourController::IsTourCompleted(TourController::TOUR_BLOCK_THEME_META),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "tutorial" => TroubleshootingController::TUTORIAL_ROUTE,
@@ -823,7 +824,7 @@ class DashboardController
             "permissions" => FormPermissions::GetCurrentUserPermissions(),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest"),
                 "routes" => array(
                     "submissions" => \SuperbAddons\Gutenberg\Form\FormController::SUBMISSIONS_ROUTE,

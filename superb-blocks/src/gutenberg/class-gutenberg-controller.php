@@ -131,8 +131,8 @@ class GutenbergController
         // Patterns CSS is registered through here so it reaches the iframe correctly.
         add_action("enqueue_block_assets", array($this, 'EnqueueEditorIframeAssets'));
 
-        add_action('enqueue_block_editor_assets', array($this, 'EnqueueVariableFallbacks'), PHP_INT_MIN);
-        add_action("wp_enqueue_scripts", array($this, 'EnqueueVariableFallbacks'), PHP_INT_MIN);
+        add_action('enqueue_block_editor_assets', array($this, 'EnqueueVariableFallbacks'), -PHP_INT_MAX - 1);
+        add_action("wp_enqueue_scripts", array($this, 'EnqueueVariableFallbacks'), -PHP_INT_MAX - 1);
         add_action('wp_print_styles', array($this, 'ReorderVariableFallbacks'), PHP_INT_MAX);
 
         GutenbergEnhancementsController::Initialize();
@@ -389,14 +389,16 @@ class GutenbergController
                 "settings_save_message" => esc_html__("Settings saved successfully.", "superb-blocks"),
                 "settings_save_error" => esc_html__("Something went wrong while attempting to save your settings. Please try again or contact support if the problem persists.", "superb-blocks"),
                 "insert_error" => esc_html__('Something went wrong while attempting to insert this element. Please try again or contact support if the problem persists.', "superb-blocks"),
-                "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks")
+                "list_error" => esc_html__('Something went wrong while attempting to list elements. Please try again or contact support if the problem persists.', "superb-blocks"),
+                "insert_unavailable" => esc_html__('This item cannot be inserted right now because the library is temporarily unavailable. Please try again in a little while.', "superb-blocks"),
+                "list_unavailable" => esc_html__('The library is temporarily unavailable. Please try again in a little while.', "superb-blocks")
             ),
             "menu_items" => self::GetGutenbergLibraryMenuItems(),
             "chunk_route" => LibraryRequestController::GUTENBERG_V2_LIST_CHUNK_ROUTE,
             "favorites" => FavoritesController::GetFavorites(get_current_user_id()),
             "rest" => array(
                 "base" => \get_rest_url(),
-                "namespace" => RestController::NAMESPACE,
+                "namespace" => RestController::REST_NAMESPACE,
                 "nonce" => wp_create_nonce("wp_rest")
             ),
             "addons_link_id" => AdminLinkUtil::GetLinkID(),
@@ -454,10 +456,12 @@ class GutenbergController
 
         // Form editor config — pass settings URL, REST namespace, and registry (API key status checked dynamically)
         $ac_enabled = FormAccessControl::IsEnabled();
+        // The post editor sets the global post; other editors have none
+        $editor_post = get_post();
         wp_add_inline_script('superb-addons-gutenberg-library', 'window.superbFormsEditorConfig = ' . wp_json_encode(array(
-            'registry' => FormRegistry::GetAll(),
+            'registry' => FormRegistry::GetEditorRegistry($editor_post ? $editor_post->ID : 0),
             'settingsUrl' => admin_url('admin.php?page=superbaddons-settings#integrations'),
-            'restNamespace' => RestController::NAMESPACE,
+            'restNamespace' => RestController::REST_NAMESPACE,
             'encryptionAvailable' => FormEncryption::IsAvailable(),
             'emailConfigured' => FormEmailConfigCheck::IsConfigured(),
             'formAccessControl' => array(
@@ -488,7 +492,7 @@ class GutenbergController
             'wcSupported'    => CommerceController::IsWcActive() && CommerceController::IsWcVersionSupported(),
             'wcActivateUrl'  => self::GetWooCommerceActivateUrl(),
             'wcInstallUrl'   => admin_url('plugin-install.php?tab=plugin-information&plugin=woocommerce'),
-            'restNamespace'  => RestController::NAMESPACE,
+            'restNamespace'  => RestController::REST_NAMESPACE,
             'recentPicks'    => CommerceController::GetRecentPicks(get_current_user_id()),
             'currencySymbol' => CommerceController::IsWcActive() ? html_entity_decode(get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8') : '$',
             'currencyPosition' => CommerceController::IsWcActive() ? (string) get_option('woocommerce_currency_pos', 'left') : 'left',
@@ -546,7 +550,7 @@ class GutenbergController
         $is_disabled = in_array($slug, $disabled, true);
 
         // Check if this is a child block whose parent is disabled
-        if (!$is_disabled && isset(self::CHILD_BLOCK_MAP[$slug])) {
+        if (!$is_disabled && array_key_exists($slug, self::CHILD_BLOCK_MAP)) {
             $parent = self::CHILD_BLOCK_MAP[$slug];
             $is_disabled = in_array($parent, $disabled, true);
         }
@@ -558,7 +562,7 @@ class GutenbergController
                 $is_disabled = true;
             }
             // Also hide child blocks (form-field, form-step) via CHILD_BLOCK_MAP
-            if (!$is_disabled && isset(self::CHILD_BLOCK_MAP[$slug])) {
+            if (!$is_disabled && array_key_exists($slug, self::CHILD_BLOCK_MAP)) {
                 $parent = self::CHILD_BLOCK_MAP[$slug];
                 if (in_array($parent, $form_slugs, true)) {
                     $is_disabled = true;
