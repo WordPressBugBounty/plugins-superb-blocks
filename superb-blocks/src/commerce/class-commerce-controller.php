@@ -12,12 +12,16 @@ use SuperbAddons\Data\Controllers\RestController;
  * Routes: superbaddons/commerce/*
  *   GET    /products/search          (edit_posts, 60s transient)
  *   GET    /product/{id}             (edit_posts, 60s transient)
- *   GET    /nonce                    (public, no session — lazy refresh on stale nonce)
- *   POST   /add                      (public, nonce, inits session)
+ *   GET    /nonce                    (public, no session — commerce nonce refresh on stale nonce;
+ *                                     logged-in callers must send a valid REST nonce)
+ *   POST   /add                      (public, commerce nonce, inits session)
  */
 class CommerceController
 {
     const MINIMUM_WC_VERSION = '5.0';
+
+    const NONCE_ACTION              = 'superb_commerce_add';
+    const NONCE_HEADER              = 'x-superb-commerce-nonce';
 
     const SEARCH_ROUTE              = '/commerce/products/search';
     const PRODUCT_ROUTE             = '/commerce/product/(?P<id>\d+)';
@@ -63,7 +67,7 @@ class CommerceController
 
         RestController::AddRoute(self::NONCE_ROUTE, array(
             'methods' => 'GET',
-            'permission_callback' => '__return_true',
+            'permission_callback' => array(__CLASS__, 'NoncePermissionCheck'),
             'callback' => array(__CLASS__, 'NonceCallback'),
         ));
 
@@ -110,21 +114,52 @@ class CommerceController
 
     /**
      * Permission callback for "public" endpoints: anyone may call, but the
-     * standard WP REST nonce must verify. For logged-in users the cookie-auth
-     * pipeline already checks this; we re-check here so anonymous visitors
-     * can't bypass the check.
+     * commerce nonce must verify for the user the REST API resolved.
      */
     public static function PublicNonceCheck($request)
     {
-        $nonce = $request->get_header('x-wp-nonce');
-        if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_rest')) {
-            return new \WP_Error(
-                'rest_forbidden',
-                __('Invalid or missing security token.', 'superb-blocks'),
-                array('status' => 403)
-            );
+        // Core runs a cookie request without a REST nonce as a guest, and WooCommerce would
+        // then discard the logged-in shopper's session. Such requests must send the REST nonce.
+        if (self::HasUnverifiedLoginCookie()) {
+            return self::InvalidNonceError();
+        }
+
+        $nonce = $request->get_header(self::NONCE_HEADER);
+        if (empty($nonce) || !wp_verify_nonce($nonce, self::NONCE_ACTION)) {
+            return self::InvalidNonceError();
         }
         return true;
+    }
+
+    /**
+     * Permission callback for /nonce: anyone may call, but a logged-in shopper must
+     * send a valid REST nonce so the commerce nonce is created for the right user.
+     */
+    public static function NoncePermissionCheck()
+    {
+        if (self::HasUnverifiedLoginCookie()) {
+            return self::InvalidNonceError();
+        }
+        return true;
+    }
+
+    /**
+     * Whether the request carries a login cookie the REST API did not verify
+     * (no valid REST nonce). Core runs such requests as a guest; this never
+     * changes the current user.
+     */
+    private static function HasUnverifiedLoginCookie()
+    {
+        return !is_user_logged_in() && wp_validate_auth_cookie('', 'logged_in');
+    }
+
+    private static function InvalidNonceError()
+    {
+        return new \WP_Error(
+            'rest_forbidden',
+            __('Invalid or missing security token.', 'superb-blocks'),
+            array('status' => 403)
+        );
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -539,20 +574,10 @@ class CommerceController
     {
         nocache_headers();
 
-        // rest_cookie_check_errors() resets the current user to 0 on cookie-authed
-        // REST requests that carry no X-WP-Nonce (this endpoint, by design). If we
-        // call wp_create_nonce() in that state, the nonce hashes against user 0 and
-        // later fails wp_verify_nonce() when the real user hits /add etc. — producing
-        // rest_cookie_invalid_nonce. Re-resolve the user from the auth cookie first.
-        if (!is_user_logged_in()) {
-            $user_id = wp_validate_auth_cookie('', 'logged_in');
-            if ($user_id) {
-                wp_set_current_user($user_id);
-            }
-        }
-
+        // Created for the user the REST API resolved: a guest's nonce for a request
+        // without cookies, the shopper's own for one with a valid REST nonce.
         $response = rest_ensure_response(array(
-            'nonce' => wp_create_nonce('wp_rest'),
+            'nonce' => wp_create_nonce(self::NONCE_ACTION),
         ));
         $response->header('Cache-Control', 'no-store, private');
         return $response;
