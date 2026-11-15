@@ -670,7 +670,7 @@ class SettingsPage
                     <button type="button" class="superbaddons-element-button superbaddons-element-m0" id="superbaddons-save-permissions-btn"><?php echo esc_html__("Save Access Settings", "superb-blocks"); ?></button>
                 </div>
             </div>
-            <p class="superbaddons-element-text-xs superbaddons-element-text-gray"><?php echo esc_html__("Control which roles can access forms, form submissions, and related features. By default, all roles with editor access have full permissions.", "superb-blocks"); ?></p>
+            <p class="superbaddons-element-text-xs superbaddons-element-text-gray"><?php echo esc_html__("Control which roles can access forms, form submissions, and related features. By default, Administrators and roles that can edit others' posts, such as Editors, have full permissions. Other roles with editor access can build forms in their own posts but do not see submissions.", "superb-blocks"); ?></p>
 
             <!-- Editor Restrictions Toggle -->
             <div class="superb-addons-checkbox-input-wrapper" style="margin-bottom: 16px;">
@@ -681,7 +681,7 @@ class SettingsPage
                     <button type="button" class="superbaddons-help-toggle" aria-label="<?php echo esc_attr__('Toggle help text', 'superb-blocks'); ?>">i</button>
                 </label>
                 <p class="superbaddons-element-text-xxs superbaddons-element-text-gray superbaddons-help-text superbaddons-help-text--expanded">
-                    <?php echo esc_html__("When disabled, all roles with editor access have full form and forms page permissions by default.", "superb-blocks"); ?>
+                    <?php echo esc_html__("When disabled, Administrators and roles that can edit others' posts, such as Editors, have full form and forms page permissions. Other roles with editor access can build forms in their own posts but do not see submissions.", "superb-blocks"); ?>
                     <span style="display: block; margin-top: 4px;"><?php echo esc_html__("When enabled, each role must be granted permissions explicitly. Only administrators and roles with explicit permissions can access forms, create new form blocks, or modify settings on existing form blocks.", "superb-blocks"); ?></span>
                 </p>
             </div>
@@ -736,6 +736,7 @@ class SettingsPage
                 <?php foreach ($configurable_roles as $role_slug => $role_name) :
                     $role_obj = get_role($role_slug);
                     $has_edit_posts = $role_obj && $role_obj->has_cap('edit_posts');
+                    $has_edit_others = $role_obj && $role_obj->has_cap('edit_others_posts');
                     $has_default_access = !$access_control_enabled && $has_edit_posts;
                 ?>
                     <details class="superbaddons-role-card" data-role="<?php echo esc_attr($role_slug); ?>" data-has-editor="<?php echo $has_edit_posts ? '1' : '0'; ?>">
@@ -746,8 +747,10 @@ class SettingsPage
                         <div class="superbaddons-role-card-caps">
                             <?php if (!$has_edit_posts) : ?>
                                 <p class="superbaddons-default-access-notice superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("This role does not have editor access. Form block permissions are not available.", "superb-blocks"); ?></p>
-                            <?php elseif ($has_default_access) : ?>
+                            <?php elseif ($has_default_access && $has_edit_others) : ?>
                                 <p class="superbaddons-default-access-notice superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("This role has full access by default. Enable access control above to customize permissions.", "superb-blocks"); ?></p>
+                            <?php elseif ($has_default_access) : ?>
+                                <p class="superbaddons-default-access-notice superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("By default this role can build forms in its own posts but does not see submissions. Enable access control above to grant permissions.", "superb-blocks"); ?></p>
                             <?php else : ?>
                                 <p class="superbaddons-default-access-notice superbaddons-element-text-xxs superbaddons-element-text-gray"><?php echo esc_html__("Configure which form features this role can access.", "superb-blocks"); ?></p>
                             <?php endif; ?>

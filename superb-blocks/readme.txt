@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 4.2.5
+Stable tag: 4.2.6
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -337,6 +337,11 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.6 =
+* With "Restrict form access by role" turned off, form submissions are now available to Editors and Administrators only. Authors and Contributors can still build forms in their own posts, but no longer see, export or delete submissions. To give another role access to submissions, turn the setting on in the plugin's Access Control settings and grant the permissions for that role.
+* Fixed forms and popups in template parts getting a new id and a "(Copy)" name whenever the part was opened in the Site Editor or shown under a page, which broke buttons that opened the popup.
+* Opening a saved form no longer adds validation settings to its fields. New fields still get the defaults for their type, and the pattern error message is now shown in the visitor's language instead of being saved as English text.
+
 = 4.2.5 =
 * Security fix in the Add to Cart block's request handling when WooCommerce is active.
 

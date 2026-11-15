@@ -14,6 +14,12 @@ class FormPermissions
     private static $capabilities = array('view', 'delete', 'sensitive', 'export', 'spam', 'notes', 'edit', 'configure', 'create');
 
     /**
+     * The permissions for building forms (as opposed to reading submission data). With access control off these
+     * stay with every user who can edit posts, so Authors keep forms in their own posts working.
+     */
+    private static $authoring_capabilities = array('edit', 'configure', 'create');
+
+    /**
      * Check if the current user has a specific form permission.
      *
      * @param string $capability One of: view, delete, sensitive, export, spam, notes
@@ -26,9 +32,14 @@ class FormPermissions
             return true;
         }
 
-        // When access control is off, any user with edit_posts has full access
-        if (!FormAccessControl::IsEnabled() && current_user_can('edit_posts')) {
-            return true;
+        // Access control off: users who edit others' posts (Editors) have every permission; other users who edit
+        // posts keep the authoring permissions. Submission data needs edit_others_posts, or the role matrix with
+        // access control on.
+        if (!FormAccessControl::IsEnabled()) {
+            if (current_user_can('edit_others_posts')) {
+                return true;
+            }
+            return current_user_can('edit_posts') && in_array($capability, self::$authoring_capabilities, true);
         }
 
         $user = wp_get_current_user();
@@ -59,9 +70,9 @@ class FormPermissions
             return true;
         }
 
-        // When access control is off, any user with edit_posts has full access
-        if (!FormAccessControl::IsEnabled() && current_user_can('edit_posts')) {
-            return true;
+        // Access control off: see Can()
+        if (!FormAccessControl::IsEnabled()) {
+            return current_user_can('edit_posts');
         }
 
         $user = wp_get_current_user();

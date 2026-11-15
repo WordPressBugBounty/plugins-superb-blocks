@@ -696,7 +696,7 @@ class DashboardController
             "captcha_removed" => esc_html__("CAPTCHA keys removed.", "superb-blocks"),
             "captcha_error" => esc_html__("An error occurred. Please try again.", "superb-blocks"),
             "permissions_saved" => esc_html__("Permissions saved.", "superb-blocks"),
-            "notice_default_access" => esc_html__("This role has full access by default. Enable access control above to customize permissions.", "superb-blocks"),
+            "notice_default_access" => esc_html__("By default, roles that edit others' posts have full access; other roles build forms in their own posts without seeing submissions. Enable access control above to customize permissions.", "superb-blocks"),
             "notice_explicit_access" => esc_html__("Configure which form features this role can access.", "superb-blocks"),
             "default_email_saved" => esc_html__("Email settings saved.", "superb-blocks"),
             "data_retention_saved" => esc_html__("Data retention settings saved.", "superb-blocks"),

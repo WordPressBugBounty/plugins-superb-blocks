@@ -610,12 +610,35 @@ class FormFieldValidator
         if ($result === 0) {
             $msg = isset($config['patternMessage']) && $config['patternMessage'] !== ''
                 ? $config['patternMessage']
-                : __('Invalid format.', 'superb-blocks');
+                : self::GetPatternFallbackMessage(isset($config['fieldType']) ? $config['fieldType'] : 'text');
             return $msg;
         }
 
         // Invalid regex or match: pass
         return '';
+    }
+
+    /**
+     * Message for a pattern mismatch on a field without a message of its own.
+     * Resolved per request, in the site's language, instead of being saved into
+     * the block when the field is created. Mirrors getPatternFallbackMessage()
+     * in the front-end validation script.
+     *
+     * @param string $field_type
+     * @return string
+     */
+    private static function GetPatternFallbackMessage($field_type)
+    {
+        switch ($field_type) {
+            case 'email':
+                return __('Please enter a valid email address.', 'superb-blocks');
+            case 'phone':
+                return __('Please enter a valid phone number.', 'superb-blocks');
+            case 'url':
+                return __('Please enter a valid URL.', 'superb-blocks');
+            default:
+                return __('Invalid format.', 'superb-blocks');
+        }
     }
 
     /**
