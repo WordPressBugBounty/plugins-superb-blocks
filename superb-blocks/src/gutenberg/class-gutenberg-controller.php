@@ -62,8 +62,10 @@ class GutenbergController
         'add-to-cart',
     );
 
-    // Child blocks that should be hidden when their parent is disabled
+    // Blocks that should be hidden when a toggleable block is disabled: its child
+    // blocks, and a block whose registered name differs from the toggle's slug.
     const CHILD_BLOCK_MAP = array(
+        'accordion-block' => 'accordion',
         'carousel-slide' => 'carousel',
         'reveal-button' => 'reveal-buttons',
         'form-field' => 'form',
@@ -482,7 +484,7 @@ class GutenbergController
 
         // Popup registry — pass registered popups to the block editor
         wp_add_inline_script('superb-addons-gutenberg-library', 'window.superbPopupsEditorConfig = ' . wp_json_encode(array(
-            'registry' => PopupRegistry::GetAll(),
+            'registry' => PopupRegistry::GetEditorRegistry($editor_post ? $editor_post->ID : 0),
         ), JSON_HEX_TAG) . ';', 'before');
 
         // Commerce (Add to Cart) editor config: WC active/installed state, REST namespace, recent picks.

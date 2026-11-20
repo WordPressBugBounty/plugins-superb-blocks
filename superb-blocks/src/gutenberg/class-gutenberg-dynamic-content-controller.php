@@ -44,10 +44,16 @@ class GutenbergDynamicContentController
             return new WP_Error('missing_type', 'Missing type parameter', array('status' => 400));
         }
 
-        // Gate per-post reads so contributors can't enumerate drafts, private posts,
-        // or password-protected content by calling the endpoint with arbitrary IDs.
-        if ($post_id > 0 && !current_user_can('read_post', $post_id)) {
-            return new WP_Error('rest_forbidden', 'You do not have permission to read this post.', array('status' => 403));
+        // The editor previews values for the post being edited, so the caller must be able to edit it. A post's
+        // meta and its author's details are otherwise shown only where the post itself renders.
+        if ($post_id > 0 && !current_user_can('edit_post', $post_id)) {
+            return new WP_Error('rest_forbidden', 'You do not have permission to edit this post.', array('status' => 403));
+        }
+        if ($type === 'authorMeta') {
+            $author_id = $post_id > 0 ? intval(get_post_field('post_author', $post_id)) : 0;
+            if (!$author_id || ($author_id !== get_current_user_id() && !current_user_can('edit_user', $author_id))) {
+                return rest_ensure_response(array('value' => ''));
+            }
         }
 
         $value = $kind === 'link'

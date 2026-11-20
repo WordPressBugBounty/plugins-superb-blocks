@@ -4,6 +4,8 @@ namespace SuperbAddons\Gutenberg\Form;
 
 defined('ABSPATH') || exit();
 
+use SuperbAddons\Data\Utils\ClientAddressUtil;
+
 class FormSubmissionHandler
 {
     /**
@@ -15,9 +17,11 @@ class FormSubmissionHandler
      */
     public static function Store($form_id, $fields)
     {
+        // Records carry no author: a logged-in submitter gets no core capabilities on their own record.
         $post_id = wp_insert_post(array(
             'post_type' => FormSubmissionCPT::POST_TYPE,
             'post_status' => 'publish',
+            'post_author' => 0,
             'post_title' => sanitize_text_field($form_id) . ' - ' . current_time('mysql'),
         ));
 
@@ -80,10 +84,16 @@ class FormSubmissionHandler
      * @param string $date_after ISO date string for date range start
      * @param string $date_before ISO date string for date range end
      * @param array|null $ids Restrict to these submission IDs; null applies the filters only.
+     * @param bool $visible_search True when the caller may not see sensitive values: the search term is then
+     *                             matched in PHP against the values the caller can see, not with a LIKE query
+     *                             over the stored data.
      * @return array
      */
-    public static function GetSubmissions($form_id, $page = 1, $per_page = 20, $status = '', $starred = '', $search = '', $date_after = '', $date_before = '', $ids = null)
+    public static function GetSubmissions($form_id, $page = 1, $per_page = 20, $status = '', $starred = '', $search = '', $date_after = '', $date_before = '', $ids = null, $visible_search = false)
     {
+        $search = sanitize_text_field((string) $search);
+        $visible_search = $visible_search && $search !== '';
+
         $args = array(
             'post_type' => FormSubmissionCPT::POST_TYPE,
             'post_status' => 'publish',
@@ -127,11 +137,13 @@ class FormSubmissionHandler
             );
         }
 
-        // Server-side search: LIKE query on serialized field data
-        if (!empty($search)) {
+        // Server-side search: LIKE query on serialized field data. For a caller who may not see sensitive
+        // values the match runs in PHP over visible values instead (below), so a stored value the caller
+        // cannot read never decides whether a record is listed.
+        if ($search !== '' && !$visible_search) {
             $meta_query[] = array(
                 'key' => '_spb_form_fields',
-                'value' => sanitize_text_field($search),
+                'value' => $search,
                 'compare' => 'LIKE',
             );
         }
@@ -153,6 +165,12 @@ class FormSubmissionHandler
                 $date_query['inclusive'] = true;
             }
             $args['date_query'] = array($date_query);
+        }
+
+        if ($visible_search) {
+            $args['posts_per_page'] = -1;
+            $args['paged'] = 1;
+            $args['no_found_rows'] = true;
         }
 
         $query = new \WP_Query($args);
@@ -187,11 +205,104 @@ class FormSubmissionHandler
             $submissions[] = $sub;
         }
 
+        if ($visible_search) {
+            $matched = array();
+            foreach ($submissions as $sub) {
+                if (self::MatchesVisibleValues($sub, $search)) {
+                    $matched[] = $sub;
+                }
+            }
+            $total = count($matched);
+            $total_pages = $total > 0 ? 1 : 0;
+            if ($per_page > 0) {
+                $total_pages = (int) ceil($total / $per_page);
+                $matched = array_slice($matched, max(0, intval($page) - 1) * $per_page, $per_page);
+            }
+            return array(
+                'submissions' => $matched,
+                'total' => $total,
+                'total_pages' => $total_pages,
+            );
+        }
+
         return array(
             'submissions' => $submissions,
             'total' => $query->found_posts,
             'total_pages' => $query->max_num_pages,
         );
+    }
+
+    /**
+     * Field IDs flagged sensitive in a form's stored config (cached per request).
+     *
+     * @param string $form_id
+     * @return array
+     */
+    public static function SensitiveFieldIds($form_id)
+    {
+        static $cache = array();
+        $form_id = (string) $form_id;
+        if ($form_id === '') {
+            return array();
+        }
+        if (!isset($cache[$form_id])) {
+            $ids = array();
+            $config = FormRegistry::GetConfig($form_id);
+            if (is_array($config) && !empty($config['formFields']) && is_array($config['formFields'])) {
+                foreach ($config['formFields'] as $field) {
+                    if (!empty($field['sensitive']) && !empty($field['fieldId'])) {
+                        $ids[] = (string) $field['fieldId'];
+                    }
+                }
+            }
+            $cache[$form_id] = $ids;
+        }
+        return $cache[$form_id];
+    }
+
+    /**
+     * Whether a search term occurs in the values of a record that a caller without the sensitive grant can
+     * see: fields flagged sensitive in the record's own form and encrypted values are left out.
+     *
+     * @param array $sub Record as built by GetSubmissions().
+     * @param string $search
+     * @return bool
+     */
+    private static function MatchesVisibleValues($sub, $search)
+    {
+        $hidden = self::SensitiveFieldIds(isset($sub['form_id']) ? $sub['form_id'] : '');
+        $needle = self::LowerCase($search);
+        if ($needle === '') {
+            return false;
+        }
+        $fields = isset($sub['fields']) && is_array($sub['fields']) ? $sub['fields'] : array();
+        foreach ($fields as $fid => $value) {
+            if (in_array((string) $fid, $hidden, true)) {
+                continue;
+            }
+            if (is_string($value)) {
+                if (FormEncryption::IsEncrypted($value)) {
+                    continue;
+                }
+                if (strpos(self::LowerCase($value), $needle) !== false) {
+                    return true;
+                }
+            } elseif (is_array($value)) {
+                foreach ($value as $item) {
+                    $name = is_array($item) && isset($item['name']) ? $item['name'] : $item;
+                    if (is_string($name) && strpos(self::LowerCase($name), $needle) !== false) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static function LowerCase($text)
+    {
+        $text = (string) $text;
+        return function_exists('mb_strtolower') ? mb_strtolower($text) : strtolower($text);
     }
 
     /**
@@ -643,28 +754,51 @@ class FormSubmissionHandler
 
     /**
      * Store a spam submission.
-     * Text fields only -- file field values are stored as empty arrays.
+     * Text fields only -- file field values are stored as empty arrays. The record holds the form's configured
+     * fields only, sanitized by type like an accepted submission.
      *
      * @param string $form_id
      * @param array $fields
      * @param string $spam_reason 'honeypot', 'captcha', or 'bot_detection'
+     * @param array $form_fields Field definitions from the form config
      * @return int|false Post ID on success, false on failure
      */
-    public static function StoreSpam($form_id, $fields, $spam_reason)
+    public static function StoreSpam($form_id, $fields, $spam_reason, $form_fields = array())
     {
-        // Strip file upload data -- store empty arrays for file fields
+        $field_types = array();
+        if (is_array($form_fields)) {
+            foreach ($form_fields as $fc) {
+                if (is_array($fc) && isset($fc['fieldId']) && is_string($fc['fieldId']) && $fc['fieldId'] !== '') {
+                    $field_types[$fc['fieldId']] = isset($fc['fieldType']) && is_string($fc['fieldType']) ? $fc['fieldType'] : 'text';
+                }
+            }
+        }
+
         $text_fields = array();
-        foreach ($fields as $key => $value) {
-            if (is_array($value)) {
-                $text_fields[sanitize_text_field($key)] = array();
-            } else {
-                $text_fields[sanitize_text_field($key)] = $value;
+        if (is_array($fields)) {
+            foreach ($fields as $key => $value) {
+                $skey = sanitize_text_field((string) $key);
+                if ($skey === '' || (!empty($field_types) && !isset($field_types[$skey]))) {
+                    continue;
+                }
+                if (is_array($value)) {
+                    // File fields and nested values are stored as empty arrays
+                    $text_fields[$skey] = array();
+                } elseif (is_scalar($value)) {
+                    $value = substr((string) $value, 0, 10000);
+                    $type = isset($field_types[$skey]) ? $field_types[$skey] : 'text';
+                    $text_fields[$skey] = $type === 'textarea' ? sanitize_textarea_field($value) : sanitize_text_field($value);
+                }
+                if (count($text_fields) >= 200) {
+                    break;
+                }
             }
         }
 
         $post_id = wp_insert_post(array(
             'post_type' => FormSubmissionCPT::POST_TYPE,
             'post_status' => 'publish',
+            'post_author' => 0,
             'post_title' => sanitize_text_field($form_id) . ' - spam - ' . current_time('mysql'),
         ));
 
@@ -739,6 +873,9 @@ class FormSubmissionHandler
     // ========================================
 
     const SPAM_PURGE_HOOK = 'spb_form_spam_purge';
+    /** Records deleted per query in a purge, and the seconds one purge run may spend before the next daily run continues. */
+    const PURGE_BATCH_SIZE = 100;
+    const PURGE_TIME_BUDGET = 20;
 
     /**
      * Schedule the daily spam purge cron if not already scheduled.
@@ -788,10 +925,7 @@ class FormSubmissionHandler
             ),
         );
 
-        $ids = get_posts($args);
-        if (!empty($ids)) {
-            self::BulkDelete($ids);
-        }
+        self::PurgeInBatches($args);
     }
 
     // ========================================
@@ -854,10 +988,36 @@ class FormSubmissionHandler
             ),
         );
 
-        $ids = get_posts($args);
-        if (!empty($ids)) {
-            self::BulkDelete($ids);
-        }
+        self::PurgeInBatches($args);
+    }
+
+    /**
+     * Delete the records a purge query selects, PURGE_BATCH_SIZE at a time, until none are left or the time
+     * budget (PURGE_TIME_BUDGET seconds, filter superbaddons_form_purge_time_budget) is spent; the next daily
+     * run continues where this one stopped.
+     *
+     * @param array $args get_posts() arguments selecting the records.
+     * @return int Number of deleted records.
+     */
+    public static function PurgeInBatches($args)
+    {
+        $budget = max(1, intval(apply_filters('superbaddons_form_purge_time_budget', self::PURGE_TIME_BUDGET)));
+        $deadline = microtime(true) + $budget;
+        $args['posts_per_page'] = self::PURGE_BATCH_SIZE;
+        $deleted = 0;
+        do {
+            $ids = get_posts($args);
+            if (empty($ids)) {
+                break;
+            }
+            $removed = self::BulkDelete($ids);
+            $deleted += $removed;
+            // A record the delete left in place would be selected again: stop instead of repeating the query
+            if ($removed < count($ids)) {
+                break;
+            }
+        } while (count($ids) === self::PURGE_BATCH_SIZE && microtime(true) < $deadline);
+        return $deleted;
     }
 
     // ========================================
@@ -943,6 +1103,10 @@ class FormSubmissionHandler
      */
     public static function GetNotes($post_id)
     {
+        // Notes belong to submissions: the same meta key on another post is not read
+        if (get_post_type($post_id) !== FormSubmissionCPT::POST_TYPE) {
+            return array();
+        }
         $notes = get_post_meta($post_id, '_spb_form_notes', true);
         return is_array($notes) ? $notes : array();
     }
@@ -955,8 +1119,7 @@ class FormSubmissionHandler
      */
     public static function GetNoteCount($post_id)
     {
-        $notes = get_post_meta($post_id, '_spb_form_notes', true);
-        return is_array($notes) ? count($notes) : 0;
+        return count(self::GetNotes($post_id));
     }
 
     // ========================================
@@ -1001,10 +1164,6 @@ class FormSubmissionHandler
      */
     private static function HashIP()
     {
-        $ip = '';
-        if (isset($_SERVER['REMOTE_ADDR'])) {
-            $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
-        }
-        return wp_hash($ip);
+        return wp_hash(ClientAddressUtil::Get());
     }
 }

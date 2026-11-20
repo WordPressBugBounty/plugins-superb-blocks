@@ -28,7 +28,8 @@ class WizardPageCreator
         $menu_items = self::CreateAndGetPageMenuItems(
             $page_stages,
             $selection_data,
-            $theme_template_slugs
+            $theme_template_slugs,
+            $wizardData->IsRestore()
         );
 
         return $menu_items;
@@ -47,27 +48,36 @@ class WizardPageCreator
         return $page_stages;
     }
 
-    private static function CreateAndGetPageMenuItems($stage_types, $selections, $available_templates)
+    private static function CreateAndGetPageMenuItems($stage_types, $selections, $available_templates, $is_restore = false)
     {
+        // WordPress lists the posts on a separate page only on a site with a static front page.
+        // A run whose blog selection becomes the posts page keeps the reading settings in line with that.
+        // Restore runs are left as they are, and one of the theme's own page templates lists the posts by itself.
+        $blog_selections = isset($selections[WizardStageTypes::BLOG_PAGE_STAGE]) && is_array($selections[WizardStageTypes::BLOG_PAGE_STAGE]) ? $selections[WizardStageTypes::BLOG_PAGE_STAGE] : array();
+        $align_reading_settings = !$is_restore
+            && in_array(WizardStageTypes::BLOG_PAGE_STAGE, $stage_types, true)
+            && isset($blog_selections[0])
+            && !self::IsThemePageTemplateSelection($blog_selections[0]);
+
         $menu_items = array();
         foreach ($stage_types as $stage_type) {
             if (!isset($selections[$stage_type]) || empty($selections[$stage_type])) {
                 continue;
             }
-            $created_menu_items = self::HandlePageCreation($stage_type, $selections[$stage_type], $available_templates);
+            $created_menu_items = self::HandlePageCreation($stage_type, $selections[$stage_type], $available_templates, $align_reading_settings);
             $menu_items = array_merge($menu_items, $created_menu_items);
         }
 
         return $menu_items;
     }
 
-    private static function HandlePageCreation($type, $selections, $available_templates)
+    private static function HandlePageCreation($type, $selections, $available_templates, $align_reading_settings = false)
     {
         switch ($type) {
             case WizardStageTypes::FRONT_PAGE_STAGE:
-                return self::HandleFrontPageCreation($selections[0], $available_templates);
+                return self::HandleFrontPageCreation($selections[0], $available_templates, $align_reading_settings);
             case WizardStageTypes::BLOG_PAGE_STAGE:
-                return self::HandleBlogPageCreation($selections[0], $available_templates);
+                return self::HandleBlogPageCreation($selections[0], $available_templates, $align_reading_settings);
             case WizardStageTypes::TEMPLATE_PAGE_STAGE:
                 return self::HandleTemplatePageCreation($selections, $available_templates);
             default:
@@ -75,13 +85,16 @@ class WizardPageCreator
         }
     }
 
-    private static function HandleFrontPageCreation($selection, $available_templates)
+    private static function HandleFrontPageCreation($selection, $available_templates, $align_reading_settings = false)
     {
         $datatype = $selection['type'];
         // Set basic page type for creation.
         $selection['type'] = $datatype === WizardItemTypes::PAGE ? WizardItemTypes::PAGE : WizardItemTypes::WP_TEMPLATE;
 
         if (!boolval($selection['isChanged'])) {
+            if ($align_reading_settings) {
+                self::MaybeCreateStaticFrontPage($selection);
+            }
             return [self::GetMenuItemArr(0, $selection)];
         }
 
@@ -102,13 +115,113 @@ class WizardPageCreator
         return [self::GetMenuItemArr(0, $selection)];
     }
 
-    private static function HandleBlogPageCreation($selection, $available_templates)
+    /**
+     * The front page is kept and the run goes on to a blog selection. A site that shows its latest posts
+     * through the theme's front-page template gets a static front page here, the same page a run makes
+     * when a front page layout is selected, so that the Blog page of the run lists the posts.
+     */
+    private static function MaybeCreateStaticFrontPage($selection)
+    {
+        if (get_option('show_on_front') === 'page') {
+            return;
+        }
+
+        $front_page_template = get_block_template(get_stylesheet() . "//front-page");
+        if (!$front_page_template || !isset($front_page_template->id) || self::ListsThePostsOfTheRequest($front_page_template->content)) {
+            // Without a front-page template, or with one that lists the posts of the request, the front itself
+            // is the posts listing and stays that. HandleBlogPageCreation covers that.
+            return;
+        }
+
+        $created_page_id = self::InsertPage($selection, self::GetFrontPageTemplatePageContent(), false);
+        if (!$created_page_id) {
+            return;
+        }
+
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $created_page_id);
+    }
+
+    /**
+     * Whether block content holds a Query Loop that takes its posts from the request (the "inherit" setting),
+     * in the content itself or in a pattern it places. On a static front page such a loop would show the page.
+     */
+    private static function ListsThePostsOfTheRequest($content, $depth = 0)
+    {
+        if ($depth > 3 || !is_string($content) || (strpos($content, 'wp:query') === false && strpos($content, 'wp:pattern') === false)) {
+            return false;
+        }
+
+        $parsed_blocks = parse_blocks($content);
+        foreach (_flatten_blocks($parsed_blocks) as $block) {
+            if ('core/query' === $block['blockName']) {
+                // A Query Loop without a query attribute uses the block's default, which takes the posts from the request.
+                if (!isset($block['attrs']['query']) || !empty($block['attrs']['query']['inherit'])) {
+                    return true;
+                }
+                continue;
+            }
+
+            if ('core/pattern' !== $block['blockName'] || empty($block['attrs']['slug']) || !is_string($block['attrs']['slug'])) {
+                continue;
+            }
+            $pattern = \WP_Block_Patterns_Registry::get_instance()->get_registered($block['attrs']['slug']);
+            if (is_array($pattern) && isset($pattern['content']) && self::ListsThePostsOfTheRequest($pattern['content'], $depth + 1)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether a selection is one of the theme's own page templates: not the front-page, home or index template,
+     * and not a file version or a restore point of one of them.
+     */
+    private static function IsThemePageTemplateSelection($selection)
+    {
+        if (!is_array($selection) || !isset($selection['type'], $selection['slug']) || $selection['type'] !== WizardItemTypes::WP_TEMPLATE) {
+            return false;
+        }
+
+        $slug = (string) $selection['slug'];
+        if (strpos($slug, WizardItemIdAffix::RESTORATION_POINT) !== false || strpos($slug, WizardItemIdAffix::FILE_TEMPLATE) !== false) {
+            return false;
+        }
+
+        return !in_array($slug, array('front-page', 'home', 'index'), true);
+    }
+
+    private static function HandleBlogPageCreation($selection, $available_templates, $align_reading_settings = false)
     {
         $datatype = $selection['type'];
+        $is_theme_page_template = self::IsThemePageTemplateSelection($selection);
         // Set basic page type for creation.
         $selection['type'] = $selection['type'] === WizardItemTypes::PAGE ? WizardItemTypes::PAGE : WizardItemTypes::WP_TEMPLATE;
 
-        if (!boolval($selection['isChanged']) || $datatype === 'static') {
+        $is_kept = !boolval($selection['isChanged']) || $datatype === 'static';
+
+        // One of the theme's own page templates lists the posts by itself, so the Blog page is an ordinary page
+        // with that template. It is not set as the posts page (WordPress shows the home or index template there),
+        // and the home and index templates stay as they are.
+        if ($is_theme_page_template && !$is_kept) {
+            $created_page_id = self::CreateTemplatePage($selection, $available_templates, 'page');
+            if (!$created_page_id) return [];
+
+            return [self::GetMenuItemArr($created_page_id, $selection)];
+        }
+
+        // On a site that shows its latest posts on the front, the front is the posts listing and a separate
+        // page would not list them. A selected layout goes into the template of that listing, no page is made,
+        // and the menu item leads to the front.
+        if ($align_reading_settings && get_option('show_on_front') !== 'page') {
+            if (!$is_kept && !self::CreateTemplatePage($selection, $available_templates, 'blog-template')) {
+                return [];
+            }
+            return [self::GetMenuItemArr(0, $selection)];
+        }
+
+        if ($is_kept) {
             $blog_page_id = get_option('page_for_posts');
             if ($blog_page_id) {
                 return [self::GetMenuItemArr($blog_page_id, $selection)];
@@ -152,8 +265,8 @@ class WizardPageCreator
         if ($page_type === 'front-page') {
             return self::HandleFrontPageTemplate($selection, $template_content, $template_slug, $selection['type'] === WizardItemTypes::PAGE);
         }
-        if ($page_type === 'blog') {
-            return self::HandleBlogPageTemplate($selection, $template_content, $template_slug, $selection['type'] === WizardItemTypes::PAGE);
+        if ($page_type === 'blog' || $page_type === 'blog-template') {
+            return self::HandleBlogPageTemplate($selection, $template_content, $template_slug, $selection['type'] === WizardItemTypes::PAGE, $page_type === 'blog');
         }
 
         return self::InsertPage($selection, $template_content, $template_slug);
@@ -221,6 +334,10 @@ class WizardPageCreator
 
         $template_slug = AddonsPageTemplateUtil::TEMPLATE_ID;
         $template_content = $data['content'];
+        // Users without unfiltered_html get the content as core would store it for them
+        if (!current_user_can('unfiltered_html')) {
+            $template_content = wp_kses_post($template_content);
+        }
 
         return [$template_content, $template_slug];
     }
@@ -279,15 +396,20 @@ class WizardPageCreator
 
             $template_slug = false;
 
-            $template_content = '<!-- wp:paragraph -->
-            <p>' . esc_html__("This is a front page template page created by Superb Addons. You can edit this page's content and its template. If the blocks you want to edit can't be found in the page content, please edit the front page template.", "superb-blocks") . '</p>
-            <!-- /wp:paragraph -->';
+            $template_content = self::GetFrontPageTemplatePageContent();
         }
 
         return self::InsertPage($selection, $template_content, $template_slug);
     }
 
-    private static function HandleBlogPageTemplate($selection, $template_content, $template_slug, $include_addons_template_content)
+    private static function GetFrontPageTemplatePageContent()
+    {
+        return '<!-- wp:paragraph -->
+            <p>' . esc_html__("This is a front page template page created by Superb Addons. You can edit this page's content and its template. If the blocks you want to edit can't be found in the page content, please edit the front page template.", "superb-blocks") . '</p>
+            <!-- /wp:paragraph -->';
+    }
+
+    private static function HandleBlogPageTemplate($selection, $template_content, $template_slug, $include_addons_template_content, $with_page = true)
     {
         $template_post_slug = 'home';
         $blog_page_template = get_block_template(get_stylesheet() . "//home");
@@ -300,7 +422,14 @@ class WizardPageCreator
         if ($is_blog_page_and_has_blog_page_template) {
             $template_content = WizardCreationUtil::MaybeUpdateQueryLoopBlockInherit($template_content);
             self::HandleTemplatePostRevisionCreationOrUpdate($template_post_slug, $blog_page_template, $template_content, $include_addons_template_content);
+        }
 
+        if (!$with_page) {
+            // The front of the site lists the posts through this template: there is no page to make.
+            return true;
+        }
+
+        if ($is_blog_page_and_has_blog_page_template) {
             if (get_option('show_on_front') === 'page' && get_option('page_for_posts')) {
                 return get_option('page_for_posts');
             }

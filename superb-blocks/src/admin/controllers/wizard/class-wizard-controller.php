@@ -396,6 +396,9 @@ class WizardController
             }
 
             $themes_api = self::GetRecommendedBlockThemes();
+            if (is_wp_error($themes_api) || !isset($themes_api->themes) || !is_array($themes_api->themes)) {
+                throw new ThemeInstallerException(esc_html__("The list of recommended themes could not be loaded. Please try again later.", "superb-blocks"));
+            }
 
             $accepted_theme = false;
             foreach ($themes_api->themes as $theme) {
@@ -430,8 +433,8 @@ class WizardController
                 return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. The process could not start.", "superb-blocks")]);
             }
 
-            $selection_data = json_decode($request['selection_data'], true);
-            if (!$selection_data) {
+            $selection_data = is_string($request['selection_data']) ? json_decode($request['selection_data'], true) : null;
+            if (!$selection_data || !is_array($selection_data)) {
                 return rest_ensure_response(['success' => false, 'text' => esc_html__("Something went wrong. The process could not start.", "superb-blocks")]);
             }
 

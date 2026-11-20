@@ -106,25 +106,21 @@ class FormEmailHandler
         $form_fields = isset($form_data['form_fields']) ? $form_data['form_fields'] : array();
         $fields = FormSubmissionHandler::OrderFieldsByConfig($fields, $form_fields);
 
-        // Find the email field value — use configured field if set, otherwise auto-detect
+        // The address comes from the field the form names, else from the first field typed "email" that holds
+        // one, which is what the editor's "Auto-detect (first email field)" option says. Values typed into
+        // fields of other types are not used.
         $user_email = '';
         if (!empty($form_data['confirmation_email_field'])) {
             $found = self::FindFieldValue($fields, $form_data['confirmation_email_field'], $form_fields);
-            if (!empty($found) && is_email($found)) {
+            if (is_string($found) && is_email($found)) {
                 $user_email = $found;
             }
         }
-        // Fallback: auto-detect first email value
-        if (empty($user_email)) {
-            foreach ($fields as $field_id => $value) {
-                if (is_email($value)) {
-                    $user_email = $value;
-                    break;
-                }
-            }
+        if ($user_email === '') {
+            $user_email = self::FindEmailFieldValue($fields, $form_fields);
         }
 
-        if (empty($user_email)) {
+        if ($user_email === '') {
             return false;
         }
 
@@ -498,7 +494,8 @@ class FormEmailHandler
      */
     private static function ResolveFromName($form_data)
     {
-        // 1. Form-level setting
+        // 1. Form-level setting. No form setting stores this key: the From header is a site-wide setting
+        //    (step 2), so this step only applies to a form config that sets the key in code.
         if (!empty($form_data['email_from_name'])) {
             return sanitize_text_field($form_data['email_from_name']);
         }
@@ -519,7 +516,7 @@ class FormEmailHandler
      */
     private static function ResolveFromEmail($form_data)
     {
-        // 1. Form-level setting
+        // 1. Form-level setting. As with the name, no form setting stores this key (see ResolveFromName).
         if (!empty($form_data['email_from_address'])) {
             return sanitize_email($form_data['email_from_address']);
         }
@@ -535,6 +532,31 @@ class FormEmailHandler
     /**
      * Resolve a deduplicated label to its submitted value.
      */
+    /**
+     * The first address found in a field typed "email": the submission's own address for confirmation mail and
+     * list subscriptions. Fields of other types are not considered, whatever they hold.
+     *
+     * @param array $fields      Submitted fields (field_id => value).
+     * @param array $form_fields Field definitions from the form config.
+     * @return string The address, or '' when no email field holds one.
+     */
+    public static function FindEmailFieldValue($fields, $form_fields)
+    {
+        if (!is_array($fields) || !is_array($form_fields)) {
+            return '';
+        }
+        foreach ($form_fields as $fc) {
+            if (!is_array($fc) || !isset($fc['fieldType'], $fc['fieldId']) || $fc['fieldType'] !== 'email') {
+                continue;
+            }
+            $fid = $fc['fieldId'];
+            if (isset($fields[$fid]) && is_string($fields[$fid]) && is_email($fields[$fid])) {
+                return $fields[$fid];
+            }
+        }
+        return '';
+    }
+
     private static function FindFieldValue($fields, $field_name, $form_fields = array())
     {
         // First try direct match (fieldId as key)

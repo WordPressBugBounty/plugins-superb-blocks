@@ -12,12 +12,16 @@ class FormEncryption
      * Derive a 32-byte key for a specific purpose.
      * Separate purposes (encrypt vs hmac) get separate keys.
      *
+     * The key material is wp_salt('auth'): AUTH_KEY followed by AUTH_SALT when wp-config.php defines them, so
+     * values stored by earlier versions stay readable, and otherwise the salts WordPress generated and stored
+     * for the site (constants missing or still holding the sample text).
+     *
      * @param string $purpose
      * @return string 32 raw bytes
      */
     private static function DeriveKey($purpose)
     {
-        return hash('sha256', $purpose . AUTH_KEY . AUTH_SALT, true);
+        return hash('sha256', $purpose . wp_salt('auth'), true);
     }
 
     /**

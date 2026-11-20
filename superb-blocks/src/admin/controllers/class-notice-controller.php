@@ -189,6 +189,9 @@ class AdminNoticeController
             return;
         }
 
+        // Security check first: check_ajax_referer exits if the nonce is not OK.
+        check_ajax_referer('spbtic_dismiss_notice', 'nonce', true);
+
         // Sanity check: Early exit if the ID of the notice does not exist.
         if (!isset($_POST['id']) || !in_array($_POST['id'], array_column(self::$notices, 'unique_id'))) {
             return;
@@ -196,9 +199,6 @@ class AdminNoticeController
 
         // Notice ID exists in array, so we can safely use it.
         $notice_id = sanitize_text_field(wp_unslash($_POST['id']));
-
-        // Security check: Make sure nonce is OK. check_ajax_referer exits if it fails.
-        check_ajax_referer('spbtic_dismiss_notice', 'nonce', true);
 
         // Record the dismissal time so our other notices respect the cooldown.
         update_user_meta(get_current_user_id(), self::LAST_DISMISS_META, time());

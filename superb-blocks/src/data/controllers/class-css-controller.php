@@ -29,8 +29,9 @@ class CSSController
 
     public function CSSCallbackPermissionCheck()
     {
-        // Restrict endpoint to only users who have the proper capability.
-        if (!current_user_can(Capabilities::ADMIN)) {
+        // Restrict endpoint to only users who have the proper capability. Site-wide CSS follows core's
+        // Additional CSS: edit_css, which users with unfiltered_html hold.
+        if (!current_user_can(Capabilities::ADMIN) || !current_user_can('edit_css')) {
             return new WP_Error('rest_forbidden', esc_html__('Unauthorized. Please check user permissions.', "superb-blocks"), array('status' => 401));
         }
 
@@ -65,12 +66,15 @@ class CSSController
 
     private function SanitizeBlock($saved_block, $request_block)
     {
-        $request_block = json_decode($request_block, true);
+        $request_block = is_string($request_block) ? json_decode($request_block, true) : null;
+        if (!is_array($request_block)) {
+            $request_block = array();
+        }
         $is_active = isset($request_block['active']) ? !!$request_block['active'] : ($saved_block && isset($saved_block->active) ? !!$saved_block->active : true);
         $block = new stdClass();
-        $block->name = isset($request_block['name']) && !empty($request_block['name']) ? sanitize_text_field(mb_substr($request_block['name'], 0, self::BLOCK_NAME_MAX_LENGTH)) : 'CSS Block ' . time();
-        $block->selectors = $this->SanitizeSelectors($request_block['selectors']);
-        $block->css = sanitize_textarea_field($request_block['css']);
+        $block->name = isset($request_block['name']) && is_string($request_block['name']) && $request_block['name'] !== '' ? sanitize_text_field(mb_substr($request_block['name'], 0, self::BLOCK_NAME_MAX_LENGTH)) : 'CSS Block ' . time();
+        $block->selectors = $this->SanitizeSelectors(isset($request_block['selectors']) ? $request_block['selectors'] : array());
+        $block->css = sanitize_textarea_field(isset($request_block['css']) && is_string($request_block['css']) ? $request_block['css'] : '');
         $block->active = $is_active;
         return $block;
     }
@@ -78,12 +82,23 @@ class CSSController
     private function SanitizeSelectors($selectors_request)
     {
         $selectors = [];
+        if (!is_array($selectors_request)) {
+            return $selectors;
+        }
+        $valid_types = apply_filters('superb_addons_custom_css_valid_types', array('full', 'front'));
         foreach ($selectors_request as $selector_request) {
+            if (!is_array($selector_request) || !isset($selector_request['type']) || !is_string($selector_request['type'])) {
+                continue;
+            }
+            $type = sanitize_text_field($selector_request['type']);
+            if (!in_array($type, $valid_types, true)) {
+                continue;
+            }
             $selector = new stdClass();
-            $selector->type = sanitize_text_field($selector_request['type']);
-            $selector->value = isset($selector_request['value']) && is_array($selector_request['value']) ? array_map(function ($str) {
-                return sanitize_text_field($str);
-            }, $selector_request['value']) : false;
+            $selector->type = $type;
+            $selector->value = isset($selector_request['value']) && is_array($selector_request['value']) ? array_values(array_map(function ($str) {
+                return is_scalar($str) ? sanitize_text_field((string) $str) : '';
+            }, $selector_request['value'])) : false;
             $selectors[] = $selector;
         }
         return $selectors;
@@ -206,11 +221,17 @@ class CSSController
                 return rest_ensure_response(['success' => false, "text" => esc_html__("File(s) could not be accessed.", "superb-blocks")]);
             }
             $file_blocks = json_decode(base64_decode($file_content));
-            if (empty($file_blocks)) {
+            if (empty($file_blocks) || (!is_array($file_blocks) && !is_object($file_blocks))) {
                 continue;
             }
 
             foreach ($file_blocks as $file_block) {
+                if (!is_array($file_block) && !is_object($file_block)) {
+                    continue;
+                }
+                if ($block_amount >= 200) {
+                    break 2;
+                }
                 $block = $this->SanitizeBlock(false, wp_json_encode($file_block));
                 $block_id = wp_generate_uuid4();
                 $imported_blocks[$block_id] = $block;

@@ -42,6 +42,8 @@ class LibraryRequestController
 
     const ELEMENTOR_ENDPOINT_BASE = 'elementor-library/';
     const GUTENBERG_V2_ENDPOINT = 'gutenberg-library/v2/library';
+    /** Seconds an inserted item's library answer is kept, so a repeat costs no library request. */
+    const INSERT_CACHE_TTL = 600;
 
     const PLUGIN_NAMES = array(
         'woocommerce/woocommerce.php' => 'WooCommerce',
@@ -123,28 +125,27 @@ class LibraryRequestController
         $options_controller = new OptionController();
         $license_key = $options_controller->GetKey();
 
-        $response = DomainShiftController::RemoteGet(self::ELEMENTOR_ENDPOINT_BASE . 'sections?action=list&key=' . $license_key);
+        $response = DomainShiftController::RemoteGet(self::ELEMENTOR_ENDPOINT_BASE . 'sections?action=list' . DomainShiftController::LicenseQuery($license_key), DomainShiftController::LicenseArgs($license_key));
         ///
         if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             return self::LibraryUnavailableError();
         }
         ///
         $data = json_decode($response['body']);
+        if (!is_object($data)) {
+            return self::LibraryUnavailableError();
+        }
         if (isset($data->code) && isset($data->data) && isset($data->message)) {
             $status = isset($data->data->status) ? $data->data->status : 500;
             return new \WP_Error($data->code, $data->message, array('status' => $status));
         }
-        if (isset($data->level)) {
-            KeyController::UpdateKeyType($data->level, $data->active, $data->expired, $data->exceeded);
-        }
+        self::ApplyKeyState($data, false);
+        self::NormalizeListData($data);
 
         // Sort items
         if (isset($data->items) && is_array($data->items) && !empty($data->items)) {
             usort($data->items, function ($a, $b) {
-                if (!isset($a->title) || !isset($b->title)) {
-                    return 0;
-                }
-                return strnatcmp($a->title, $b->title);
+                return strnatcmp(isset($a->title) ? (string) $a->title : '', isset($b->title) ? (string) $b->title : '');
             });
         }
 
@@ -205,6 +206,11 @@ class LibraryRequestController
                 return new \WP_Error('invalid_type', 'Invalid type parameter', array('status' => 400));
             }
 
+            $spacing = self::InsertSpacingError();
+            if ($spacing !== null) {
+                return $spacing;
+            }
+
             $data = self::GetInsertDataV2($request, $type);
 
             if (isset($data['access_failed'])) {
@@ -212,6 +218,10 @@ class LibraryRequestController
             }
 
             $data = GutenbergController::GutenbergDataImportAction($data);
+            // Users without unfiltered_html get the content as core would store it for them
+            if (!current_user_can('unfiltered_html')) {
+                $data['content'] = wp_kses_post($data['content']);
+            }
             Engagement::MarkUsed(Engagement::FEATURE_PATTERN);
             return rest_ensure_response(array("content" => $data['content'], "name" => esc_html(isset($data['title']) ? $data['title'] : '')));
         } catch (RequestException $rex) {
@@ -284,7 +294,7 @@ class LibraryRequestController
         $options_controller = new OptionController();
         $license_key = $options_controller->GetKey();
 
-        $response = DomainShiftController::RemoteGet(self::GUTENBERG_V2_ENDPOINT . '?action=list&page=1&perPage=100&key=' . $license_key);
+        $response = DomainShiftController::RemoteGet(self::GUTENBERG_V2_ENDPOINT . '?action=list&page=1&perPage=100' . DomainShiftController::LicenseQuery($license_key), DomainShiftController::LicenseArgs($license_key));
         if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             delete_transient(ChunkLoading::LOADING_TRANSIENT);
             throw new RequestException('Plugin Service Unavailable', 503);
@@ -306,9 +316,8 @@ class LibraryRequestController
             delete_transient(ChunkLoading::LOADING_TRANSIENT);
             throw new RequestException('Unexpected response format from library service', 502);
         }
-        if (isset($data->level)) {
-            KeyController::UpdateKeyType($data->level, $data->active, $data->expired, $data->exceeded);
-        }
+        self::ApplyKeyState($data, false);
+        self::NormalizeListData($data);
 
         // Sort categories and industries by sort_order
         if (isset($data->patterns->categories)) {
@@ -492,12 +501,19 @@ class LibraryRequestController
             if (!$needs_patterns && !$needs_pages) {
                 return new \stdClass();
             }
+        } else {
+            // No partial cache: page 1, which sets the page count, is not stored yet. The caller retries instead
+            // of this request fetching a page outside a known range.
+            $retry = new \stdClass();
+            $retry->_retry = true;
+            $retry->_retry_after = 3;
+            return $retry;
         }
 
         $options_controller = new OptionController();
         $license_key = $options_controller->GetKey();
 
-        $response = DomainShiftController::RemoteGet(self::GUTENBERG_V2_ENDPOINT . '?action=list&page=' . $page . '&perPage=100&key=' . $license_key);
+        $response = DomainShiftController::RemoteGet(self::GUTENBERG_V2_ENDPOINT . '?action=list&page=' . $page . '&perPage=100' . DomainShiftController::LicenseQuery($license_key), DomainShiftController::LicenseArgs($license_key));
         if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             throw new RequestException('Plugin Service Unavailable', 503);
         }
@@ -508,6 +524,7 @@ class LibraryRequestController
         if (!is_object($chunk)) {
             throw new RequestException('Invalid chunk response from library service', 502);
         }
+        self::NormalizeListData($chunk);
 
         // Apply requirement status checks to chunk items
         if (isset($chunk->patterns->items)) {
@@ -644,6 +661,86 @@ class LibraryRequestController
     }
 
     /**
+     * Give a decoded list response the types the sorting, requirement and name code expects: sort orders as
+     * integers, item titles and names as strings, required plugins as a list of strings, a required library
+     * version as a string. Entries that are not objects are dropped; everything else in an entry is kept as received.
+     */
+    private static function NormalizeListData($data)
+    {
+        if (!is_object($data)) {
+            return;
+        }
+        foreach (array('patterns', 'pages') as $section) {
+            if (!isset($data->{$section}) || !is_object($data->{$section})) {
+                continue;
+            }
+            if (isset($data->{$section}->items) && is_array($data->{$section}->items)) {
+                $data->{$section}->items = self::NormalizedItems($data->{$section}->items);
+            }
+            if (isset($data->{$section}->categories) && is_array($data->{$section}->categories)) {
+                $data->{$section}->categories = self::NormalizedOrder($data->{$section}->categories);
+            }
+        }
+        if (isset($data->industries) && is_array($data->industries)) {
+            $data->industries = self::NormalizedOrder($data->industries);
+        }
+        if (isset($data->items) && is_array($data->items)) {
+            $data->items = self::NormalizedItems($data->items);
+        }
+    }
+
+    private static function NormalizedItems($items)
+    {
+        $normalized = array();
+        foreach ($items as $item) {
+            if (!is_object($item)) {
+                continue;
+            }
+            foreach (array('title', 'name') as $text) {
+                if (isset($item->{$text}) && !is_string($item->{$text})) {
+                    $item->{$text} = is_scalar($item->{$text}) ? (string) $item->{$text} : '';
+                }
+            }
+            if (isset($item->required_plugins)) {
+                $plugins = array();
+                foreach ((array) $item->required_plugins as $plugin) {
+                    if (is_string($plugin) && $plugin !== '') {
+                        $plugins[] = $plugin;
+                    }
+                }
+                $item->required_plugins = $plugins;
+            }
+            if (isset($item->required_library) && !is_string($item->required_library)) {
+                if (is_scalar($item->required_library)) {
+                    $item->required_library = (string) $item->required_library;
+                } else {
+                    unset($item->required_library);
+                }
+            }
+            if (isset($item->sort_order)) {
+                $item->sort_order = is_numeric($item->sort_order) ? intval($item->sort_order) : 0;
+            }
+            $normalized[] = $item;
+        }
+        return $normalized;
+    }
+
+    private static function NormalizedOrder($entries)
+    {
+        $normalized = array();
+        foreach ($entries as $entry) {
+            if (!is_object($entry)) {
+                continue;
+            }
+            if (isset($entry->sort_order)) {
+                $entry->sort_order = is_numeric($entry->sort_order) ? intval($entry->sort_order) : 0;
+            }
+            $normalized[] = $entry;
+        }
+        return $normalized;
+    }
+
+    /**
      * Sort array of objects by sort_order, then remove the sort_order property.
      */
     private static function SortByOrder(&$items)
@@ -652,8 +749,8 @@ class LibraryRequestController
             return;
         }
         usort($items, function ($a, $b) {
-            $a_order = isset($a->sort_order) ? $a->sort_order : 0;
-            $b_order = isset($b->sort_order) ? $b->sort_order : 0;
+            $a_order = isset($a->sort_order) ? intval($a->sort_order) : 0;
+            $b_order = isset($b->sort_order) ? intval($b->sort_order) : 0;
             return $a_order - $b_order;
         });
         foreach ($items as $item) {
@@ -672,7 +769,7 @@ class LibraryRequestController
             if (!isset($a->name) || !isset($b->name)) {
                 return 0;
             }
-            return strnatcmp($a->name, $b->name);
+            return strnatcmp((string) $a->name, (string) $b->name);
         });
     }
 
@@ -690,22 +787,28 @@ class LibraryRequestController
         $stamp = $options_controller->GetStamp();
         $package = $request['package'] === 'premium' ? 'premium' : 'free';
         $id = urlencode(sanitize_text_field($request['id']));
-        $response = DomainShiftController::RemoteGet(self::GUTENBERG_V2_ENDPOINT . '?action=insert&type=' . $type . '&id=' . $id . '&package=' . $package . '&key=' . urlencode($license_key) . '&stamp=' . absint($stamp));
-        ///
-        if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-            throw new RequestException('Plugin Service Unavailable', 503);
-        }
-        ///
-        $data = json_decode($response['body'], true);
-        if (isset($data['code']) && isset($data['data']) && isset($data['message'])) {
-            $status = isset($data['data']['status']) ? $data['data']['status'] : 500;
-            throw new RequestException(esc_html($data['message']), intval($status));
-        }
-        if (isset($data['level'])) {
-            KeyController::UpdateKeyType($data['level'], $data['active'], $data['expired'], $data['exceeded']);
-        }
-        if (!isset($data['verified']) || !$data['verified']) {
-            KeyController::VerificationFailed();
+        // An item inserted a moment ago is answered from a short cache instead of another library request
+        $cache_key = self::InsertCacheKey('gutenberg|' . $type, $package, $id, $license_key);
+        $data = get_transient($cache_key);
+        if (!is_array($data)) {
+            $response = DomainShiftController::RemoteGet(self::GUTENBERG_V2_ENDPOINT . '?action=insert&type=' . $type . '&id=' . $id . '&package=' . $package . DomainShiftController::LicenseQuery($license_key, $stamp), DomainShiftController::LicenseArgs($license_key, $stamp));
+            ///
+            if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+                throw new RequestException('Plugin Service Unavailable', 503);
+            }
+            ///
+            $data = json_decode($response['body'], true);
+            if (!is_array($data)) {
+                throw new RequestException('Plugin Service Unavailable', 503);
+            }
+            if (isset($data['code']) && isset($data['data']) && isset($data['message'])) {
+                $status = isset($data['data']['status']) ? $data['data']['status'] : 500;
+                throw new RequestException(esc_html($data['message']), intval($status));
+            }
+            self::ApplyKeyState($data, true);
+            if (!isset($data['access_failed'])) {
+                set_transient($cache_key, $data, self::INSERT_CACHE_TTL);
+            }
         }
 
         $data['premium'] = KeyController::HasValidPremiumKey();
@@ -714,6 +817,48 @@ class LibraryRequestController
     }
 
     // ─── Shared ─────────────────────────────────────────────────────────
+
+    /**
+     * Insert routes: one request per half second per user, as the chunk route. The error to answer, or null when
+     * the request may proceed.
+     */
+    private static function InsertSpacingError()
+    {
+        $rate_key = 'spb_insert_last_' . get_current_user_id();
+        $last = get_transient($rate_key);
+        if ($last !== false && (microtime(true) - floatval($last)) < 0.5) {
+            return new \WP_Error('too_many_requests', 'Please slow down', array('status' => 429));
+        }
+        set_transient($rate_key, microtime(true), 10);
+        return null;
+    }
+
+    private static function InsertCacheKey($library, $package, $id, $license_key)
+    {
+        return 'spb_lib_insert_' . md5($library . '|' . $package . '|' . $id . '|' . (string) $license_key);
+    }
+
+    /**
+     * Apply the licence state a library response carries. The key level and its flags are read only when the
+     * response names a level, and verification is marked failed only when the response says so: a body without
+     * these keys is not a library answer and leaves the stored state as it is.
+     *
+     * @param array|object $data           Decoded response body.
+     * @param bool         $check_verified Whether this response carries the verification result (insert responses).
+     */
+    private static function ApplyKeyState($data, $check_verified)
+    {
+        $data = is_object($data) ? get_object_vars($data) : $data;
+        if (!is_array($data)) {
+            return;
+        }
+        if (isset($data['level']) && is_string($data['level']) && $data['level'] !== '') {
+            KeyController::UpdateKeyType($data['level'], !empty($data['active']), !empty($data['expired']), !empty($data['exceeded']));
+        }
+        if ($check_verified && array_key_exists('verified', $data) && !$data['verified']) {
+            KeyController::VerificationFailed();
+        }
+    }
 
     /**
      * True when the exception means the library service could not be reached.
@@ -743,10 +888,16 @@ class LibraryRequestController
         }
         // Check plugin and library version requirements
         foreach ($data->items as $item) {
+            if (!is_object($item)) {
+                continue;
+            }
             $item->external_plugin_required = false;
             $item->plugin_update_required = false;
-            if (isset($item->required_plugins)) {
+            if (isset($item->required_plugins) && is_array($item->required_plugins)) {
                 foreach ($item->required_plugins as $required_plugin) {
+                    if (!is_string($required_plugin) || $required_plugin === '') {
+                        continue;
+                    }
                     if (!is_plugin_active($required_plugin)) {
                         $item->external_plugin_required = true;
                         $item->required_plugin_names = isset($item->required_plugin_names) ? $item->required_plugin_names : array();
@@ -758,7 +909,7 @@ class LibraryRequestController
                     }
                 }
             }
-            if (isset($item->required_library) && version_compare($item->required_library, SUPERBADDONS_LIBRARY_VERSION, '>')) {
+            if (isset($item->required_library) && is_scalar($item->required_library) && version_compare((string) $item->required_library, (string) SUPERBADDONS_LIBRARY_VERSION, '>')) {
                 $item->plugin_update_required = true;
             }
         }
@@ -772,25 +923,35 @@ class LibraryRequestController
             if (!isset($request['id']) || !isset($request['package']) || $request['package'] === "premium" && !$license_key) {
                 throw new RequestException("Forbidden", 403);
             }
+            $spacing = self::InsertSpacingError();
+            if ($spacing !== null) {
+                return $spacing;
+            }
 
             $stamp = $options_controller->GetStamp();
             $collection = $request['package'] === 'premium' ? "premium" : "free";
             $id = urlencode(sanitize_text_field($request['id']));
-            $response = DomainShiftController::RemoteGet(self::ELEMENTOR_ENDPOINT_BASE . 'sections?action=insert&id=' . $id . '&collection=' . $collection . '&key=' . urlencode($license_key) . '&stamp=' . absint($stamp));
-            if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
-                throw new RequestException('Plugin Service Unavailable', 503);
-            }
+            // An item inserted a moment ago is answered from a short cache instead of another library request
+            $cache_key = self::InsertCacheKey('elementor', $collection, $id, $license_key);
+            $data = get_transient($cache_key);
+            if (!is_array($data)) {
+                $response = DomainShiftController::RemoteGet(self::ELEMENTOR_ENDPOINT_BASE . 'sections?action=insert&id=' . $id . '&collection=' . $collection . DomainShiftController::LicenseQuery($license_key, $stamp), DomainShiftController::LicenseArgs($license_key, $stamp));
+                if (!is_array($response) || is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+                    throw new RequestException('Plugin Service Unavailable', 503);
+                }
 
-            $data = json_decode($response['body'], true);
-            if (isset($data['code']) && isset($data['data']) && isset($data['message'])) {
-                $status = isset($data['data']['status']) ? $data['data']['status'] : 500;
-                throw new RequestException(esc_html($data['message']), intval($status));
-            }
-            if (isset($data['level'])) {
-                KeyController::UpdateKeyType($data['level'], $data['active'], $data['expired'], $data['exceeded']);
-            }
-            if (!isset($data['verified']) || !$data['verified']) {
-                KeyController::VerificationFailed();
+                $data = json_decode($response['body'], true);
+                if (!is_array($data)) {
+                    throw new RequestException('Plugin Service Unavailable', 503);
+                }
+                if (isset($data['code']) && isset($data['data']) && isset($data['message'])) {
+                    $status = isset($data['data']['status']) ? $data['data']['status'] : 500;
+                    throw new RequestException(esc_html($data['message']), intval($status));
+                }
+                self::ApplyKeyState($data, true);
+                if (!isset($data['access_failed'])) {
+                    set_transient($cache_key, $data, self::INSERT_CACHE_TTL);
+                }
             }
 
             $data['premium'] = KeyController::HasValidPremiumKey();

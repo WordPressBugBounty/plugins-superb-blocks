@@ -44,15 +44,42 @@ class FormZipExporter
      */
     public static function Plan($collected)
     {
-        $entries = array();
-        $folders = array();
-        $file_count = 0;
-        $missing_count = 0;
-        $total_bytes = 0;
-        $field_order = isset($collected['field_order']) ? $collected['field_order'] : array();
-        $field_labels = isset($collected['field_labels']) ? $collected['field_labels'] : array();
+        $plan = self::NewPlan();
+        self::PlanPage($plan, $collected['submissions'], isset($collected['field_order']) ? $collected['field_order'] : array(), isset($collected['field_labels']) ? $collected['field_labels'] : array());
+        return $plan;
+    }
 
-        foreach ($collected['submissions'] as $sub) {
+    /**
+     * An empty plan, filled one page of submissions at a time with PlanPage().
+     */
+    public static function NewPlan()
+    {
+        return array(
+            'entries' => array(),
+            'folders' => array(),
+            'file_count' => 0,
+            'missing_count' => 0,
+            'total_bytes' => 0,
+        );
+    }
+
+    /**
+     * Add one page of submissions to a plan (the rules of Plan()).
+     *
+     * @param array $plan         By reference; see Plan() for its shape.
+     * @param array $submissions  The page.
+     * @param array $field_order
+     * @param array $field_labels
+     */
+    public static function PlanPage(&$plan, $submissions, $field_order, $field_labels)
+    {
+        $entries = &$plan['entries'];
+        $folders = &$plan['folders'];
+        $file_count = $plan['file_count'];
+        $missing_count = $plan['missing_count'];
+        $total_bytes = $plan['total_bytes'];
+
+        foreach ($submissions as $sub) {
             $sub_id = isset($sub['id']) ? intval($sub['id']) : 0;
             $local_time = self::LocalTimestamp(isset($sub['date']) ? $sub['date'] : '');
             // Sortable date prefix in the site's timezone; the ID keeps two
@@ -92,13 +119,9 @@ class FormZipExporter
             }
         }
 
-        return array(
-            'entries' => $entries,
-            'folders' => $folders,
-            'file_count' => $file_count,
-            'missing_count' => $missing_count,
-            'total_bytes' => $total_bytes,
-        );
+        $plan['file_count'] = $file_count;
+        $plan['missing_count'] = $missing_count;
+        $plan['total_bytes'] = $total_bytes;
     }
 
     /**
@@ -136,20 +159,24 @@ class FormZipExporter
     /**
      * Stream the archive and exit. Callers must have checked Summary()['too_large'].
      *
-     * @param string $filename Download filename (already sanitized).
-     * @param array  $entries  From Plan().
-     * @param string $csv      CSV contents for the root entry.
+     * @param string          $filename Download filename (already sanitized).
+     * @param array           $entries  From Plan() or PlanPage().
+     * @param string|resource $csv      CSV contents for the root entry, or the buffer they were written to
+     *                                  (FormExporter::OpenCsvBuffer()).
      */
     public static function Stream($filename, $entries, $csv)
     {
-        $items = array(
-            array(
-                'name' => self::CSV_ENTRY_NAME,
-                'size' => strlen($csv),
-                'time' => self::LocalTimestamp(''),
-                'data' => $csv,
-            ),
+        $csv_item = array(
+            'name' => self::CSV_ENTRY_NAME,
+            'size' => is_resource($csv) ? self::StreamSize($csv) : strlen($csv),
+            'time' => self::LocalTimestamp(''),
         );
+        if (is_resource($csv)) {
+            $csv_item['stream'] = $csv;
+        } else {
+            $csv_item['data'] = $csv;
+        }
+        $items = array($csv_item);
         foreach ($entries as $entry) {
             $items[] = $entry;
         }
@@ -192,7 +219,16 @@ class FormZipExporter
         foreach ($items as $item) {
             $name = $item['name'];
             $name_length = strlen($name);
-            $crc = isset($item['data']) ? hexdec(hash('crc32b', $item['data'])) : hexdec(hash_file('crc32b', $item['path']));
+            if (isset($item['data'])) {
+                $crc = hexdec(hash('crc32b', $item['data']));
+            } elseif (isset($item['stream'])) {
+                rewind($item['stream']);
+                $hash = hash_init('crc32b');
+                hash_update_stream($hash, $item['stream']);
+                $crc = hexdec(hash_final($hash));
+            } else {
+                $crc = hexdec(hash_file('crc32b', $item['path']));
+            }
             list($dos_time, $dos_date) = self::DosDateTime($item['time']);
 
             // Local file header: signature, version needed, flags (bit 11:
@@ -202,6 +238,13 @@ class FormZipExporter
 
             if (isset($item['data'])) {
                 self::Emit($item['data']);
+            } elseif (isset($item['stream'])) {
+                rewind($item['stream']);
+                // phpcs:ignore WordPress.WP.AlternativeFunctions -- the CSV buffer written for this download.
+                $sent = fpassthru($item['stream']);
+                if ($sent !== $item['size']) {
+                    exit;
+                }
             } else {
                 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
                 $sent = readfile($item['path']);
@@ -227,6 +270,18 @@ class FormZipExporter
         self::Emit(pack('VvvvvVVv', 0x06054b50, 0, 0, count($items), count($items), strlen($central_directory), $offset, 0));
         // Plain exit, not wp_die(): the die handler would append HTML after the archive bytes.
         exit;
+    }
+
+    /**
+     * Byte length of a seekable stream (the CSV buffer).
+     *
+     * @param resource $stream
+     * @return int
+     */
+    public static function StreamSize($stream)
+    {
+        $stat = fstat($stream);
+        return is_array($stat) && isset($stat['size']) ? intval($stat['size']) : 0;
     }
 
     private static function Emit($bytes)

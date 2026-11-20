@@ -240,7 +240,9 @@ class DynamicBlockAssets
             wp_localize_script('superbaddons-add-to-cart', 'superbAddToCartConfig', array(
                 'restUrl'          => \get_rest_url(null, 'superbaddons/'),
                 'nonce'            => wp_create_nonce('wp_rest'),
-                'commerceNonce'    => wp_create_nonce(\SuperbAddons\Commerce\CommerceController::NONCE_ACTION),
+                // The shopper's own commerce nonce; empty for a guest without a WooCommerce session, who
+                // gets one from /commerce/nonce before the first request.
+                'commerceNonce'    => \SuperbAddons\Commerce\CommerceController::PageNonce(),
                 // Core's own nonce refresh endpoint, the one wp.apiFetch uses as its nonceEndpoint.
                 // Only logged-in shoppers need it, to stay signed in to the REST API when their
                 // nonce goes stale; guests get no answer and use the commerce nonce alone.

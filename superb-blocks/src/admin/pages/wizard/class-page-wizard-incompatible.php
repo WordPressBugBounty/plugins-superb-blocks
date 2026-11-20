@@ -17,7 +17,9 @@ class PageWizardIncompatiblePage
     {
         $this->current_theme = wp_get_theme();
         $this->theme_name = $this->current_theme->get('Name');
-        $this->themes = WizardController::GetRecommendedBlockThemes();
+        // themes_api() answers with a WP_Error when WordPress.org cannot be reached
+        $recommended = WizardController::GetRecommendedBlockThemes();
+        $this->themes = (!is_wp_error($recommended) && isset($recommended->themes) && is_array($recommended->themes)) ? $recommended->themes : array();
         $this->Render();
     }
 
@@ -33,11 +35,15 @@ class PageWizardIncompatiblePage
                         </button>
                     </p>
                     <br>
-                    <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><strong><?php echo esc_html__("Choose a Block theme to use the theme designer:", "superb-blocks"); ?> </strong></p>
+                    <?php if (empty($this->themes)) : ?>
+                        <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><?php echo esc_html__("The list of recommended themes could not be loaded. Please try again later.", "superb-blocks"); ?></p>
+                    <?php else : ?>
+                        <p class="superbaddons-element-text-sm superbaddons-wizard-tagline"><strong><?php echo esc_html__("Choose a Block theme to use the theme designer:", "superb-blocks"); ?> </strong></p>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="superbaddons-theme-template-container superbaddons-element-mt1">
-                <?php foreach ($this->themes->themes as $theme) :
+                <?php foreach ($this->themes as $theme) :
                     if ($theme->slug == $this->current_theme->stylesheet) continue; // skip current theme
                 ?>
                     <div class="superbaddons-theme-page-template superbaddons-element-text-dark" style="height:auto !important;" data-title="<?php echo esc_attr($theme->name); ?>" data-slug="<?php echo esc_attr($theme->slug); ?>" data-package="free">

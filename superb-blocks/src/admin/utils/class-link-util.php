@@ -2,6 +2,8 @@
 
 namespace SuperbAddons\Admin\Utils;
 
+defined('ABSPATH') || exit();
+
 use SuperbAddons\Data\Controllers\LinkController;
 
 class AdminLinkUtil

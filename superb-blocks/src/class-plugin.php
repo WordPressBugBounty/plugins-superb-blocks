@@ -15,6 +15,7 @@ use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\MigrationController;
 use SuperbAddons\Data\Controllers\RestController;
 use SuperbAddons\Gutenberg\Controllers\GutenbergController;
+use SuperbAddons\Gutenberg\Form\FormSubmissionHandler;
 use SuperbAddons\Library\Controllers\FavoritesController;
 use SuperbAddons\Library\Controllers\LibraryRequestController;
 use SuperbAddons\Admin\Controllers\LicenseResolveController;
@@ -69,6 +70,8 @@ class SuperbAddonsPlugin
             LogController::MaybeUnsubscribeCron();
             WizardRestorationPointController::MaybeUnsubscribeCron();
             MigrationController::Unschedule();
+            FormSubmissionHandler::UnscheduleSpamPurge();
+            FormSubmissionHandler::UnscheduleRetentionPurge();
         } catch (Exception $e) {
             // Make sure deactivation succeeds
             LogController::HandleException($e);

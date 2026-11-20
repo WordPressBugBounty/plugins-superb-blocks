@@ -107,6 +107,10 @@ class CacheController
             // Cache expired
             return false;
         }
+        if (!is_object($cache['data'])) {
+            // The data caches hold decoded service responses; anything else is treated as a miss
+            return false;
+        }
 
         return $cache['data'];
     }

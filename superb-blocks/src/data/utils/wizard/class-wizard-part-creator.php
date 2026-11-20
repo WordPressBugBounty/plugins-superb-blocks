@@ -167,6 +167,10 @@ class WizardPartCreator
 
         $data = GutenbergController::GutenbergDataImportAction($data);
 
+        // Users without unfiltered_html get the content as core would store it for them
+        if (!current_user_can('unfiltered_html')) {
+            return wp_kses_post($data['content']);
+        }
         return $data['content'];
     }
 

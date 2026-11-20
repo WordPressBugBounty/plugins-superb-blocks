@@ -53,6 +53,7 @@ class MigrationController
      */
     const MIGRATIONS = array(
         'form-registry-sync' => array(FormRegistry::class, 'SyncRegistryStep'),
+        'form-webhook-secret-attribute' => array(FormRegistry::class, 'StripWebhookSecretStep'),
     );
 
     // This request's lock value while it holds the lock

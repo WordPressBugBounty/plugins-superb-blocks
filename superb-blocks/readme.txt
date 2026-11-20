@@ -4,7 +4,7 @@ Tags: blocks, gutenberg blocks, forms, popups, animations
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 7.0
-Stable tag: 4.2.6
+Stable tag: 4.2.7
 License: GPL-3.0+
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -337,6 +337,19 @@ Superb Addons is designed for anyone looking to supercharge their WordPress webs
 6. Power Up Gutenberg
 
 == Changelog ==
+= 4.2.7 =
+* Security hardening and reliability improvements.
+* Custom CSS is now managed by the same users as Additional CSS in WordPress. On multisite networks, that means network administrators. CSS that is already saved keeps working on every site.
+* Fixed the Add to Cart block not adding a product to the cart when the visitor's cart already held other items.
+* Fixed the plugin's admin pages scrolling sideways in right-to-left languages.
+* Fixed the Toggle block staying in the block inserter after it was turned off in the plugin's settings.
+* Fixed Table of Contents links no longer jumping to their headings after the block was turned off in the plugin's settings.
+* Fixed the editor tutorials stopping at an early step in some setups.
+* Fixed a popup's buttons no longer opening it after the page had been copied with a page duplication plugin.
+* Fixed pages with visibility conditions or Dynamic Content being stored in the page cache of WP Fastest Cache. If you use WP Fastest Cache, clear its cache once after updating.
+* Fixed the Theme Designer's Blog page not listing the posts in some front page setups.
+* Fixed visibility conditions not being applied on sites running some older WooCommerce versions.
+
 = 4.2.6 =
 * With "Restrict form access by role" turned off, form submissions are now available to Editors and Administrators only. Authors and Contributors can still build forms in their own posts, but no longer see, export or delete submissions. To give another role access to submissions, turn the setting on in the plugin's Access Control settings and grant the permissions for that role.
 * Fixed forms and popups in template parts getting a new id and a "(Copy)" name whenever the part was opened in the Site Editor or shown under a page, which broke buttons that opened the popup.

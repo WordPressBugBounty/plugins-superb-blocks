@@ -25,7 +25,7 @@ class KeyController
 
             $option_controller = new OptionController();
             $stamp = $option_controller->GetStamp();
-            $response = DomainShiftController::RemoteGet(self::ENDPOINT_BASE . 'keys?' . ($is_registration ? "registration=true" : "revalidate=true") . '&key=' . $key . '&dm=' . urlencode(home_url()) . '&stamp=' . absint($stamp));
+            $response = DomainShiftController::RemoteGet(self::ENDPOINT_BASE . 'keys?' . ($is_registration ? "registration=true" : "revalidate=true") . DomainShiftController::LicenseQuery($key, $stamp, true), DomainShiftController::LicenseArgs($key, $stamp, true));
             $response_code = wp_remote_retrieve_response_code($response);
             if (!is_array($response) || is_wp_error($response) || $response_code !== 200) {
                 if ($response_code === 404) {
@@ -77,7 +77,7 @@ class KeyController
         try {
             $stamp = $request_stamp ? $request_stamp : $option_controller->GetStamp();
             $key = $request_key ? $request_key : $option_controller->GetKey();
-            $response = DomainShiftController::RemoteGet(self::ENDPOINT_BASE . 'keys/remove?key=' . $key . '&dm=' . urlencode(home_url()) . '&stamp=' . absint($stamp));
+            $response = DomainShiftController::RemoteGet(self::ENDPOINT_BASE . 'keys/remove?' . ltrim(DomainShiftController::LicenseQuery($key, $stamp, true), '&'), DomainShiftController::LicenseArgs($key, $stamp, true));
             $response_code = wp_remote_retrieve_response_code($response);
             if (!is_array($response) || is_wp_error($response) || $response_code !== 200) {
                 throw new Exception(esc_html__("License key removal record not received.", "superb-blocks"), absint($response_code));

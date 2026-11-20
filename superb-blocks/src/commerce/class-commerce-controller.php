@@ -5,6 +5,8 @@ namespace SuperbAddons\Commerce;
 defined('ABSPATH') || exit();
 
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\RequestOriginUtil;
+use SuperbAddons\Gutenberg\Controllers\GutenbergCacheUtil;
 
 /**
  * Commerce (WooCommerce) REST + server logic for the Add to Cart block.
@@ -118,6 +120,12 @@ class CommerceController
      */
     public static function PublicNonceCheck($request)
     {
+        // The request must come from the site's own pages (see RequestOriginUtil)
+        $origin = RequestOriginUtil::Check($request, 'commerce');
+        if (is_wp_error($origin)) {
+            return $origin;
+        }
+
         // Core runs a cookie request without a REST nonce as a guest, and WooCommerce would
         // then discard the logged-in shopper's session. Such requests must send the REST nonce.
         if (self::HasUnverifiedLoginCookie()) {
@@ -125,7 +133,7 @@ class CommerceController
         }
 
         $nonce = $request->get_header(self::NONCE_HEADER);
-        if (empty($nonce) || !wp_verify_nonce($nonce, self::NONCE_ACTION)) {
+        if (empty($nonce) || !self::VerifyNonce($nonce)) {
             return self::InvalidNonceError();
         }
         return true;
@@ -160,6 +168,82 @@ class CommerceController
             __('Invalid or missing security token.', 'superb-blocks'),
             array('status' => 403)
         );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Commerce nonce, one per shopper
+    //
+    // Core ties a logged-in shopper's nonce to their login session. A guest's nonce is tied to the
+    // WooCommerce session instead, so it only matches requests that carry the same session cookie: a
+    // nonce from any other context is of no use for this guest's cart.
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * The nonce rendered into the page: the shopper's own when logged in, the session's for a guest who
+     * already has a WooCommerce session, and empty for a guest without one. The front-end script then asks
+     * /commerce/nonce before its first request, which starts the session along with the nonce.
+     */
+    public static function PageNonce()
+    {
+        if (is_user_logged_in()) {
+            return wp_create_nonce(self::NONCE_ACTION);
+        }
+        $session_id = self::GuestSessionId(false);
+        return $session_id === '' ? '' : wp_create_nonce(self::GuestNonceAction($session_id));
+    }
+
+    /**
+     * The nonce for /commerce/nonce. A guest without a session gets one here; WooCommerce sets its session
+     * cookie on this response, so the nonce and the cookie it belongs to arrive together.
+     */
+    private static function CreateNonce()
+    {
+        if (is_user_logged_in()) {
+            return wp_create_nonce(self::NONCE_ACTION);
+        }
+        $session_id = self::GuestSessionId(true);
+        return $session_id === '' ? '' : wp_create_nonce(self::GuestNonceAction($session_id));
+    }
+
+    private static function VerifyNonce($nonce)
+    {
+        if (is_user_logged_in()) {
+            return (bool) wp_verify_nonce($nonce, self::NONCE_ACTION);
+        }
+        $session_id = self::GuestSessionId(false);
+        if ($session_id === '') {
+            return false;
+        }
+        return (bool) wp_verify_nonce($nonce, self::GuestNonceAction($session_id));
+    }
+
+    private static function GuestNonceAction($session_id)
+    {
+        return self::NONCE_ACTION . '|' . $session_id;
+    }
+
+    /**
+     * The guest's WooCommerce session id, or an empty string when the request carries no session. With
+     * $start, a session is started for the guest (WooCommerce sets the cookie on the response).
+     */
+    private static function GuestSessionId($start)
+    {
+        self::BootstrapWcCart();
+        $wc = function_exists('WC') ? WC() : null;
+        $session = $wc && isset($wc->session) ? $wc->session : null;
+        if (!$session || !method_exists($session, 'has_session') || !method_exists($session, 'get_customer_id')) {
+            return '';
+        }
+        if (!$session->has_session()) {
+            if (!$start || !method_exists($session, 'set_customer_session_cookie')) {
+                return '';
+            }
+            $session->set_customer_session_cookie(true);
+            if (!$session->has_session()) {
+                return '';
+            }
+        }
+        return (string) $session->get_customer_id();
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -572,12 +656,17 @@ class CommerceController
 
     public static function NonceCallback()
     {
-        nocache_headers();
+        // A nonce is per user and per tick: page caches must not store this response
+        GutenbergCacheUtil::MarkAsUncacheable();
 
-        // Created for the user the REST API resolved: a guest's nonce for a request
-        // without cookies, the shopper's own for one with a valid REST nonce.
+        // Created for the user the REST API resolved: the shopper's own with a valid REST nonce, the
+        // WooCommerce session's for a guest (the session starts here when the guest has none yet).
+        $nonce = self::CreateNonce();
+        if ($nonce === '') {
+            return self::ErrorResponse('session_unavailable', __('Could not start a shopping session.', 'superb-blocks'), 500);
+        }
         $response = rest_ensure_response(array(
-            'nonce' => wp_create_nonce(self::NONCE_ACTION),
+            'nonce' => $nonce,
         ));
         $response->header('Cache-Control', 'no-store, private');
         return $response;
@@ -643,12 +732,6 @@ class CommerceController
                 $variation_attrs[sanitize_text_field((string) $k)] = sanitize_text_field((string) $v);
             }
         }
-        $extra_cart_item_data = array();
-        if (isset($params['cart_item_data']) && is_array($params['cart_item_data'])) {
-            foreach ($params['cart_item_data'] as $k => $v) {
-                $extra_cart_item_data[sanitize_key((string) $k)] = is_scalar($v) ? sanitize_text_field((string) $v) : $v;
-            }
-        }
 
         if ($product_id <= 0) {
             return self::ErrorResponse('invalid_product', __('Invalid product.', 'superb-blocks'), 400);
@@ -687,7 +770,12 @@ class CommerceController
             );
         }
 
-        $cart_item_key = $cart->add_to_cart($product_id, $qty, $variation_id, $variation_attrs, $extra_cart_item_data);
+        // WooCommerce loads the stored cart on wp_loaded, which has passed when a REST route runs, and otherwise
+        // on the first read. Read it before adding, so the new item joins the items the visitor already has;
+        // a first read after the add would put the stored items in place of it.
+        $cart->get_cart();
+
+        $cart_item_key = $cart->add_to_cart($product_id, $qty, $variation_id, $variation_attrs);
         if (!$cart_item_key) {
             // Collect WC notices if any, otherwise generic
             $notices_msg = '';
@@ -725,6 +813,11 @@ class CommerceController
     /**
      * WC bootstrap: session + cart may not yet be ready at rest_api_init time.
      * Call before any WC()->cart access.
+     *
+     * REST requests do not run WooCommerce's front-end includes. wc_load_cart() includes the cart and notice
+     * functions that WC_Cart::add_to_cart() relies on (wc_get_cart_item_data_hash() among them) and then
+     * initialises the session and the cart, so it runs first; initialising those two by hand alone leaves the
+     * functions missing on WooCommerce 8.x. The manual calls remain for versions without wc_load_cart().
      */
     public static function BootstrapWcCart()
     {
@@ -735,17 +828,14 @@ class CommerceController
         if (!$wc) {
             return;
         }
+        if (function_exists('wc_load_cart') && did_action('before_woocommerce_init')) {
+            wc_load_cart();
+        }
         if (method_exists($wc, 'initialize_session') && (!isset($wc->session) || !$wc->session)) {
             $wc->initialize_session();
         }
         if (method_exists($wc, 'initialize_cart') && (!isset($wc->cart) || !$wc->cart)) {
             $wc->initialize_cart();
-        }
-        if (function_exists('wc_load_cart')) {
-            // Extra guard for edge cases where cart object is null post-init.
-            if (!$wc->cart) {
-                wc_load_cart();
-            }
         }
     }
 

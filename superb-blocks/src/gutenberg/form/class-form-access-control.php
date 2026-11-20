@@ -64,6 +64,21 @@ class FormAccessControl
     );
 
     /**
+     * The sensitive attributes a new form keeps when it is saved by a user who may create forms but not configure
+     * them: the on/off switches the form presets set. The other sensitive attributes (addresses, URLs, list ids,
+     * headers, mail texts) start at their defaults, as the editor shows that user.
+     */
+    private static $new_form_kept_attrs = array(
+        'emailEnabled',
+        'sendConfirmation',
+        'captchaType',
+        'honeypotKey',
+        'storeEnabled',
+        'storeSpamEnabled',
+        'successBehavior',
+    );
+
+    /**
      * Block names that represent form containers.
      */
     private static $form_block_names = array(
@@ -289,8 +304,12 @@ class FormAccessControl
                         // New form, or one no post holds any more — requires 'create'. Strip it entirely
                         $removed[] = $index;
                         continue;
+                    } elseif (!$can_configure) {
+                        // New form by a user who can create but not configure: the form, its fields and display
+                        // settings are kept; the sensitive settings start where the editor shows them to this user
+                        $block['attrs'] = self::KeepNewFormDefaults(isset($block['attrs']) ? $block['attrs'] : array());
                     }
-                    // User can create: allow the block through as-is
+                    // User can create and configure: allow the block through as-is
                 }
 
                 $block = self::SyncFormIdMarkup($block);
@@ -571,6 +590,22 @@ class FormAccessControl
             }
         }
         return $new_attrs;
+    }
+
+    /**
+     * Drop the sensitive attributes of a new form except the switches in $new_form_kept_attrs.
+     *
+     * @param array $attrs The saved form block's attributes.
+     * @return array
+     */
+    private static function KeepNewFormDefaults($attrs)
+    {
+        foreach (self::$sensitive_attrs as $key) {
+            if (array_key_exists($key, $attrs) && !in_array($key, self::$new_form_kept_attrs, true)) {
+                unset($attrs[$key]);
+            }
+        }
+        return $attrs;
     }
 
     /**

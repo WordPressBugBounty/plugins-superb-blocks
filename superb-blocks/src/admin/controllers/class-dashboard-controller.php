@@ -49,8 +49,6 @@ class DashboardController
     const THEME_DESIGNER_REDIRECT_SLUG = 'superbaddons-theme-designer';
     const STYLEBOOK_REDIRECT_SLUG = 'superbaddons-stylebook';
 
-    const PREMIUM_CLASS = 'superbaddons-get-premium';
-
     const NOTICE_ID_UPSELL = 'addons_delayed';
     const NOTICE_ID_REVIEW = 'review_request';
 
@@ -84,7 +82,7 @@ class DashboardController
         );
         $actions = array_merge($added_actions, $actions);
         if (!KeyController::HasValidPremiumKey()) {
-            $actions[] = "<a href='" . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::WP_PLUGIN_PAGE)) . "' class='" . self::PREMIUM_CLASS . "' target='_blank'>" . esc_html__('Get Premium', "superb-blocks") . "</a>";
+            $actions[] = "<a href='" . esc_url(AdminLinkUtil::GetLink(AdminLinkSource::WP_PLUGIN_PAGE)) . "' class='superbaddons-get-premium' target='_blank'>" . esc_html__('Get Premium', "superb-blocks") . "</a>";
         }
         return $actions;
     }
@@ -97,7 +95,9 @@ class DashboardController
         // Forms menu: visible to admins and roles with 'view' form permission
         $forms_capability = FormPermissions::Can('view') ? 'read' : Capabilities::ADMIN;
         $this->hooks[self::FORMS] = add_submenu_page(self::MENU_SLUG, __('Superb Addons - Forms', "superb-blocks"), __('Forms', "superb-blocks"), $forms_capability, self::FORMS, array($this, 'Forms'));
-        $this->hooks[self::ADDITIONAL_CSS] = add_submenu_page(self::MENU_SLUG, __('Superb Addons - Custom CSS', "superb-blocks"), __('Custom CSS', "superb-blocks"), Capabilities::ADMIN, self::ADDITIONAL_CSS, array($this, 'AdditionalCSS'));
+        // Custom CSS menu: administrators who may write site-wide CSS (edit_css, held with unfiltered_html), as the /css-blocks route requires
+        $css_capability = current_user_can('edit_css') ? Capabilities::ADMIN : 'do_not_allow';
+        $this->hooks[self::ADDITIONAL_CSS] = add_submenu_page(self::MENU_SLUG, __('Superb Addons - Custom CSS', "superb-blocks"), __('Custom CSS', "superb-blocks"), $css_capability, self::ADDITIONAL_CSS, array($this, 'AdditionalCSS'));
         $this->hooks[self::SETTINGS] = add_submenu_page(self::MENU_SLUG, __('Superb Addons - Settings', "superb-blocks"), __('Settings', "superb-blocks"), Capabilities::ADMIN, self::SETTINGS, array($this, 'Settings'));
         $this->hooks[self::SUPPORT] = add_submenu_page(self::MENU_SLUG, __('Superb Addons - Get Help', "superb-blocks"), __('Get Help', "superb-blocks") . $this->GetAdminMenuNotification(), Capabilities::CONTRIBUTOR, self::SUPPORT, array($this, 'Support'));
     }
@@ -301,7 +301,7 @@ class DashboardController
     {
 ?>
         <style>
-            tbody#the-list .<?php echo esc_html(self::PREMIUM_CLASS); ?> {
+            tbody#the-list .superbaddons-get-premium {
                 color: #4312E2;
                 font-weight: 900;
             }
@@ -312,6 +312,10 @@ class DashboardController
     public function HandleNotices()
     {
         add_action('wp_loaded', function () {
+            // The notices lead to settings, the wizard and the upgrade page, which administrators use
+            if (!current_user_can(Capabilities::ADMIN)) {
+                return;
+            }
             $options = array("notices" => array());
             if (!KeyController::HasValidPremiumKey()) {
                 $options["notices"][] = array(

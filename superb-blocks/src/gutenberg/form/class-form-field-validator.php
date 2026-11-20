@@ -6,6 +6,10 @@ defined('ABSPATH') || exit();
 
 class FormFieldValidator
 {
+    /** Length ceilings for fields whose settings set none (characters); textarea fields take the larger one. */
+    const DEFAULT_MAX_LENGTH = 10000;
+    const DEFAULT_MAX_LENGTH_TEXTAREA = 100000;
+
     /**
      * Validate submitted fields against server-side form config.
      *
@@ -571,6 +575,12 @@ class FormFieldValidator
 
         $min = isset($config['minLength']) ? $config['minLength'] : null;
         $max = isset($config['maxLength']) ? $config['maxLength'] : null;
+        if ($max === null || $max === '' || intval($max) <= 0) {
+            // A ceiling applies when the field sets none; a value is otherwise bounded by the request size only
+            $field_type = isset($config['fieldType']) ? $config['fieldType'] : 'text';
+            $default_max = $field_type === 'textarea' ? self::DEFAULT_MAX_LENGTH_TEXTAREA : self::DEFAULT_MAX_LENGTH;
+            $max = intval(apply_filters('superbaddons_form_default_max_length', $default_max, $field_type, $config));
+        }
 
         if ($min !== null && $min !== '' && $len < intval($min)) {
             /* translators: %d: minimum required character count */
@@ -602,6 +612,7 @@ class FormFieldValidator
         $old_limit = ini_get('pcre.backtrack_limit');
         // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
         ini_set('pcre.backtrack_limit', 10000);
+        // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a form's pattern may not be a valid expression; preg_match() then returns false, which is handled below.
         $result = @preg_match($regex, $value);
         // phpcs:ignore Squiz.PHP.DiscouragedFunctions.Discouraged
         ini_set('pcre.backtrack_limit', $old_limit);

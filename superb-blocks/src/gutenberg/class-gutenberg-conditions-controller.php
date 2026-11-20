@@ -8,24 +8,48 @@ class GutenbergConditionsController
 {
     public static function Initialize()
     {
-        add_filter('pre_render_block', [__CLASS__, 'MaybeHideBlock'], 10, 2);
+        // Last on the filter: a callback of another plugin that returns nothing for the blocks that are
+        // not its own (older WooCommerce versions do) would otherwise drop the answer given here.
+        add_filter('pre_render_block', [__CLASS__, 'MaybeHideBlock'], PHP_INT_MAX, 2);
+        // For a block that got rendered all the same: its output is left out.
+        add_filter('render_block', [__CLASS__, 'MaybeEmptyBlock'], PHP_INT_MAX, 2);
     }
 
     public static function MaybeHideBlock($pre_render, $parsed_block)
     {
+        if (self::IsHiddenByConditions($parsed_block)) {
+            // Short-circuits the entire render pipeline: children, render_callback,
+            // and enqueues tied to this block never run.
+            return '';
+        }
+
+        return $pre_render;
+    }
+
+    public static function MaybeEmptyBlock($block_content, $parsed_block)
+    {
+        if ($block_content === '' || !self::IsHiddenByConditions($parsed_block)) {
+            return $block_content;
+        }
+
+        return '';
+    }
+
+    private static function IsHiddenByConditions($parsed_block)
+    {
         // Preview contexts should always show blocks regardless of conditions,
         // so authors can see their own content when clicking "Preview".
         if (is_preview() || is_customize_preview()) {
-            return $pre_render;
+            return false;
         }
 
         if (!isset($parsed_block['attrs']['spbaddConditions']) || !is_array($parsed_block['attrs']['spbaddConditions'])) {
-            return $pre_render;
+            return false;
         }
 
         $visibility = $parsed_block['attrs']['spbaddConditions'];
         if (empty($visibility['ruleGroups']) || !is_array($visibility['ruleGroups'])) {
-            return $pre_render;
+            return false;
         }
 
         $action = isset($visibility['action']) ? sanitize_text_field($visibility['action']) : 'show';
@@ -67,7 +91,7 @@ class GutenbergConditionsController
         // Nothing evaluable (malformed/migrated data) — fall through as if no
         // conditions were configured rather than silently hiding the block.
         if (!$has_any_evaluated) {
-            return $pre_render;
+            return false;
         }
 
         // Invert result for "hide if" action
@@ -80,13 +104,7 @@ class GutenbergConditionsController
             GutenbergCacheUtil::MarkAsUncacheable();
         }
 
-        if (!$block_visible) {
-            // Short-circuits the entire render pipeline: children, render_callback,
-            // and enqueues tied to this block never run.
-            return '';
-        }
-
-        return $pre_render;
+        return !$block_visible;
     }
 
     private static function EvaluateCondition($condition)

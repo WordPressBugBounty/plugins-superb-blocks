@@ -6,6 +6,10 @@ defined('ABSPATH') || exit();
 
 use Exception;
 use SuperbAddons\Data\Controllers\KeyController;
+use SuperbAddons\Data\Controllers\CacheController;
+use SuperbAddons\Data\Utils\ChunkLoading;
+use SuperbAddons\Data\Utils\ElementorCache;
+use SuperbAddons\Data\Utils\GutenbergCache;
 use SuperbAddons\Data\Controllers\LogController;
 use SuperbAddons\Data\Controllers\MigrationController;
 use SuperbAddons\Data\Controllers\Option;
@@ -28,6 +32,10 @@ class PluginResetController
      * Order matters: license removal must run before its option row is deleted
      * so the remote server is notified; the form registry must be read before
      * its option row is deleted so every dynamic config option gets cleaned up.
+     *
+     * Runs from the Settings page ("Remove all plugin data") only. Deleting the plugin keeps its data on purpose: a
+     * reinstall finds the settings again, and removing them stays a deliberate action. Ends with the
+     * superbaddons_remove_all_data action for the premium plugin's own data.
      *
      * @param bool $include_submissions When true, also deletes every stored form submission CPT post.
      * @return bool
@@ -79,6 +87,12 @@ class PluginResetController
             'superbaddonslibrary_gutenberg_patterns',
             'superbaddonslibrary_gutenberg_pages',
             'superbaddonslibrary_elementor_sections',
+            // Library caches (CacheController::GetCacheKey)
+            Option::PREFIX . GutenbergCache::LIBRARY,
+            Option::PREFIX . GutenbergCache::LIBRARY_PARTIAL,
+            Option::PREFIX . GutenbergCache::PATTERNS,
+            Option::PREFIX . GutenbergCache::PAGES,
+            Option::PREFIX . ElementorCache::SECTIONS,
             'superbaddons_errorlogs',
             'superbaddons_wizard_completed_themes',
             'superbaddons_wizard_navigation_post_id',
@@ -86,6 +100,9 @@ class PluginResetController
             'superbaddons_pre_activation',
             'superbaddons_engagement',
             'superbaddons_css_block_target_valid_labels',
+            // Custom CSS (Settings > Custom CSS)
+            'superb_addons_custom_css_blocks',
+            'superb_addons_optimized_css',
             // Data migrations: the next request runs every migration again on the wiped data
             MigrationController::KEY_OPTION,
             MigrationController::STATE_OPTION,
@@ -122,13 +139,19 @@ class PluginResetController
             'superb_blocks_template_restoration',
             'superbaddons_template_part_preview',
             FormGoogleAuth::TRANSIENT_KEY,
+            CacheController::SERVICE_OFFLINE_TRANSIENT,
+            ChunkLoading::LOADING_TRANSIENT,
+            RewriteCheckController::CHECK_NEEDED_TRANSIENT,
+            RewriteCheckController::ISSUE_FOUND_TRANSIENT,
+            LicenseResolveController::COOLDOWN_TRANSIENT,
         );
         foreach ($transient_keys as $transient_key) {
             delete_transient($transient_key);
         }
 
-        // 5b. Purge namespaced commerce transients (product/stock/search caches) and the forms' holder search
-        // results (FormRegistry::SCAN_RESULT_PREFIX).
+        // 5b. Purge namespaced commerce transients (product/stock/search caches), the forms' holder search
+        // results (FormRegistry::SCAN_RESULT_PREFIX), the submit rate-limit windows, the per-form spam counters,
+        // and the library's insert cache and request spacing markers.
         // Keys look like: _transient_superb_commerce_product_123_1700000000 etc.
         // Direct query: no WP API exists for bulk-deleting transients by prefix; iterating get_option() to find them would itself bypass caching and is far slower. Pattern is a constant string with literal underscores escaped so they aren't treated as LIKE wildcards. Caching does not apply to a DELETE; this runs once during plugin reset.
         global $wpdb;
@@ -139,7 +162,16 @@ class PluginResetController
                  WHERE option_name LIKE '_transient_superb_commerce\\_%'
                     OR option_name LIKE '_transient_timeout_superb_commerce\\_%'
                     OR option_name LIKE '_transient_spb\\_form\\_scan\\_%'
-                    OR option_name LIKE '_transient_timeout_spb\\_form\\_scan\\_%'"
+                    OR option_name LIKE '_transient_timeout_spb\\_form\\_scan\\_%'
+                    OR option_name LIKE '_transient_spb\\_form\\_rate\\_%'
+                    OR option_name LIKE '_transient_timeout_spb\\_form\\_rate\\_%'
+                    OR option_name LIKE '_transient_spb\\_lib\\_insert\\_%'
+                    OR option_name LIKE '_transient_timeout_spb\\_lib\\_insert\\_%'
+                    OR option_name LIKE '_transient_spb\\_insert\\_last\\_%'
+                    OR option_name LIKE '_transient_timeout_spb\\_insert\\_last\\_%'
+                    OR option_name LIKE '_transient_spb\\_chunk\\_last\\_%'
+                    OR option_name LIKE '_transient_timeout_spb\\_chunk\\_last\\_%'
+                    OR option_name LIKE '\\_spb\\_form\\_spam\\_count\\_%'"
             );
         }
 
@@ -150,6 +182,15 @@ class PluginResetController
         delete_metadata('user', 0, TourController::TOUR_BLOCK_THEME_META, false, true);
         delete_metadata('user', 0, GutenbergEnhancementsController::ENHANCEMENTS_OPTION, false, true);
         delete_metadata('user', 0, FavoritesController::FAVORITES_META_KEY, false, true);
+        // The Forms screen's column preferences: one key per user and form (FormSubmissionHandler::SaveFieldPreference)
+        if (isset($wpdb) && is_object($wpdb)) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the keys carry the form id; no API deletes user meta by prefix. Runs once during plugin reset.
+            $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE %s", $wpdb->esc_like('_spb_form_field_prefs_') . '%'));
+            // The admin notices' dismissals, delays and last-dismissal time carry the notice id (AdminNoticeController::PREFIX,
+            // PREFIX_DELAY and LAST_DISMISS_META share the prefix). A notice that is no longer registered keeps its keys, so delete by prefix.
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- no API deletes user meta by prefix. Runs once during plugin reset.
+            $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE %s", $wpdb->esc_like(AdminNoticeController::PREFIX) . '%'));
+        }
 
         // 6b. Delete the forms' post meta on site posts (site-wide).
         delete_metadata('post', 0, FormRegistry::UNSCANNED_META, false, true);
@@ -177,6 +218,9 @@ class PluginResetController
             FormFileHandler::DeleteUploadDirectories();
             delete_option(FormFileHandler::UPLOAD_DIR_TOKEN_OPTION);
         }
+
+        // 8. The premium plugin removes its own options, transients and scheduled event on this action.
+        do_action('superbaddons_remove_all_data', $include_submissions);
 
         return true;
     }

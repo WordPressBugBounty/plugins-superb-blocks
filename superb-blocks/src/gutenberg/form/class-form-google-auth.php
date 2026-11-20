@@ -17,9 +17,14 @@ class FormGoogleAuth
      */
     public static function GetAccessToken()
     {
+        // The cached token is stored encrypted, like the private key it was issued for
         $cached = get_transient(self::TRANSIENT_KEY);
-        if (!empty($cached)) {
-            return $cached;
+        if (is_string($cached) && $cached !== '') {
+            $token = FormEncryption::Decrypt($cached);
+            if (is_string($token) && $token !== '') {
+                return $token;
+            }
+            delete_transient(self::TRANSIENT_KEY);
         }
 
         $client_email = FormSettings::Get(FormSettings::OPTION_GOOGLE_SHEETS_CLIENT_EMAIL);
@@ -54,13 +59,13 @@ class FormGoogleAuth
         }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
-        $access_token = isset($body['access_token']) ? $body['access_token'] : '';
+        $access_token = isset($body['access_token']) && is_string($body['access_token']) ? $body['access_token'] : '';
         if (empty($access_token)) {
             return new \WP_Error('no_token', __('No access token in response.', 'superb-blocks'));
         }
 
         // Cache for 50 minutes (tokens last 60 min)
-        set_transient(self::TRANSIENT_KEY, $access_token, 50 * 60);
+        set_transient(self::TRANSIENT_KEY, FormEncryption::Encrypt($access_token), 50 * 60);
 
         return $access_token;
     }

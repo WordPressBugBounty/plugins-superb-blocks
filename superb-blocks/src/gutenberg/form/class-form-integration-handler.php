@@ -24,6 +24,30 @@ class FormIntegrationHandler
     }
 
     /**
+     * Drop the fields flagged sensitive (and signatures) before a record goes to a list provider: the
+     * provider needs the e-mail address and the ordinary fields, not the values the site keeps encrypted.
+     *
+     * @param array $fields Submitted field values.
+     * @param array $form_fields_config Form field definitions.
+     * @return array
+     */
+    private static function WithoutSensitiveFields($fields, $form_fields_config)
+    {
+        if (!is_array($fields)) {
+            return array();
+        }
+        if (empty($form_fields_config) || !is_array($form_fields_config)) {
+            return $fields;
+        }
+        foreach (self::GetSensitiveFieldIds($form_fields_config) as $fid) {
+            if ($fid !== '') {
+                unset($fields[$fid]);
+            }
+        }
+        return $fields;
+    }
+
+    /**
      * Extract filenames from a file field value.
      *
      * @param array $file_value Array of file data arrays.
@@ -54,18 +78,229 @@ class FormIntegrationHandler
     }
 
     /**
-     * Validate a URL for safe outbound HTTP requests (blocks private/internal IPs).
+     * The public address each validated host resolved to (host => address), used by Request() to send the
+     * request to the address that was checked.
+     *
+     * @var array
+     */
+    private static $checked_addresses = array();
+
+    /**
+     * Header names a form author's custom webhook headers cannot set: the ones the request itself sets, and the
+     * ones that describe the connection or the message framing.
+     *
+     * @var array
+     */
+    private static $reserved_header_names = array(
+        'content-type',
+        'content-length',
+        'host',
+        'connection',
+        'transfer-encoding',
+        'upgrade',
+        'te',
+        'trailer',
+        'keep-alive',
+        'expect',
+        'proxy-authorization',
+        'proxy-connection',
+        'user-agent',
+        'x-superb-signature',
+    );
+
+    /**
+     * Validate a URL a form author chose for an outbound HTTP request. Core's wp_http_validate_url refuses
+     * loopback and private ranges; this also refuses the site's own hosts, localhost names, link-local
+     * (169.254.0.0/16), shared (100.64.0.0/10), reserved and multicast addresses, and anything but http(s).
+     * The host's A and AAAA records are all checked, and the address that passed is kept so that Request()
+     * below sends the request there, without following redirects.
      *
      * @param string $url URL to validate.
-     * @return string|false Validated URL or false if blocked.
+     * @return string|false Validated URL or false if refused.
      */
-    private static function ValidateOutboundUrl($url)
+    public static function ValidateOutboundUrl($url)
     {
-        $url = esc_url_raw($url);
+        $url = esc_url_raw(is_string($url) ? trim($url) : '', array('http', 'https'));
         if (empty($url)) {
             return false;
         }
-        return wp_http_validate_url($url);
+        $url = wp_http_validate_url($url);
+        if (!$url) {
+            return false;
+        }
+
+        $host = wp_parse_url($url, PHP_URL_HOST);
+        if (!is_string($host) || $host === '') {
+            return false;
+        }
+        $host = strtolower(trim($host, '.'));
+        if ($host === 'localhost' || substr($host, -10) === '.localhost' || substr($host, -6) === '.local') {
+            return false;
+        }
+        foreach (array(home_url(), site_url(), rest_url()) as $own) {
+            $own_host = wp_parse_url($own, PHP_URL_HOST);
+            if (is_string($own_host) && strtolower(trim($own_host, '.')) === $host) {
+                return false;
+            }
+        }
+
+        $addresses = self::ResolvePublicAddresses($host);
+        if (empty($addresses)) {
+            return false;
+        }
+        self::$checked_addresses[$host] = $addresses[0];
+
+        return $url;
+    }
+
+    /**
+     * The addresses a host name resolves to (A and AAAA records, IPv4 first), or an empty array when the name
+     * does not resolve or any of its addresses is not a public one. An address literal is checked as it is.
+     *
+     * @param string $host Lower-case host name or address literal, without brackets.
+     * @return array
+     */
+    private static function ResolvePublicAddresses($host)
+    {
+        $literal = trim($host, '[]');
+        if (filter_var($literal, FILTER_VALIDATE_IP)) {
+            return self::IsPublicAddress($literal) ? array($literal) : array();
+        }
+
+        $ipv4 = array();
+        $ipv6 = array();
+        // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- dns_get_record() raises a warning when a lookup fails; that case is handled below as no address.
+        $records = function_exists('dns_get_record') ? @dns_get_record($host, DNS_A | DNS_AAAA) : false;
+        if (is_array($records)) {
+            foreach ($records as $record) {
+                if (!is_array($record)) {
+                    continue;
+                }
+                if (isset($record['ip']) && is_string($record['ip'])) {
+                    $ipv4[] = $record['ip'];
+                } elseif (isset($record['ipv6']) && is_string($record['ipv6'])) {
+                    $ipv6[] = $record['ipv6'];
+                }
+            }
+        }
+        if (empty($ipv4) && empty($ipv6)) {
+            $ip = gethostbyname($host);
+            if ($ip !== $host && filter_var($ip, FILTER_VALIDATE_IP)) {
+                $ipv4[] = $ip;
+            }
+        }
+
+        $addresses = array_values(array_unique(array_merge($ipv4, $ipv6)));
+        if (empty($addresses)) {
+            return array();
+        }
+        foreach ($addresses as $address) {
+            if (!self::IsPublicAddress($address)) {
+                return array();
+            }
+        }
+        return $addresses;
+    }
+
+    /**
+     * Whether an IPv4 or IPv6 address is a public unicast address. PHP's filter flags cover the private,
+     * loopback, link-local and unspecified ranges; the remaining special-purpose ranges are listed here.
+     *
+     * @param string $address
+     * @return bool
+     */
+    private static function IsPublicAddress($address)
+    {
+        if (!filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return false;
+        }
+        if (filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $parts = array_map('intval', explode('.', $address));
+            if (count($parts) !== 4) {
+                return false;
+            }
+            // Shared address space (100.64.0.0/10), IETF protocol assignments (192.0.0.0/24), benchmarking
+            // (198.18.0.0/15), multicast and the class E range (224.0.0.0 and above)
+            if ($parts[0] === 100 && $parts[1] >= 64 && $parts[1] <= 127) {
+                return false;
+            }
+            if ($parts[0] === 192 && $parts[1] === 0 && $parts[2] === 0) {
+                return false;
+            }
+            if ($parts[0] === 198 && ($parts[1] === 18 || $parts[1] === 19)) {
+                return false;
+            }
+            if ($parts[0] >= 224) {
+                return false;
+            }
+            return true;
+        }
+
+        $binary = inet_pton($address);
+        if ($binary === false || strlen($binary) !== 16) {
+            return false;
+        }
+        $hex = bin2hex($binary);
+        // Multicast (ff00::/8), documentation (2001:db8::/32), NAT64 well-known prefix (64:ff9b::/96),
+        // discard-only (100::/64) and IPv4-mapped addresses (::ffff:0:0/96), whose IPv4 part is checked
+        if (substr($hex, 0, 2) === 'ff' || substr($hex, 0, 8) === '20010db8' || substr($hex, 0, 24) === '0064ff9b0000000000000000' || substr($hex, 0, 16) === '0100000000000000') {
+            return false;
+        }
+        if (substr($hex, 0, 24) === '00000000000000000000ffff') {
+            $mapped = long2ip(hexdec(substr($hex, 24, 8)));
+            return $mapped !== false && self::IsPublicAddress($mapped);
+        }
+        return true;
+    }
+
+    /**
+     * Send a request to a URL that passed ValidateOutboundUrl: core re-validates the address
+     * (reject_unsafe_urls), no redirect is followed, and with the cURL transport the connection goes to the
+     * address ValidateOutboundUrl checked, so no second name lookup can point it elsewhere.
+     *
+     * @param string $url  Validated URL.
+     * @param array  $args wp_remote_request arguments.
+     * @return array|\WP_Error
+     */
+    public static function Request($url, $args)
+    {
+        $args['redirection'] = 0;
+        $args['reject_unsafe_urls'] = true;
+
+        $host = wp_parse_url($url, PHP_URL_HOST);
+        $host = is_string($host) ? strtolower(trim($host, '.')) : '';
+        $address = isset(self::$checked_addresses[$host]) ? self::$checked_addresses[$host] : '';
+        if ($address === '' || !defined('CURLOPT_RESOLVE') || !function_exists('curl_setopt')) {
+            return wp_remote_request($url, $args);
+        }
+
+        $port = wp_parse_url($url, PHP_URL_PORT);
+        if (!$port) {
+            $port = wp_parse_url($url, PHP_URL_SCHEME) === 'https' ? 443 : 80;
+        }
+        $pin = function ($handle) use ($host, $port, $address) {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.curl_curl_setopt -- the handle is the WordPress HTTP API's own (http_api_curl); the option keeps its request on the address that was checked.
+            curl_setopt($handle, CURLOPT_RESOLVE, array($host . ':' . intval($port) . ':' . $address));
+        };
+        add_action('http_api_curl', $pin, 10, 1);
+        $response = wp_remote_request($url, $args);
+        remove_action('http_api_curl', $pin, 10);
+        return $response;
+    }
+
+    /**
+     * The datacenter part of a Mailchimp API key ("<key>-us21"), which names the API host.
+     *
+     * @param string $api_key
+     * @return string|false The datacenter, or false if the key doesn't carry one.
+     */
+    private static function GetMailchimpDatacenter($api_key)
+    {
+        $dc_parts = explode('-', (string) $api_key);
+        if (count($dc_parts) < 2 || !preg_match('/^[a-z0-9]+$/i', $dc_parts[1])) {
+            return false;
+        }
+        return $dc_parts[1];
     }
 
     /**
@@ -80,11 +315,10 @@ class FormIntegrationHandler
             return new \WP_Error('no_api_key', __('Mailchimp API key is not configured.', 'superb-blocks'), array('status' => 400));
         }
 
-        $dc_parts = explode('-', $api_key);
-        if (count($dc_parts) < 2) {
+        $dc = self::GetMailchimpDatacenter($api_key);
+        if (!$dc) {
             return new \WP_Error('api_error', __('Invalid Mailchimp API key format.', 'superb-blocks'), array('status' => 400));
         }
-        $dc = $dc_parts[1];
 
         $url = 'https://' . $dc . '.api.mailchimp.com/3.0/lists?count=100&fields=lists.id,lists.name';
 
@@ -171,8 +405,9 @@ class FormIntegrationHandler
      * @param array $fields Additional merge fields
      * @return bool
      */
-    public static function SendToMailchimp($list_ids, $email, $fields = array())
+    public static function SendToMailchimp($list_ids, $email, $fields = array(), $form_fields_config = array())
     {
+        $fields = self::WithoutSensitiveFields($fields, $form_fields_config);
         $api_key = FormSettings::Get(FormSettings::OPTION_MAILCHIMP_API_KEY);
         if (empty($api_key) || empty($email)) {
             return false;
@@ -182,11 +417,10 @@ class FormIntegrationHandler
             $list_ids = array($list_ids);
         }
 
-        $dc_parts = explode('-', $api_key);
-        if (count($dc_parts) < 2) {
+        $dc = self::GetMailchimpDatacenter($api_key);
+        if (!$dc) {
             return false;
         }
-        $dc = $dc_parts[1];
 
         $merge_fields = array();
         if (!empty($fields)) {
@@ -230,6 +464,52 @@ class FormIntegrationHandler
         }
 
         return $success;
+    }
+
+    /**
+     * Request headers of a webhook call: the fixed ones, the signature when a secret is set, and the form's
+     * custom headers. A submission and the editor's test request share these rules.
+     *
+     * @param string $json Request body.
+     * @param string $secret HMAC signing secret.
+     * @param array $headers Custom headers [{key, value}].
+     * @return array Header name => value.
+     */
+    public static function WebhookRequestHeaders($json, $secret = '', $headers = array())
+    {
+        $request_headers = array(
+            'Content-Type' => 'application/json',
+            'User-Agent' => 'SuperbAddons/' . SUPERBADDONS_VERSION,
+        );
+
+        // HMAC signature
+        if (!empty($secret)) {
+            $request_headers['X-Superb-Signature'] = 'sha256=' . hash_hmac('sha256', $json, $secret);
+        }
+
+        // Custom headers: up to 20 plain header names; the names in $reserved_header_names keep the values set above
+        if (is_array($headers)) {
+            $added = 0;
+            foreach ($headers as $h) {
+                if (!is_array($h) || !isset($h['key']) || !is_string($h['key'])) {
+                    continue;
+                }
+                $name = trim($h['key']);
+                if ($name === '' || strlen($name) > 64 || !preg_match('/^[A-Za-z0-9!#$%&\'*+.^_`|~-]+$/', $name)) {
+                    continue;
+                }
+                if (in_array(strtolower($name), self::$reserved_header_names, true)) {
+                    continue;
+                }
+                $value = isset($h['value']) && is_scalar($h['value']) ? sanitize_text_field((string) $h['value']) : '';
+                $request_headers[$name] = substr($value, 0, 1024);
+                if (++$added >= 20) {
+                    break;
+                }
+            }
+        }
+
+        return $request_headers;
     }
 
     /**
@@ -295,30 +575,13 @@ class FormIntegrationHandler
 
         $json = wp_json_encode($payload);
 
-        $request_headers = array(
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'SuperbAddons/' . SUPERBADDONS_VERSION,
-        );
+        $request_headers = self::WebhookRequestHeaders($json, $secret, $headers);
 
-        // HMAC signature
-        if (!empty($secret)) {
-            $request_headers['X-Superb-Signature'] = 'sha256=' . hash_hmac('sha256', $json, $secret);
-        }
-
-        // Custom headers
-        if (is_array($headers)) {
-            foreach ($headers as $h) {
-                if (!empty($h['key'])) {
-                    $request_headers[sanitize_text_field($h['key'])] = sanitize_text_field(isset($h['value']) ? $h['value'] : '');
-                }
-            }
-        }
-
-        $response = wp_remote_request($validated_url, array(
+        $response = self::Request($validated_url, array(
             'method' => strtoupper($method),
             'headers' => $request_headers,
             'body' => $json,
-            'timeout' => 15,
+            'timeout' => 5,
         ));
 
         if (is_wp_error($response)) {
@@ -523,6 +786,14 @@ class FormIntegrationHandler
         if (!$validated_url) {
             return array('sent' => false, 'error' => __('Invalid or blocked URL.', 'superb-blocks'));
         }
+        // Slack issues incoming webhooks under one host and path
+        if (
+            wp_parse_url($validated_url, PHP_URL_SCHEME) !== 'https'
+            || strtolower((string) wp_parse_url($validated_url, PHP_URL_HOST)) !== 'hooks.slack.com'
+            || strpos((string) wp_parse_url($validated_url, PHP_URL_PATH), '/services/') !== 0
+        ) {
+            return array('sent' => false, 'error' => __('Slack webhook URLs start with https://hooks.slack.com/services/.', 'superb-blocks'));
+        }
 
         $sensitive_field_ids = self::GetSensitiveFieldIds($form_fields_config);
 
@@ -573,10 +844,11 @@ class FormIntegrationHandler
 
         $payload = array('blocks' => $blocks);
 
-        $response = wp_remote_post($validated_url, array(
+        $response = self::Request($validated_url, array(
+            'method' => 'POST',
             'headers' => array('Content-Type' => 'application/json'),
             'body' => wp_json_encode($payload),
-            'timeout' => 15,
+            'timeout' => 5,
         ));
 
         if (is_wp_error($response)) {
@@ -599,8 +871,9 @@ class FormIntegrationHandler
      * @param array $fields Additional attributes
      * @return bool
      */
-    public static function SendToBrevo($list_ids, $email, $fields = array())
+    public static function SendToBrevo($list_ids, $email, $fields = array(), $form_fields_config = array())
     {
+        $fields = self::WithoutSensitiveFields($fields, $form_fields_config);
         $api_key = FormSettings::Get(FormSettings::OPTION_BREVO_API_KEY);
         if (empty($api_key) || empty($email)) {
             return false;

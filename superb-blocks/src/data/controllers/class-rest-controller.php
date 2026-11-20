@@ -39,7 +39,8 @@ class RestController
             }
         }
         return array_merge($args, array(
-            'timeout' => 60,
+            // List and insert requests can take a while; a caller with a small answer may ask for a shorter wait
+            'timeout' => isset($args['timeout']) ? max(1, (int) $args['timeout']) : 60,
             'headers' => $headers
         ));
     }

@@ -3,7 +3,6 @@
 namespace SuperbAddons\Gutenberg\BlocksAPI\Controllers;
 
 use SuperbAddons\Data\Controllers\LogController;
-use SuperbAddons\Data\Controllers\OptionController;
 use Exception;
 
 defined('ABSPATH') || exit();
@@ -37,12 +36,10 @@ class TableOfContentsController
 
     public static function Initialize()
     {
-        // The template_include pass exists solely to serve the TOC block;
-        // when the block is disabled in settings, skip the hook
-        if (OptionController::IsBlockDisabled('table-of-contents')) {
-            return;
-        }
-
+        // The pass also runs when the block is turned off in the settings: that
+        // only hides the block from the inserter, and the blocks already on a
+        // page still need their heading anchors. setupTOC() returns early on
+        // pages without the block.
         add_filter('template_include', array(__CLASS__, 'setupTOC'));
     }
 

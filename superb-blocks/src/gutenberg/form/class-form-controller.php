@@ -6,6 +6,9 @@ defined('ABSPATH') || exit();
 
 use SuperbAddons\Config\Capabilities;
 use SuperbAddons\Data\Controllers\RestController;
+use SuperbAddons\Data\Utils\RequestOriginUtil;
+use SuperbAddons\Data\Utils\ClientAddressUtil;
+use SuperbAddons\Gutenberg\Controllers\GutenbergCacheUtil;
 
 class FormController
 {
@@ -79,7 +82,7 @@ class FormController
 
         RestController::AddRoute(self::SUBMIT_ROUTE, array(
             'methods' => 'POST',
-            'permission_callback' => '__return_true',
+            'permission_callback' => array(__CLASS__, 'SubmitPermissionCheck'),
             'callback' => array(__CLASS__, 'SubmitCallback'),
         ));
 
@@ -324,14 +327,61 @@ class FormController
     }
 
     /**
+     * Permission callback of the submit route: the request must come from the site's own pages (see
+     * RequestOriginUtil). A request refused here uses no rate-limit slot and triggers no captcha call.
+     */
+    public static function SubmitPermissionCheck($request)
+    {
+        return RequestOriginUtil::Check($request, 'form');
+    }
+
+    /**
+     * The submit nonce. A logged-in user (a request that carried the REST nonce) gets a nonce of their own; a
+     * visitor gets one derived from the action and the nonce tick alone, the same value for every visitor within
+     * a tick, so the answer does not depend on a login cookie the request happens to carry.
+     */
+    public static function CreateSubmitNonce()
+    {
+        if (is_user_logged_in()) {
+            return wp_create_nonce(self::NONCE_ACTION);
+        }
+        return self::VisitorSubmitNonce(0);
+    }
+
+    /**
+     * Whether a submit nonce is current: a logged-in user's own nonce, or the visitor nonce of this or the
+     * previous tick (12 hours each, as core's nonces).
+     */
+    private static function VerifySubmitNonce($nonce)
+    {
+        if (!is_string($nonce) || $nonce === '') {
+            return false;
+        }
+        if (is_user_logged_in()) {
+            return (bool) wp_verify_nonce($nonce, self::NONCE_ACTION);
+        }
+        return hash_equals(self::VisitorSubmitNonce(0), $nonce) || hash_equals(self::VisitorSubmitNonce(1), $nonce);
+    }
+
+    private static function VisitorSubmitNonce($ticks_ago)
+    {
+        $tick = wp_nonce_tick(self::NONCE_ACTION) - intval($ticks_ago);
+        return substr(wp_hash($tick . '|' . self::NONCE_ACTION . '|visitor', 'nonce'), -12, 10);
+    }
+
+    /**
      * Return a fresh nonce for form submission.
      * This solves cached pages where inline nonces expire.
      */
     public static function NonceCallback()
     {
-        return rest_ensure_response(array(
-            'nonce' => wp_create_nonce(self::NONCE_ACTION),
+        // A nonce is per user and per tick: page caches must not store this response
+        GutenbergCacheUtil::MarkAsUncacheable();
+        $response = rest_ensure_response(array(
+            'nonce' => self::CreateSubmitNonce(),
         ));
+        $response->header('Cache-Control', 'no-store, private');
+        return $response;
     }
 
     /**
@@ -364,15 +414,15 @@ class FormController
 
         // Verify nonce
         $nonce = $request->get_header('X-Superb-Form-Nonce');
-        if (!wp_verify_nonce($nonce, self::NONCE_ACTION)) {
+        if (!self::VerifySubmitNonce($nonce)) {
             return new \WP_REST_Response(array(
                 'success' => false,
                 'message' => __('Security verification failed. Please refresh and try again.', 'superb-blocks'),
             ), 403);
         }
 
-        // Rate limiting — fixed 5-minute window per IP
-        $ip_hash = wp_hash(isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '');
+        // Rate limiting — fixed 5-minute window per visitor address (ClientAddressUtil covers proxied sites)
+        $ip_hash = wp_hash(ClientAddressUtil::Get());
         $rate_key = 'spb_form_rate_' . $ip_hash;
         $rate_data = get_transient($rate_key);
         $rate_now = time();
@@ -384,10 +434,12 @@ class FormController
             $rate_expires = $rate_now + 300;
         }
         if ($rate_count >= 10) {
-            return new \WP_REST_Response(array(
+            $limited = new \WP_REST_Response(array(
                 'success' => false,
                 'message' => __('Too many submissions. Please try again later.', 'superb-blocks'),
             ), 429);
+            $limited->header('Retry-After', (string) max(1, $rate_expires - $rate_now));
+            return $limited;
         }
         set_transient(
             $rate_key,
@@ -403,10 +455,21 @@ class FormController
                 'message' => __('Invalid form.', 'superb-blocks'),
             ), 400);
         }
+        // A form accepts submissions once a published or private post shows it. One that so far exists only in
+        // a draft, a scheduled post or the trash renders in previews, where the post's own editors may still
+        // test it, but doesn't take submissions yet.
+        if (!FormRegistry::IsSourceLive($form_id) && !self::CanTestUnpublishedForm($form_id)) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'code' => 'form_not_live',
+                'message' => __('This form is not published yet.', 'superb-blocks'),
+            ), 403);
+        }
         $captcha_type = isset($form_data['captcha_type']) ? $form_data['captcha_type'] : 'honeypot';
 
         // Server-side honeypot + timing validation
         $store_spam = !empty($form_data['store_enabled']) && !empty($form_data['store_spam_enabled']);
+        $spam_form_fields = isset($form_data['form_fields']) && is_array($form_data['form_fields']) ? $form_data['form_fields'] : array();
         if ($captcha_type === 'honeypot') {
             $honeypot_key = isset($form_data['honeypot_key']) ? $form_data['honeypot_key'] : '';
             if (!empty($honeypot_key)) {
@@ -415,7 +478,7 @@ class FormController
                 if ($hp_filled) {
                     FormSubmissionHandler::IncrementSpamCount($form_id);
                     if ($store_spam) {
-                        FormSubmissionHandler::StoreSpam($form_id, $fields, 'honeypot');
+                        FormSubmissionHandler::StoreSpam($form_id, $fields, 'honeypot', $spam_form_fields);
                     }
                     return new \WP_REST_Response(array(
                         'success' => false,
@@ -429,7 +492,7 @@ class FormController
                 if (!ctype_digit($guard_ts)) {
                     FormSubmissionHandler::IncrementSpamCount($form_id);
                     if ($store_spam) {
-                        FormSubmissionHandler::StoreSpam($form_id, $fields, 'bot_detection');
+                        FormSubmissionHandler::StoreSpam($form_id, $fields, 'bot_detection', $spam_form_fields);
                     }
                     return new \WP_REST_Response(array(
                         'success' => false,
@@ -440,7 +503,7 @@ class FormController
                 if ($elapsed < 3) {
                     FormSubmissionHandler::IncrementSpamCount($form_id);
                     if ($store_spam) {
-                        FormSubmissionHandler::StoreSpam($form_id, $fields, 'bot_detection');
+                        FormSubmissionHandler::StoreSpam($form_id, $fields, 'bot_detection', $spam_form_fields);
                     }
                     return new \WP_REST_Response(array(
                         'success' => false,
@@ -452,7 +515,7 @@ class FormController
             if ($field_env === '1') {
                 FormSubmissionHandler::IncrementSpamCount($form_id);
                 if ($store_spam) {
-                    FormSubmissionHandler::StoreSpam($form_id, $fields, 'bot_detection');
+                    FormSubmissionHandler::StoreSpam($form_id, $fields, 'bot_detection', $spam_form_fields);
                 }
                 return new \WP_REST_Response(array(
                     'success' => false,
@@ -466,7 +529,7 @@ class FormController
         if ($captcha_result !== true) {
             FormSubmissionHandler::IncrementSpamCount($form_id);
             if ($store_spam) {
-                FormSubmissionHandler::StoreSpam($form_id, $fields, 'captcha');
+                FormSubmissionHandler::StoreSpam($form_id, $fields, 'captcha', $spam_form_fields);
             }
             return new \WP_REST_Response(array(
                 'success' => false,
@@ -537,6 +600,7 @@ class FormController
 
         // Process file uploads
         $file_data = array();
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- the submit nonce is checked by VerifySubmitNonce() at the start of this callback.
         if (!empty($_FILES['files'])) {
             $file_data = FormFileHandler::ProcessUploads($form_fields);
             // Merge file metadata into sanitized fields for storage
@@ -641,7 +705,9 @@ class FormController
             $per_page = 100;
         }
 
-        $result = FormSubmissionHandler::GetSubmissions($form_id, $page, $per_page, $status, $starred, $search, $date_after, $date_before);
+        // A caller without the sensitive grant searches the values they can see; the stored data is not probed.
+        $can_view_sensitive = FormPermissions::Can('sensitive');
+        $result = FormSubmissionHandler::GetSubmissions($form_id, $page, $per_page, $status, $starred, $search, $date_after, $date_before, null, !$can_view_sensitive);
 
         // Include counts for the stats bar and filter tabs
         if (!empty($form_id)) {
@@ -683,25 +749,29 @@ class FormController
                 $sensitive_fields[] = $field['fieldId'];
             }
         }
-        // Pass 1 (pending_delete only): discover sensitive fields across ALL submissions
-        // by encryption prefix before we decrypt anything. Without this, a submission whose
-        // plaintext predates encryption would leak unmasked while later encrypted rows mask correctly.
-        if ($pending_delete) {
-            foreach ($result['submissions'] as $sub) {
-                if (empty($sub['fields']) || !is_array($sub['fields'])) {
-                    continue;
+        // Pass 1: complete the sensitive list from every record in the page: the record's own form config
+        // (a list without form_id spans forms) and the encryption prefix (a value stored before its field
+        // was flagged, or a form whose config is gone, is masked like the rest).
+        foreach ($result['submissions'] as $sub) {
+            foreach (FormSubmissionHandler::SensitiveFieldIds(isset($sub['form_id']) ? $sub['form_id'] : '') as $sfid) {
+                if (!in_array($sfid, $sensitive_fields, true)) {
+                    $sensitive_fields[] = $sfid;
                 }
-                foreach ($sub['fields'] as $fid => $value) {
-                    if (FormEncryption::IsEncrypted($value) && !in_array($fid, $sensitive_fields, true)) {
-                        $sensitive_fields[] = $fid;
-                    }
+            }
+            if (empty($sub['fields']) || !is_array($sub['fields'])) {
+                continue;
+            }
+            foreach ($sub['fields'] as $fid => $value) {
+                if (FormEncryption::IsEncrypted($value) && !in_array($fid, $sensitive_fields, true)) {
+                    $sensitive_fields[] = $fid;
                 }
             }
         }
-        // Pass 2: decrypt and mask using the complete sensitive_fields list
-        $can_view_sensitive = FormPermissions::Can('sensitive');
+        // Pass 2: decrypt with the record's own form config and mask using the complete sensitive_fields list
         foreach ($result['submissions'] as &$sub) {
-            $sub['fields'] = self::DecryptSubmissionFields($form_fields_config, $sub['fields'], $pending_delete);
+            $record_form_id = isset($sub['form_id']) ? (string) $sub['form_id'] : '';
+            $record_config = ($form_id !== '' && $record_form_id === $form_id) ? $form_fields_config : self::FormFieldsConfig($record_form_id);
+            $sub['fields'] = self::DecryptSubmissionFields($record_config, $sub['fields'], $pending_delete || empty($record_config));
             if (!$can_view_sensitive && !empty($sensitive_fields)) {
                 foreach ($sensitive_fields as $sfid) {
                     if (isset($sub['fields'][$sfid]) && is_string($sub['fields'][$sfid]) && $sub['fields'][$sfid] !== '') {
@@ -763,6 +833,11 @@ class FormController
     }
 
     /**
+     * Seconds before the same email of the same submission can be sent again.
+     */
+    const RESEND_PAUSE_SECONDS = 30;
+
+    /**
      * Resend an email notification for an existing submission.
      */
     public static function ResendEmailCallback($request)
@@ -808,6 +883,25 @@ class FormController
             ), 400);
         }
 
+        // One send per submission and email type within the pause. The key shares the prefix of the submit
+        // rate limit, which "Remove all plugin data" clears.
+        $pause_key = 'spb_form_rate_resend_' . $id . '_' . $type;
+        $seconds_left = intval(get_transient($pause_key)) - time();
+        if ($seconds_left > 0) {
+            $response = new \WP_REST_Response(array(
+                'success' => false,
+                'retry_after' => $seconds_left,
+                'message' => sprintf(
+                    /* translators: %d: number of seconds. */
+                    _n('This email was sent a moment ago. You can send it again in %d second.', 'This email was sent a moment ago. You can send it again in %d seconds.', $seconds_left, 'superb-blocks'),
+                    $seconds_left
+                ),
+            ), 429);
+            $response->header('Retry-After', (string) $seconds_left);
+            return $response;
+        }
+        set_transient($pause_key, time() + self::RESEND_PAUSE_SECONDS, self::RESEND_PAUSE_SECONDS);
+
         $fields = get_post_meta($id, '_spb_form_fields', true);
         if (!is_array($fields)) {
             $fields = array();
@@ -829,6 +923,9 @@ class FormController
                 'email_status' => is_array($email_status) ? $email_status : array(),
             ));
         }
+
+        // An email that could not be sent can be tried again right away
+        delete_transient($pause_key);
 
         return new \WP_REST_Response(array(
             'success' => false,
@@ -937,17 +1034,47 @@ class FormController
             }
         }
 
-        $collected = FormExporter::Collect($form_id, $form_fields, $include_sensitive, $status, $starred, $search, $date_after, $date_before, $pending_delete, $ids);
-        if (empty($collected['submissions'])) {
-            return new \WP_REST_Response(array(
-                'success' => false,
-                'message' => __('No submissions to export.', 'superb-blocks'),
-            ), 404);
+        $estimate_only = isset($request['estimate']) && $request['estimate'] === '1';
+        $filename = FormExporter::ExportFilename($form_id, 'zip');
+
+        if ($pending_delete && empty($form_fields)) {
+            // Without the form's config the columns are known only once every record was read
+            $collected = FormExporter::Collect($form_id, $form_fields, $include_sensitive, $status, $starred, $search, $date_after, $date_before, $pending_delete, $ids);
+            $count = count($collected['submissions']);
+            if ($count === 0) {
+                return self::NoSubmissionsToExport();
+            }
+            $visible_fields = FormExporter::VisibleFields($collected, $include_sensitive, $export_fields);
+            $plan = FormZipExporter::Plan($collected);
+            $csv = FormExporter::BuildCsvString($collected, $visible_fields, $include_notes, $plan['folders']);
+            return self::RespondWithZip($plan, $csv, $count, $filename, $estimate_only);
         }
 
-        $visible_fields = FormExporter::VisibleFields($collected, $include_sensitive, $export_fields);
-        $estimate_only = isset($request['estimate']) && $request['estimate'] === '1';
-        return self::RespondWithZip($collected, $visible_fields, $include_notes, FormExporter::ExportFilename($form_id, 'zip'), $estimate_only);
+        // The archive is planned and the CSV written one page of records at a time, so one page is in memory
+        $meta = FormExporter::FieldMeta($form_fields);
+        $visible_fields = FormExporter::VisibleFields($meta, $include_sensitive, $export_fields);
+        $plan = FormZipExporter::NewPlan();
+        $csv = FormExporter::OpenCsvBuffer();
+        FormExporter::WriteCsvHeader($csv, $meta, $visible_fields, $include_notes, true, true);
+        $count = FormExporter::ForEachPage($form_id, $include_sensitive, $status, $starred, $search, $date_after, $date_before, $ids, function ($submissions) use (&$plan, $csv, $meta, $visible_fields, $include_notes, $include_sensitive, $form_fields) {
+            if ($include_sensitive) {
+                $submissions = FormExporter::DecryptSubmissions($submissions, $form_fields);
+            }
+            FormZipExporter::PlanPage($plan, $submissions, $meta['field_order'], $meta['field_labels']);
+            FormExporter::WriteCsvRows($csv, $visible_fields, $include_notes, $submissions, $plan['folders']);
+        });
+        if ($count === 0) {
+            return self::NoSubmissionsToExport();
+        }
+        return self::RespondWithZip($plan, $csv, $count, $filename, $estimate_only);
+    }
+
+    private static function NoSubmissionsToExport()
+    {
+        return new \WP_REST_Response(array(
+            'success' => false,
+            'message' => __('No submissions to export.', 'superb-blocks'),
+        ), 404);
     }
 
     /**
@@ -988,18 +1115,22 @@ class FormController
         $visible_fields = FormExporter::VisibleFields($collected, false, null);
         $safe_name = sanitize_file_name(FormRegistry::GetName($form_id));
         $filename = ($safe_name !== '' ? $safe_name : 'form') . '-submission-' . $post_id . '.zip';
-        return self::RespondWithZip($collected, $visible_fields, false, $filename, false);
+        $plan = FormZipExporter::Plan($collected);
+        $csv = FormExporter::BuildCsvString($collected, $visible_fields, false, $plan['folders']);
+        return self::RespondWithZip($plan, $csv, 1, $filename, false);
     }
 
     /**
-     * Shared tail of the ZIP routes: plan the archive, enforce the size cap,
-     * answer an estimate request, or stream (which exits).
+     * Shared tail of the ZIP routes: enforce the size cap, answer an estimate request, or stream (which exits).
+     *
+     * @param array           $plan  From FormZipExporter::Plan() or PlanPage().
+     * @param string|resource $csv   The CSV as a string, or the buffer it was written to.
+     * @param int             $count Submissions in the archive.
      */
-    private static function RespondWithZip($collected, $visible_fields, $include_notes, $filename, $estimate_only)
+    private static function RespondWithZip($plan, $csv, $count, $filename, $estimate_only)
     {
-        $plan = FormZipExporter::Plan($collected);
-        $csv = FormExporter::BuildCsvString($collected, $visible_fields, $include_notes, $plan['folders']);
-        $summary = FormZipExporter::Summary($plan, strlen($csv), count($collected['submissions']));
+        $csv_size = is_resource($csv) ? FormZipExporter::StreamSize($csv) : strlen($csv);
+        $summary = FormZipExporter::Summary($plan, $csv_size, $count);
 
         if ($estimate_only) {
             return rest_ensure_response($summary);
@@ -1266,6 +1397,7 @@ class FormController
         $deleted = FormSubmissionHandler::DeleteAllByFormId($form_id);
         FormRegistry::Remove($form_id);
         delete_option(FormRegistry::CONFIG_PREFIX . $form_id);
+        FormSettings::RemoveWebhookSecret($form_id);
 
         return rest_ensure_response(array(
             'success' => true,
@@ -1441,7 +1573,7 @@ class FormController
                     'message' => __('Mailchimp is not enabled for this form.', 'superb-blocks'),
                 ), 400);
             }
-            $result = FormIntegrationHandler::SendToMailchimp($form_data['mailchimp_list_ids'], $email, $fields);
+            $result = FormIntegrationHandler::SendToMailchimp($form_data['mailchimp_list_ids'], $email, $fields, $form_data['form_fields']);
         } elseif ($integration === 'brevo') {
             if (empty($form_data['brevo_enabled']) || empty($form_data['brevo_list_ids'])) {
                 return new \WP_REST_Response(array(
@@ -1449,7 +1581,7 @@ class FormController
                     'message' => __('Brevo is not enabled for this form.', 'superb-blocks'),
                 ), 400);
             }
-            $result = FormIntegrationHandler::SendToBrevo($form_data['brevo_list_ids'], $email, $fields);
+            $result = FormIntegrationHandler::SendToBrevo($form_data['brevo_list_ids'], $email, $fields, $form_data['form_fields']);
         }
 
         // Store integration status meta
@@ -1484,6 +1616,13 @@ class FormController
     public static function GetNotesCallback($request)
     {
         $id = intval($request['id']);
+        $post = get_post($id);
+        if (!$post || $post->post_type !== FormSubmissionCPT::POST_TYPE) {
+            return new \WP_REST_Response(array(
+                'success' => false,
+                'message' => __('Submission not found.', 'superb-blocks'),
+            ), 404);
+        }
         $notes = FormSubmissionHandler::GetNotes($id);
         return rest_ensure_response(array(
             'notes' => $notes,
@@ -1612,6 +1751,18 @@ class FormController
     }
 
     /**
+     * Whether the current user may submit a form visitors can't see yet: they can edit the post that holds it.
+     */
+    private static function CanTestUnpublishedForm($form_id)
+    {
+        $entry = FormRegistry::Get(sanitize_key($form_id));
+        if (!is_array($entry) || empty($entry['source_post_id'])) {
+            return false;
+        }
+        return is_user_logged_in() && current_user_can('edit_post', intval($entry['source_post_id']));
+    }
+
+    /**
      * Read form configuration from server-side storage.
      * The config is stored as an option during save_post (FormRegistry) and block render (EnqueueForm).
      * This ensures all config comes from the database, not from client-supplied data.
@@ -1669,32 +1820,13 @@ class FormController
     }
 
     /**
-     * Find the submission's primary email for integration delivery.
-     * Prefers fields explicitly typed as 'email' in the form config; falls back to
-     * the first string that passes is_email() so legacy forms without typing still work.
+     * The submission's own email address for integration delivery: the first field typed "email" that holds
+     * one. Field typing has been part of every form since the block's first release, so other fields are not
+     * searched.
      */
     private static function FindSubmissionEmail($fields, $form_fields)
     {
-        if (is_array($form_fields)) {
-            foreach ($form_fields as $fc) {
-                if (!isset($fc['fieldType'], $fc['fieldId'])) {
-                    continue;
-                }
-                if ($fc['fieldType'] !== 'email') {
-                    continue;
-                }
-                $fid = $fc['fieldId'];
-                if (isset($fields[$fid]) && is_string($fields[$fid]) && is_email($fields[$fid])) {
-                    return $fields[$fid];
-                }
-            }
-        }
-        foreach ($fields as $value) {
-            if (is_string($value) && is_email($value)) {
-                return $value;
-            }
-        }
-        return '';
+        return FormEmailHandler::FindEmailFieldValue($fields, $form_fields);
     }
 
     /**
@@ -1705,6 +1837,23 @@ class FormController
      * @param bool  $pending_delete Whether the form is pending deletion (config unavailable).
      * @return array The fields array with sensitive values decrypted.
      */
+    /**
+     * Field definitions of a form's stored config (cached per request), empty when the config is gone.
+     */
+    private static function FormFieldsConfig($form_id)
+    {
+        static $cache = array();
+        $form_id = (string) $form_id;
+        if ($form_id === '') {
+            return array();
+        }
+        if (!isset($cache[$form_id])) {
+            $config = FormRegistry::GetConfig($form_id);
+            $cache[$form_id] = (is_array($config) && !empty($config['formFields']) && is_array($config['formFields'])) ? $config['formFields'] : array();
+        }
+        return $cache[$form_id];
+    }
+
     private static function DecryptSubmissionFields($form_fields, $fields, $pending_delete = false)
     {
         if (empty($form_fields) && $pending_delete) {
@@ -1846,7 +1995,8 @@ class FormController
                 $result = FormIntegrationHandler::SendToMailchimp(
                     $form_data['mailchimp_list_ids'],
                     $email,
-                    $fields
+                    $fields,
+                    $form_fields_config
                 );
                 $integration_status['mailchimp'] = array(
                     'sent' => (bool) $result,
@@ -1860,7 +2010,8 @@ class FormController
                 $result = FormIntegrationHandler::SendToBrevo(
                     $form_data['brevo_list_ids'],
                     $email,
-                    $fields
+                    $fields,
+                    $form_fields_config
                 );
                 $integration_status['brevo'] = array(
                     'sent' => (bool) $result,
@@ -1894,7 +2045,7 @@ class FormController
             ), 400);
         }
 
-        $validated_url = wp_http_validate_url($url);
+        $validated_url = FormIntegrationHandler::ValidateOutboundUrl($url);
         if (!$validated_url) {
             return new \WP_REST_Response(array(
                 'success' => false,
@@ -1934,29 +2085,15 @@ class FormController
             ), 500);
         }
 
-        $request_headers = array(
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'SuperbAddons/' . SUPERBADDONS_VERSION,
-        );
-
-        if (!empty($secret)) {
-            $request_headers['X-Superb-Signature'] = 'sha256=' . hash_hmac('sha256', $json, $secret);
-        }
-
-        if (is_array($headers)) {
-            foreach ($headers as $h) {
-                if (!empty($h['key'])) {
-                    $request_headers[sanitize_text_field($h['key'])] = sanitize_text_field(isset($h['value']) ? $h['value'] : '');
-                }
-            }
-        }
+        // Same header rules as a submission's webhook request, so the test shows what a submission will send
+        $request_headers = FormIntegrationHandler::WebhookRequestHeaders($json, $secret, $headers);
 
         $allowed_methods = array('POST', 'PUT', 'PATCH');
         if (!in_array(strtoupper($method), $allowed_methods, true)) {
             $method = 'POST';
         }
 
-        $response = wp_remote_request($url, array(
+        $response = FormIntegrationHandler::Request($url, array(
             'method' => strtoupper($method),
             'headers' => $request_headers,
             'body' => $json,
@@ -2097,7 +2234,7 @@ class FormController
             ), 400);
         }
 
-        $validated_url = wp_http_validate_url($webhook_url);
+        $validated_url = FormIntegrationHandler::ValidateOutboundUrl($webhook_url);
         if (!$validated_url) {
             return new \WP_REST_Response(array(
                 'success' => false,

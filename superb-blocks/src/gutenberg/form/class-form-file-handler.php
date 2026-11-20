@@ -239,8 +239,14 @@ class FormFileHandler
         $required = !empty($field_config['required']);
         $fs = isset($field_config['fileSettings']) && is_array($field_config['fileSettings']) ? $field_config['fileSettings'] : array();
         $max_file_size = isset($fs['maxFileSize']) ? floatval($fs['maxFileSize']) : 5;
+        // The field's limits stay within the site's upload size and the editor's range of 1 to 20 files
+        $site_max_mb = wp_max_upload_size() / MB_IN_BYTES;
+        if ($max_file_size <= 0 || ($site_max_mb > 0 && $max_file_size > $site_max_mb)) {
+            $max_file_size = $site_max_mb > 0 ? $site_max_mb : 5;
+        }
         $multiple = !empty($fs['multiple']);
         $max_files = isset($fs['maxFiles']) ? intval($fs['maxFiles']) : 5;
+        $max_files = max(1, min(20, $max_files));
         // Like the other fileSettings keys above, a missing accept list means
         // the field was left at its block.json defaults (default-valued
         // attributes are omitted from serialized markup), so enforce the
@@ -538,8 +544,9 @@ class FormFileHandler
                 if (!is_array($file) || !isset($file['path'])) {
                     continue;
                 }
-                $path = self::ResolveStoredPath($file['path']);
-                if ($path !== '' && file_exists($path)) {
+                // Only files inside the plugin's upload directory are deleted, whatever the stored path says
+                $path = self::ConfineUploadPath($file['path']);
+                if ($path !== '') {
                     wp_delete_file($path);
                 }
             }
@@ -762,30 +769,29 @@ class FormFileHandler
         $sizes = $_FILES['files']['size'][$field_id];
         // phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-        // Normalize: could be a single file or array of files
+        // Normalize: could be a single file or array of files. Each entry is one file with string name and
+        // tmp_name; nested arrays (a further level of input names) are not files and are left out.
         if (is_array($names)) {
-            for ($i = 0; $i < count($names); $i++) {
-                if (empty($names[$i])) {
+            foreach ($names as $i => $name) {
+                if (!is_string($name) || $name === '' || !isset($tmp_names[$i]) || !is_string($tmp_names[$i])) {
                     continue;
                 }
                 $files[] = array(
-                    'name' => $names[$i],
-                    'type' => $types[$i],
+                    'name' => $name,
+                    'type' => isset($types[$i]) && is_string($types[$i]) ? $types[$i] : '',
                     'tmp_name' => $tmp_names[$i],
-                    'error' => $errors[$i],
-                    'size' => $sizes[$i],
+                    'error' => isset($errors[$i]) ? intval($errors[$i]) : UPLOAD_ERR_NO_FILE,
+                    'size' => isset($sizes[$i]) ? intval($sizes[$i]) : 0,
                 );
             }
-        } else {
-            if (!empty($names)) {
-                $files[] = array(
-                    'name' => $names,
-                    'type' => $types,
-                    'tmp_name' => $tmp_names,
-                    'error' => $errors,
-                    'size' => $sizes,
-                );
-            }
+        } elseif (is_string($names) && $names !== '' && is_string($tmp_names)) {
+            $files[] = array(
+                'name' => $names,
+                'type' => is_string($types) ? $types : '',
+                'tmp_name' => $tmp_names,
+                'error' => intval($errors),
+                'size' => intval($sizes),
+            );
         }
 
         return $files;
@@ -839,10 +845,17 @@ class FormFileHandler
             }
         }
 
-        // Also protect the current year/month subdirectory
+        // Also protect the current year/month subdirectory: create it and give it its own index.php, so a
+        // server that lists directories and ignores the rules above shows nothing there either
         $current_path = $upload_dir['path'];
-        if (strpos($current_path, $base_path) === 0 && !is_dir($current_path)) {
-            wp_mkdir_p($current_path);
+        if (strpos($current_path, $base_path) === 0) {
+            if (!is_dir($current_path)) {
+                wp_mkdir_p($current_path);
+            }
+            $month_index = $current_path . '/index.php';
+            if (!empty($wp_filesystem) && is_dir($current_path) && !file_exists($month_index)) {
+                $wp_filesystem->put_contents($month_index, "<?php\n// Silence is golden.\n", FS_CHMOD_FILE);
+            }
         }
     }
 }

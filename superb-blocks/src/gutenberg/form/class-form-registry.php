@@ -65,6 +65,8 @@ class FormRegistry
         add_action('deleted_post', array(__CLASS__, 'OnDeletedPost'), 10, 1);
         // Before FormAccessControl (priority 10), so access control sees a renamed copy as the new form it is
         add_filter('wp_insert_post_data', array(__CLASS__, 'OnInsertPostData'), 9, 2);
+        // After FormAccessControl (10), which decides what a user may change in a form's settings
+        add_filter('wp_insert_post_data', array(__CLASS__, 'OnInsertPostDataSecrets'), 11, 2);
         add_filter('wp_insert_post_data', array(__CLASS__, 'OnInsertPostDataLate'), PHP_INT_MAX, 2);
         // PublishPress Revisions writes an approved revision to the post without the save hooks by default
         add_action('revisionary_revision_published', array(__CLASS__, 'OnRevisionPublished'), 10, 1);
@@ -156,6 +158,74 @@ class FormRegistry
         $data['post_content'] = wp_slash($renamed);
 
         return $data;
+    }
+
+    /**
+     * Filter: wp_insert_post_data, after FormAccessControl — a webhookSecret block attribute (how versions before
+     * the encrypted storage kept the secret) is moved to that storage and taken out of the content, so the secret
+     * is not kept in the post or its revisions and a later save does not write an old value over a rotated one.
+     */
+    public static function OnInsertPostDataSecrets($data, $postarr)
+    {
+        $post_type = isset($data['post_type']) ? $data['post_type'] : '';
+        if (!in_array($post_type, self::$supported_post_types, true) || !isset($data['post_content'])) {
+            return $data;
+        }
+        // Slashed data, as in OnInsertPostData
+        $content = wp_unslash($data['post_content']);
+        if (strpos($content, 'webhookSecret') === false || !self::MentionsForm($content)) {
+            return $data;
+        }
+        $stripped = self::StripWebhookSecrets($content, true);
+        if ($stripped !== $content) {
+            $data['post_content'] = wp_slash($stripped);
+        }
+        return $data;
+    }
+
+    /**
+     * Take the webhookSecret attribute out of every form block delimiter in a piece of content. With $store, a
+     * non-empty value is first stored as the form's webhook secret (FormSettings::SetWebhookSecret).
+     *
+     * @return string The content, unchanged when no delimiter carries the attribute.
+     */
+    public static function StripWebhookSecrets($content, $store)
+    {
+        // Block delimiters, as WP_Block_Parser reads them (see RenameForm)
+        $pattern = '/<!--\s+(?P<closer>\/)?wp:(?P<namespace>[a-z][a-z0-9_-]*\/)?(?P<name>[a-z][a-z0-9_-]*)\s+(?P<attrs>{(?:(?:[^}]+|}+(?=})|(?!}\s+\/?-->).)*+)?}\s+)?(?P<void>\/)?-->/s';
+        if (!preg_match_all($pattern, $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+            return $content;
+        }
+        $edits = array();
+        foreach ($matches as $match) {
+            if ((isset($match['closer'][0]) && $match['closer'][0] === '/') || !isset($match['attrs'][1]) || $match['attrs'][1] < 0) {
+                continue;
+            }
+            $name = (isset($match['namespace'][0]) && $match['namespace'][0] !== '' ? $match['namespace'][0] : 'core/') . $match['name'][0];
+            if ($name !== self::BLOCK_NAME && $name !== self::MULTISTEP_BLOCK_NAME) {
+                continue;
+            }
+            $json = $match['attrs'][0];
+            $attrs = json_decode(trim($json), true);
+            if (!is_array($attrs) || !array_key_exists('webhookSecret', $attrs)) {
+                continue;
+            }
+            $secret = $attrs['webhookSecret'];
+            unset($attrs['webhookSecret']);
+            $form_id = self::GetBlockFormId(array('blockName' => $name, 'attrs' => $attrs));
+            if ($store && is_string($secret) && $secret !== '' && $form_id !== '') {
+                FormSettings::SetWebhookSecret($form_id, $secret);
+            }
+            $edits[] = array($match['attrs'][1], strlen($json), empty($attrs) ? '' : serialize_block_attributes($attrs) . ' ');
+        }
+        // Splice from the end, so earlier offsets stay valid
+        usort($edits, function ($a, $b) {
+            return $b[0] - $a[0];
+        });
+        foreach ($edits as $edit) {
+            $content = substr_replace($content, $edit[2], $edit[0], $edit[1]);
+        }
+        return $content;
     }
 
     /**
@@ -461,6 +531,8 @@ class FormRegistry
                     $registry[$fid] = self::BuildPendingEntry($registry[$fid], $post);
                 } else {
                     unset($registry[$fid]);
+                    // A removed form's webhook secret goes with it; a pending form keeps its secret until it is removed
+                    FormSettings::RemoveWebhookSecret($fid);
                 }
                 $changed = true;
                 // Delete the stored config for removed forms
@@ -555,13 +627,18 @@ class FormRegistry
     }
 
     /**
-     * A form block's config: its attributes plus its fields, without a webhook secret.
+     * A form block's config: its registered attributes plus its fields, without a webhook secret.
      */
     private static function BuildConfig($block)
     {
         $attrs = isset($block['attrs']) && is_array($block['attrs']) ? $block['attrs'] : array();
+        $block_type = isset($block['blockName']) ? \WP_Block_Type_Registry::get_instance()->get_registered($block['blockName']) : null;
+        if ($block_type && is_array($block_type->attributes)) {
+            $attrs = array_intersect_key($attrs, $block_type->attributes);
+        }
         $is_multistep = isset($block['blockName']) && $block['blockName'] === self::MULTISTEP_BLOCK_NAME;
-        $attrs['formFields'] = self::ExtractFieldBlocks($block, $is_multistep);
+        $fields = self::ExtractFieldBlocks($block, $is_multistep);
+        $attrs['formFields'] = is_array($fields) ? array_slice($fields, 0, 300) : array();
         unset($attrs['webhookSecret']);
         return $attrs;
     }
@@ -780,6 +857,7 @@ class FormRegistry
                 } else {
                     unset($registry[$fid]);
                     delete_option(self::CONFIG_PREFIX . sanitize_key($fid));
+                    FormSettings::RemoveWebhookSecret($fid);
                 }
                 $changed = true;
             }
@@ -840,7 +918,34 @@ class FormRegistry
             unset($registry[$form_id]);
             update_option(self::OPTION_KEY, $registry, false);
             delete_option(self::CONFIG_PREFIX . sanitize_key($form_id));
+            FormSettings::RemoveWebhookSecret($form_id);
         }
+    }
+
+    /**
+     * Whether visitors see a post that shows the form: its registered source is published or private, or,
+     * failing that (a form the registry lists on a draft, or doesn't list), some published or private post
+     * holds it. GetConfig's FollowLiveHolder has already moved a form with a live page to that page.
+     */
+    public static function IsSourceLive($form_id)
+    {
+        $form_id = sanitize_key($form_id);
+        if ($form_id === '') {
+            return false;
+        }
+        $entry = self::Get($form_id);
+        if (is_array($entry) && empty($entry['pending_delete']) && !empty($entry['source_post_id'])) {
+            $source = get_post(intval($entry['source_post_id']));
+            if ($source && self::StatusRank($source->post_status) === 2 && self::PostContainsForm($form_id, $source)) {
+                return true;
+            }
+        }
+        foreach (self::FindPostsHoldingForm($form_id, self::$live_statuses) as $holder) {
+            if (self::PostContainsForm($form_id, $holder)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1081,6 +1186,42 @@ class FormRegistry
             'live' => $live_ids,
         ));
         return $form_id;
+    }
+
+    /**
+     * Data migration step (MigrationController::MIGRATIONS): one stored content per step that still carries a
+     * webhookSecret attribute, posts and their revisions alike. A post's value is moved to the encrypted storage;
+     * a revision's value is history and is only taken out. Returns the post ID as the cursor, true when none is
+     * left. The content is rewritten in place: no new revision, no save hooks.
+     */
+    public static function StripWebhookSecretStep($cursor)
+    {
+        global $wpdb;
+        $after = $cursor === null ? 0 : intval($cursor);
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- A one-time scan for a serialized attribute; no API queries content by substring.
+        $post_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE ID > %d AND post_content LIKE %s ORDER BY ID ASC LIMIT 1", $after, '%' . $wpdb->esc_like('"webhookSecret":') . '%'));
+        if (!$post_id) {
+            return true;
+        }
+        $post_id = intval($post_id);
+        $post = get_post($post_id);
+        if (!$post) {
+            return $post_id;
+        }
+        $is_revision = $post->post_type === 'revision';
+        $held_type = $is_revision ? get_post_type($post->post_parent) : $post->post_type;
+        if (!in_array($held_type, self::$supported_post_types, true)) {
+            MigrationController::Note('skipped');
+            return $post_id;
+        }
+        $stripped = self::StripWebhookSecrets($post->post_content, !$is_revision);
+        if ($stripped !== $post->post_content) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Rewrites one stored content without a new revision or save hooks; the cache is cleared below.
+            $wpdb->update($wpdb->posts, array('post_content' => $stripped), array('ID' => $post_id));
+            clean_post_cache($post_id);
+            MigrationController::Note($is_revision ? 'revision_cleaned' : 'moved_to_storage', array('post' => $post_id));
+        }
+        return $post_id;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace SuperbAddons\CSSTidy;
 // Added namespace and moved defines to class consts
+// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged -- bundled CSSTidy library, kept as close to its upstream source as possible.
 
 defined('ABSPATH') || exit();
 
